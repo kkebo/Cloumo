@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		29218B301955A79D00E33CC5 /* !cons.bat */ = {isa = PBXFileReference; lastKnownFileType = text; path = "!cons.bat"; sourceTree = "<group>"; };
+		29163A0F1955E09600D09C58 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 		29218B311955A79D00E33CC5 /* alloca.asm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm.asm; path = alloca.asm; sourceTree = "<group>"; };
 		29218B321955A79D00E33CC5 /* asmhead.asm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm.asm; path = asmhead.asm; sourceTree = "<group>"; };
 		29218B331955A79D00E33CC5 /* asmhead.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = asmhead.h; sourceTree = "<group>"; };
@@ -22,8 +22,6 @@
 		29218B3C1955A79D00E33CC5 /* descriptor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = descriptor.h; sourceTree = "<group>"; };
 		29218B3D1955A79D00E33CC5 /* file.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = file.cpp; sourceTree = "<group>"; };
 		29218B3E1955A79D00E33CC5 /* file.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = file.h; sourceTree = "<group>"; };
-		29218B3F1955A79D00E33CC5 /* file_old.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = file_old.cpp; sourceTree = "<group>"; };
-		29218B401955A79D00E33CC5 /* file_old.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = file_old.h; sourceTree = "<group>"; };
 		29218B411955A79D00E33CC5 /* functions.asm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm.asm; path = functions.asm; sourceTree = "<group>"; };
 		29218B421955A79D00E33CC5 /* functions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = functions.h; sourceTree = "<group>"; };
 		29218B431955A79D00E33CC5 /* graphic.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = graphic.cpp; sourceTree = "<group>"; };
@@ -38,16 +36,13 @@
 		29218B4C1955A79D00E33CC5 /* keyboard.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = keyboard.cpp; sourceTree = "<group>"; };
 		29218B4D1955A79D00E33CC5 /* keyboard.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = keyboard.h; sourceTree = "<group>"; };
 		29218B4E1955A79D00E33CC5 /* language.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = language.h; sourceTree = "<group>"; };
-		29218B4F1955A79D00E33CC5 /* make.bat */ = {isa = PBXFileReference; lastKnownFileType = text; path = make.bat; sourceTree = "<group>"; };
 		29218B501955A79D00E33CC5 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
-		29218B511955A79D00E33CC5 /* Makefile_win */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile_win; sourceTree = "<group>"; };
 		29218B521955A79D00E33CC5 /* memory.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = memory.cpp; sourceTree = "<group>"; };
 		29218B531955A79D00E33CC5 /* memory.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = memory.h; sourceTree = "<group>"; };
 		29218B541955A79D00E33CC5 /* mouse.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = mouse.cpp; sourceTree = "<group>"; };
 		29218B551955A79D00E33CC5 /* mouse.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mouse.h; sourceTree = "<group>"; };
 		29218B561955A79D00E33CC5 /* multitask.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = multitask.cpp; sourceTree = "<group>"; };
 		29218B571955A79D00E33CC5 /* multitask.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = multitask.h; sourceTree = "<group>"; };
-		29218B581955A79D00E33CC5 /* obj2hrb.ld */ = {isa = PBXFileReference; lastKnownFileType = text; path = obj2hrb.ld; sourceTree = "<group>"; };
 		29218B591955A79D00E33CC5 /* queue.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = queue.cpp; sourceTree = "<group>"; };
 		29218B5A1955A79D00E33CC5 /* queue.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = queue.h; sourceTree = "<group>"; };
 		29218B5B1955A79D00E33CC5 /* sound.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = sound.cpp; sourceTree = "<group>"; };
@@ -58,12 +53,33 @@
 		29218B601955A79D00E33CC5 /* timer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = timer.h; sourceTree = "<group>"; };
 		29218B611955A79D00E33CC5 /* utf82kt.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = utf82kt.cpp; sourceTree = "<group>"; };
 		29218B621955A79D00E33CC5 /* utf82kt.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = utf82kt.h; sourceTree = "<group>"; };
+		29D0FE671955F3B2001BA67F /* index.htm */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = index.htm; sourceTree = "<group>"; };
+		29D0FE681955F3B2001BA67F /* index_.htm */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = index_.htm; sourceTree = "<group>"; };
+		29D0FE691955F3B2001BA67F /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
+		29D0FE6D1955F3B2001BA67F /* b_f.bmp */ = {isa = PBXFileReference; lastKnownFileType = image.bmp; path = b_f.bmp; sourceTree = "<group>"; };
+		29D0FE6E1955F3B2001BA67F /* b_f_.bmp */ = {isa = PBXFileReference; lastKnownFileType = image.bmp; path = b_f_.bmp; sourceTree = "<group>"; };
+		29D0FE6F1955F3B2001BA67F /* btn_r.bmp */ = {isa = PBXFileReference; lastKnownFileType = image.bmp; path = btn_r.bmp; sourceTree = "<group>"; };
+		29D0FE701955F3B2001BA67F /* btn_r_.bmp */ = {isa = PBXFileReference; lastKnownFileType = image.bmp; path = btn_r_.bmp; sourceTree = "<group>"; };
+		29D0FE711955F3B2001BA67F /* copy.bmp */ = {isa = PBXFileReference; lastKnownFileType = image.bmp; path = copy.bmp; sourceTree = "<group>"; };
+		29D0FE721955F3B2001BA67F /* copy_.bmp */ = {isa = PBXFileReference; lastKnownFileType = image.bmp; path = copy_.bmp; sourceTree = "<group>"; };
+		29D0FE741955F3B2001BA67F /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
+		29D0FE761955F3B2001BA67F /* refresh.bmp */ = {isa = PBXFileReference; lastKnownFileType = image.bmp; path = refresh.bmp; sourceTree = "<group>"; };
+		29D0FE771955F3B2001BA67F /* refresh_.bmp */ = {isa = PBXFileReference; lastKnownFileType = image.bmp; path = refresh_.bmp; sourceTree = "<group>"; };
+		29D0FE781955F3B2001BA67F /* search.bmp */ = {isa = PBXFileReference; lastKnownFileType = image.bmp; path = search.bmp; sourceTree = "<group>"; };
+		29D0FE791955F3B2001BA67F /* search_.bmp */ = {isa = PBXFileReference; lastKnownFileType = image.bmp; path = search_.bmp; sourceTree = "<group>"; };
+		29D0FE7A1955F3B2001BA67F /* source.bmp */ = {isa = PBXFileReference; lastKnownFileType = image.bmp; path = source.bmp; sourceTree = "<group>"; };
+		29D0FE7B1955F3B2001BA67F /* source_.bmp */ = {isa = PBXFileReference; lastKnownFileType = image.bmp; path = source_.bmp; sourceTree = "<group>"; };
+		29D0FE7E1955F6E6001BA67F /* japanese.fnt */ = {isa = PBXFileReference; lastKnownFileType = file; path = japanese.fnt; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
 		29218B241955A71A00E33CC5 = {
 			isa = PBXGroup;
 			children = (
+				29163A0F1955E09600D09C58 /* Makefile */,
+				29D0FE661955F3B2001BA67F /* html */,
+				29D0FE6B1955F3B2001BA67F /* images */,
+				29D0FE7D1955F6E6001BA67F /* fonts */,
 				29218B2F1955A79D00E33CC5 /* system */,
 			);
 			sourceTree = "<group>";
@@ -71,7 +87,6 @@
 		29218B2F1955A79D00E33CC5 /* system */ = {
 			isa = PBXGroup;
 			children = (
-				29218B301955A79D00E33CC5 /* !cons.bat */,
 				29218B311955A79D00E33CC5 /* alloca.asm */,
 				29218B321955A79D00E33CC5 /* asmhead.asm */,
 				29218B331955A79D00E33CC5 /* asmhead.h */,
@@ -86,8 +101,6 @@
 				29218B3C1955A79D00E33CC5 /* descriptor.h */,
 				29218B3D1955A79D00E33CC5 /* file.cpp */,
 				29218B3E1955A79D00E33CC5 /* file.h */,
-				29218B3F1955A79D00E33CC5 /* file_old.cpp */,
-				29218B401955A79D00E33CC5 /* file_old.h */,
 				29218B411955A79D00E33CC5 /* functions.asm */,
 				29218B421955A79D00E33CC5 /* functions.h */,
 				29218B431955A79D00E33CC5 /* graphic.cpp */,
@@ -102,16 +115,13 @@
 				29218B4C1955A79D00E33CC5 /* keyboard.cpp */,
 				29218B4D1955A79D00E33CC5 /* keyboard.h */,
 				29218B4E1955A79D00E33CC5 /* language.h */,
-				29218B4F1955A79D00E33CC5 /* make.bat */,
 				29218B501955A79D00E33CC5 /* Makefile */,
-				29218B511955A79D00E33CC5 /* Makefile_win */,
 				29218B521955A79D00E33CC5 /* memory.cpp */,
 				29218B531955A79D00E33CC5 /* memory.h */,
 				29218B541955A79D00E33CC5 /* mouse.cpp */,
 				29218B551955A79D00E33CC5 /* mouse.h */,
 				29218B561955A79D00E33CC5 /* multitask.cpp */,
 				29218B571955A79D00E33CC5 /* multitask.h */,
-				29218B581955A79D00E33CC5 /* obj2hrb.ld */,
 				29218B591955A79D00E33CC5 /* queue.cpp */,
 				29218B5A1955A79D00E33CC5 /* queue.h */,
 				29218B5B1955A79D00E33CC5 /* sound.cpp */,
@@ -124,6 +134,44 @@
 				29218B621955A79D00E33CC5 /* utf82kt.h */,
 			);
 			path = system;
+			sourceTree = "<group>";
+		};
+		29D0FE661955F3B2001BA67F /* html */ = {
+			isa = PBXGroup;
+			children = (
+				29D0FE671955F3B2001BA67F /* index.htm */,
+				29D0FE681955F3B2001BA67F /* index_.htm */,
+				29D0FE691955F3B2001BA67F /* Makefile */,
+			);
+			path = html;
+			sourceTree = "<group>";
+		};
+		29D0FE6B1955F3B2001BA67F /* images */ = {
+			isa = PBXGroup;
+			children = (
+				29D0FE6D1955F3B2001BA67F /* b_f.bmp */,
+				29D0FE6E1955F3B2001BA67F /* b_f_.bmp */,
+				29D0FE6F1955F3B2001BA67F /* btn_r.bmp */,
+				29D0FE701955F3B2001BA67F /* btn_r_.bmp */,
+				29D0FE711955F3B2001BA67F /* copy.bmp */,
+				29D0FE721955F3B2001BA67F /* copy_.bmp */,
+				29D0FE741955F3B2001BA67F /* Makefile */,
+				29D0FE761955F3B2001BA67F /* refresh.bmp */,
+				29D0FE771955F3B2001BA67F /* refresh_.bmp */,
+				29D0FE781955F3B2001BA67F /* search.bmp */,
+				29D0FE791955F3B2001BA67F /* search_.bmp */,
+				29D0FE7A1955F3B2001BA67F /* source.bmp */,
+				29D0FE7B1955F3B2001BA67F /* source_.bmp */,
+			);
+			path = images;
+			sourceTree = "<group>";
+		};
+		29D0FE7D1955F6E6001BA67F /* fonts */ = {
+			isa = PBXGroup;
+			children = (
+				29D0FE7E1955F6E6001BA67F /* japanese.fnt */,
+			);
+			path = fonts;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -287,6 +335,7 @@
 				29218B2E1955A71A00E33CC5 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
