@@ -32,6 +32,9 @@ tbl2:
 tbl3:	jmp		_loop
 tbl4:
 
+; MacBook Air 11-inch での開発用
+		jmp		scrn640_16
+
 ; 1280x1024 32bit
 		mov		cx,0x11B
 		mov		ax,0x4f01
@@ -40,7 +43,12 @@ tbl4:
 		jne		scrn1024_32
 
 		cmp		byte [es:di+0x19],32
+		jne		scrn1280_24			; try 24-bit
+		jmp		scrn1280_32.next	; ok
+scrn1280_24:
+		cmp		byte [es:di+0x19],24
 		jne		scrn1024_32
+scrn1280_32.next:
 		cmp		byte [es:di+0x1b],6
 		jne		scrn1024_32
 		mov		ax,[es:di+0x00]
@@ -61,7 +69,12 @@ scrn1024_32:
 		jne		scrn800_32
 
 		cmp		byte [es:di+0x19],32
+		jne		scrn1024_24			; try 24-bit
+		jmp		scrn1024_32.next	; ok
+scrn1024_24:
+		cmp		byte [es:di+0x19],24
 		jne		scrn800_32
+scrn1024_32.next:
 		cmp		byte [es:di+0x1b],6
 		jne		scrn800_32
 		mov		ax,[es:di+0x00]
@@ -82,7 +95,12 @@ scrn800_32:
 		jne		scrn640_32
 
 		cmp		byte [es:di+0x19],32
+		jne		scrn800_24			; try 24-bit
+		jmp		scrn800_32.next		; ok
+scrn800_24:
+		cmp		byte [es:di+0x19],24
 		jne		scrn640_32
+scrn800_32.next:
 		cmp		byte [es:di+0x1b],6
 		jne		scrn640_32
 		mov		ax,[es:di+0x00]
@@ -103,7 +121,12 @@ scrn640_32:
 		jne		scrn1280_16
 
 		cmp		byte [es:di+0x19],32
+		jne		scrn640_24			; try 24-bit
+		jmp		scrn640_32.next		; ok
+scrn640_24:
+		cmp		byte [es:di+0x19],24
 		jne		scrn1280_16
+scrn640_32.next:
 		cmp		byte [es:di+0x1b],6
 		jne		scrn1280_16
 		mov		ax,[es:di+0x00]

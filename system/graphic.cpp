@@ -60,10 +60,11 @@ void SheetCtl::init() {
 	/* 右クリックメニュー */
 	context_menu_ = alloc(150, 150, true);
 	fillRect(context_menu_, kTransColor, 0, 0, context_menu_->bxsize, context_menu_->bysize);
-	gradCircle(context_menu_, Rgb(200, 230, 255, 50), Rgb(100, 150, 255), 0, 0, 150);
-	drawCircle(context_menu_, Rgb(0, 0, 255, 50), 0, 0, 150);
+	//gradCircle(context_menu_, Rgb(200, 230, 255, 50), Rgb(100, 150, 255), 0, 0, 150);
+	fillCircle(context_menu_, 0x19e0e0e0, 0, 0, 150);
+	//drawCircle(context_menu_, Rgb(0, 0, 255, 50), 0, 0, 150);
 	fillCircle(context_menu_, kTransColor, 40, 40, 70);
-	drawCircle(context_menu_, Rgb(0, 0, 255, 50), 40, 40, 70);
+	//drawCircle(context_menu_, Rgb(0, 0, 255, 50), 40, 40, 70);
 	drawPicture(context_menu_, context_menu_->bxsize / 2 - 16, 3, "copy.bmp", Rgb(255, 0, 255));
 	drawPicture(context_menu_, context_menu_->bxsize / 2 + 38, context_menu_->bysize / 2 - 16, "source.bmp", Rgb(255, 0, 255));
 	drawPicture(context_menu_, context_menu_->bxsize / 2 - 16, context_menu_->bysize - 32 - 3, "search.bmp", Rgb(255, 0, 255));
