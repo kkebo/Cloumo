@@ -132,6 +132,14 @@ void Mouse::Main() {
 				if (btn_ & 0x01) {	// Â∑¶„ÇØ„É™„É?ÇØ
 					if (SheetCtl::context_menu_->height > 0) {
 						SheetCtl::upDown(SheetCtl::context_menu_, -1);
+					} else if (2 <= Mouse::x_ && Mouse::x_ < SheetCtl::back_->bxsize) {
+						if (35 <= Mouse::y_ && Mouse::y_ < 33 + 16 + 8) {
+							SheetCtl::upDown(SheetCtl::window_[1], -1);
+							SheetCtl::upDown(SheetCtl::window_[0], 1);
+						} else if (33 + 16 + 8 + 1 <= Mouse::y_ && Mouse::y_ < 31 + 16 + 8 + 1 + 16 + 8) {
+							SheetCtl::upDown(SheetCtl::window_[0], -1);
+							SheetCtl::upDown(SheetCtl::window_[1], 1);
+						}
 					}
 				} else if (btn_ & 0x02) {	// Âè≥„ÇØ„É™„É?ÇØ
 					SheetCtl::slide(SheetCtl::context_menu_, x_ - SheetCtl::context_menu_->bxsize / 2, y_ - SheetCtl::context_menu_->bysize / 2);

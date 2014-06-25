@@ -45,16 +45,26 @@ void SheetCtl::init() {
 	// タブ
 	drawString(back_, 6, 39, 0, "index.htm");
 	colorChange(back_, 2, 35, back_->bxsize, 33 + 16 + 8, Rgb(0, 84, 255), Rgb(255, 255, 255));
+	drawString(back_, 6, 33 + 16 + 8 + 1 + 4, 0, "system info");
+	colorChange(back_, 2, 33 + 16 + 8 + 1, back_->bxsize, 31 + 16 + 8 + 1 + 16 + 8, Rgb(0, 84, 255), Rgb(255, 255, 255));
 	// 検索窓
 	fillRect(back_, Rgb(255, 255, 255), 2, back_->bysize - 20 - 22, back_->bxsize - 2, back_->bysize - 20);
 	// 表示設定
 	upDown(back_, 0);
 
-	/* ホームページ */
+	// index.htm tab page
 	window_[0] = alloc(scrnx_ - back_->bxsize, scrny_, false);
 	drawRect(window_[0], 0, 0, 0, window_[0]->bxsize, window_[0]->bysize);
 	fillRect(window_[0], Rgb(255, 255, 255), 1, 1, window_[0]->bxsize - 1, window_[0]->bysize - 1);
 	slide(window_[0], back_->bxsize, 0);
+	
+	// system info tab page
+	window_[1] = alloc(scrnx_ - back_->bxsize, scrny_, false);
+	drawRect(window_[1], 0, 0, 0, window_[1]->bxsize, window_[1]->bysize);
+	fillRect(window_[1], Rgb(255, 255, 255), 1, 1, window_[1]->bxsize - 1, window_[1]->bysize - 1);
+	slide(window_[1], back_->bxsize, 0);
+	
+	// index.htm タブを全面へ
 	upDown(window_[0], 1);
 
 	/* 右クリックメニュー */
