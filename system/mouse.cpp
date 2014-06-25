@@ -134,9 +134,19 @@ void Mouse::Main() {
 						SheetCtl::upDown(SheetCtl::context_menu_, -1);
 					} else if (2 <= Mouse::x_ && Mouse::x_ < SheetCtl::back_->bxsize) {
 						if (35 <= Mouse::y_ && Mouse::y_ < 33 + 16 + 8) {
+							SheetCtl::colorChange(SheetCtl::back_, 2, 35, SheetCtl::back_->bxsize, 33 + 16 + 8, Rgb(127, 169, 255), Rgb(255, 255, 255));
+							SheetCtl::colorChange(SheetCtl::back_, 2, 35, SheetCtl::back_->bxsize, 33 + 16 + 8, Rgb(0, 42, 127), 0);
+							SheetCtl::colorChange(SheetCtl::back_, 2, 33 + 16 + 8 + 1, SheetCtl::back_->bxsize, 31 + 16 + 8 + 1 + 16 + 8, Rgb(255, 255, 255), Rgb(127, 169, 255));
+							SheetCtl::colorChange(SheetCtl::back_, 2, 33 + 16 + 8 + 1, SheetCtl::back_->bxsize, 31 + 16 + 8 + 1 + 16 + 8, 0, Rgb(0, 42, 127));
+							SheetCtl::refresh(SheetCtl::back_, 2, 35, SheetCtl::back_->bxsize, 31 + 16 + 8 + 1 + 16 + 8);
 							SheetCtl::upDown(SheetCtl::window_[1], -1);
 							SheetCtl::upDown(SheetCtl::window_[0], 1);
 						} else if (33 + 16 + 8 + 1 <= Mouse::y_ && Mouse::y_ < 31 + 16 + 8 + 1 + 16 + 8) {
+							SheetCtl::colorChange(SheetCtl::back_, 2, 35, SheetCtl::back_->bxsize, 33 + 16 + 8, Rgb(255, 255, 255), Rgb(127, 169, 255));
+							SheetCtl::colorChange(SheetCtl::back_, 2, 35, SheetCtl::back_->bxsize, 33 + 16 + 8, 0, Rgb(0, 42, 127));
+							SheetCtl::colorChange(SheetCtl::back_, 2, 33 + 16 + 8 + 1, SheetCtl::back_->bxsize, 31 + 16 + 8 + 1 + 16 + 8, Rgb(127, 169, 255), Rgb(255, 255, 255));
+							SheetCtl::colorChange(SheetCtl::back_, 2, 33 + 16 + 8 + 1, SheetCtl::back_->bxsize, 31 + 16 + 8 + 1 + 16 + 8, Rgb(0, 42, 127), 0);
+							SheetCtl::refresh(SheetCtl::back_, 2, 35, SheetCtl::back_->bxsize, 31 + 16 + 8 + 1 + 16 + 8);
 							SheetCtl::upDown(SheetCtl::window_[0], -1);
 							SheetCtl::upDown(SheetCtl::window_[1], 1);
 						}

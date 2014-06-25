@@ -45,8 +45,8 @@ void SheetCtl::init() {
 	// タブ
 	drawString(back_, 6, 39, 0, "index.htm");
 	colorChange(back_, 2, 35, back_->bxsize, 33 + 16 + 8, Rgb(0, 84, 255), Rgb(255, 255, 255));
-	drawString(back_, 6, 33 + 16 + 8 + 1 + 4, 0, "system info");
-	colorChange(back_, 2, 33 + 16 + 8 + 1, back_->bxsize, 31 + 16 + 8 + 1 + 16 + 8, Rgb(0, 84, 255), Rgb(255, 255, 255));
+	drawString(back_, 6, 33 + 16 + 8 + 1 + 4, Rgb(0, 42, 127), "system info");
+	colorChange(back_, 2, 33 + 16 + 8 + 1, back_->bxsize, 31 + 16 + 8 + 1 + 16 + 8, Rgb(0, 84, 255), Rgb(127, 169, 255));
 	// 検索窓
 	fillRect(back_, Rgb(255, 255, 255), 2, back_->bysize - 20 - 22, back_->bxsize - 2, back_->bysize - 20);
 	// 表示設定
