@@ -1,0 +1,7 @@
+.DS_Store
+*.o
+*.map
+*.bin
+os.sys
+cloumo.img
+golibc.a

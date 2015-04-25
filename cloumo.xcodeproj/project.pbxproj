@@ -15,6 +15,7 @@
 		29016C8F1AEB509800A10693 /* images */ = {isa = PBXFileReference; lastKnownFileType = folder; path = images; sourceTree = "<group>"; };
 		29016C901AEB509800A10693 /* html */ = {isa = PBXFileReference; lastKnownFileType = folder; path = html; sourceTree = "<group>"; };
 		29016C911AEB509800A10693 /* fonts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = fonts; sourceTree = "<group>"; };
+		29016C921AEB78E400A10693 /* .gitignore */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		29163A0F1955E09600D09C58 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -22,6 +23,7 @@
 		29218B241955A71A00E33CC5 = {
 			isa = PBXGroup;
 			children = (
+				29016C921AEB78E400A10693 /* .gitignore */,
 				29163A0F1955E09600D09C58 /* Makefile */,
 				29016C8C1AEB507700A10693 /* headers.h */,
 				29016C8D1AEB507700A10693 /* main.ls */,
