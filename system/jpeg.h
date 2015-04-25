@@ -10,8 +10,8 @@ struct RGB {
 };
 
 extern "C" {
-	int info_JPEG(DLL_STRPICENV *, int *, int, unsigned char *);
-	int decode0_JPEG(DLL_STRPICENV *, int, unsigned char *, int, unsigned char *, int);
+	int _info_JPEG(DLL_STRPICENV *, int *, int, unsigned char *);
+	int _decode0_JPEG(DLL_STRPICENV *, int, unsigned char *, int, unsigned char *, int);
 }
 
 #endif

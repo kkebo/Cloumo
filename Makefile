@@ -1,31 +1,70 @@
+OBJS = \
+	system/bootpack.o \
+	system/int.o \
+	system/descriptor.o \
+	system/memory.o \
+	system/browser.o \
+	system/queue.o \
+	system/multitask.o \
+	system/timer.o \
+	system/datetime.o \
+	system/graphic.o \
+	system/tek.o \
+	system/utf82kt.o \
+	system/sysinfo.o \
+	system/asmfunc.o \
+	system/alloca.o \
+	driver/file.o \
+	driver/keyboard.o \
+	driver/mouse.o \
+	driver/sound.o
+
+GOLIBC = golibc/golibc.a
+
 ifeq ($(OS),Windows_NT)
+# Windows
 	TOOLPATH = ../z_tools_win/
-	INCLUDE = ../z_tools_win/include/
+	INCPATH  = $(TOOLPATH)include/
 	MAKE     = $(TOOLPATH)make.exe -r
+	LD       =
 	EDIMG    = $(TOOLPATH)edimg.exe
+	QEMU     = $(TOOLPATH)qemu/qemu.exe -std-vga
 	DEL      = -del
-	qemu     = $(TOOLPATH)qemu/qemu.exe -std-vga
+	os.sys   = copy /B system/asmhead.bin+bootpack.bin os.sys
 else
+# OS X
 	TOOLPATH = ../z_tools/
-	INCLUDE = ../z_tools/include/
+	INCPATH  = $(TOOLPATH)include/
 	MAKE     = make -r
+	LD       = i686-elf-ld
 	EDIMG    = $(TOOLPATH)edimg
-        DEL      = rm -f
-	qemu     = /usr/local/bin/qemu-system-x86_64 -vga std
+	QEMU     = qemu-system-x86_64 -vga std
+	DEL      = rm -f
+	os.sys   = cat system/asmhead.bin bootpack.bin > os.sys
 endif
 
-# デフォルト動作
+# Default
 
-default :
-	$(MAKE) full
+all:
+	$(MAKE) -C images
+	$(MAKE) -C html
+	$(MAKE) -C driver
+	$(MAKE) -C system
+	$(MAKE) cloumo.img
 
-# ファイル生成規則
+# 特別生成規則
 
-cloumo.img : system/ipl.bin system/os.sys images/b_f.bmp images/btn_r.bmp \
+bootpack.bin: $(OBJS) system/jpeg.obj system/bmp.obj $(GOLIBC)
+	$(LD) -m elf_i386 -Map bootpack.map -T main.ls -s -o $@ $(OBJS) system/jpeg.obj system/bmp.obj $(GOLIBC)
+
+os.sys: system/asmhead.bin bootpack.bin
+	$(os.sys)
+
+cloumo.img: system/ipl.bin os.sys images/b_f.bmp images/btn_r.bmp \
 		images/copy.bmp images/source.bmp images/search.bmp images/refresh.bmp
 	$(EDIMG)   imgin:$(TOOLPATH)fdimg0at.tek \
 		wbinimg src:system/ipl.bin len:512 from:0 to:0 \
-		copy from:system/os.sys to:@: \
+		copy from:os.sys to:@: \
 		copy from:fonts/japanese.fnt to:@: \
 		copy from:html/index.htm to:@: \
 		copy from:images/b_f.bmp to:@: \
@@ -36,22 +75,29 @@ cloumo.img : system/ipl.bin system/os.sys images/b_f.bmp images/btn_r.bmp \
 		copy from:images/refresh.bmp to:@: \
 		imgout:cloumo.img
 
-# コマンド
+# Libraries
 
-run :
-	$(MAKE) full
-	$(qemu) -m 32 -localtime -soundhw all -fda cloumo.img -L .
+$(GOLIBC):
+	$(MAKE) -C golibc
 
-full :
-	$(MAKE) -C images
-	$(MAKE) -C html
-	$(MAKE) -C system
-	$(MAKE) cloumo.img
+# Options
 
-clean :
+run:
+	$(MAKE) all
+	$(QEMU) -m 32 -localtime -soundhw all -fda cloumo.img -L .
+
+run-virtualbox:
+	$(MAKE) all
+	/Applications/VirtualBox.app/Contents/MacOS/VBoxManage startvm Cloumo
+
+refresh:
+	$(MAKE) all
+	$(MAKE) clean
+
+clean:
+	$(DEL) bootpack.map
+	$(DEL) os.sys
 	$(DEL) cloumo.img
 	$(MAKE) -C system clean
-
-refresh :
-	$(MAKE) full
-	$(MAKE) clean
+	$(MAKE) -C driver clean
+	$(MAKE) -C golibc clean

@@ -1,16 +1,16 @@
-#include "headers.h"
+#include "../headers.h"
 
 int SheetCtl::top_        = -1;
 int SheetCtl::tbox_cpos_  = 2;
-unsigned short* SheetCtl::vram_ = 0;
+unsigned short* SheetCtl::vram_ = nullptr;
 int SheetCtl::scrnx_      = 0;
 int SheetCtl::scrny_      = 0;
-unsigned char* SheetCtl::map_ = 0;
-Sheet* SheetCtl::back_    = 0;
-Sheet* SheetCtl::context_menu_ = 0;
-Sheet** SheetCtl::window_ = 0;
-Sheet* SheetCtl::sheets0_ = 0;
-Sheet** SheetCtl::sheets_ = 0;
+unsigned char* SheetCtl::map_ = nullptr;
+Sheet* SheetCtl::back_    = nullptr;
+Sheet* SheetCtl::context_menu_ = nullptr;
+Sheet** SheetCtl::window_ = nullptr;
+Sheet* SheetCtl::sheets0_ = nullptr;
+Sheet** SheetCtl::sheets_ = nullptr;
 int SheetCtl::color_      = 0;
 int SheetCtl::adrfont_    = 0;
 
@@ -31,7 +31,7 @@ void SheetCtl::init() {
 	}
 
 	/* フォント読み込み */
-	File* fontfile = FAT12::open("japanese.fnt");
+	File *fontfile = FAT12::open("japanese.fnt");
 	adrfont_ = (int)fontfile->read();
 
 	/* サイドバー */
@@ -44,9 +44,9 @@ void SheetCtl::init() {
 	drawPicture(back_, 59, 4, "btn_r.bmp", Rgb(255, 0, 255));
 	// タブ
 	drawString(back_, 6, 39, 0, "index.htm");
-	colorChange(back_, 2, 35, back_->bxsize, 33 + 16 + 8, Rgb(0, 84, 255), Rgb(255, 255, 255));
+	colorChange(back_, 2, 35, back_->bxsize, 33 + 16 + 8, Rgb(0, 84, 255), Rgb(127, 169, 255));
 	drawString(back_, 6, 33 + 16 + 8 + 1 + 4, Rgb(0, 42, 127), "system info");
-	colorChange(back_, 2, 33 + 16 + 8 + 1, back_->bxsize, 31 + 16 + 8 + 1 + 16 + 8, Rgb(0, 84, 255), Rgb(127, 169, 255));
+	colorChange(back_, 2, 33 + 16 + 8 + 1, back_->bxsize, 31 + 16 + 8 + 1 + 16 + 8, Rgb(0, 84, 255), Rgb(255, 255, 255));
 	// 検索窓
 	fillRect(back_, Rgb(255, 255, 255), 2, back_->bysize - 20 - 22, back_->bxsize - 2, back_->bysize - 20);
 	// 表示設定
@@ -57,15 +57,15 @@ void SheetCtl::init() {
 	drawRect(window_[0], 0, 0, 0, window_[0]->bxsize, window_[0]->bysize);
 	fillRect(window_[0], Rgb(255, 255, 255), 1, 1, window_[0]->bxsize - 1, window_[0]->bysize - 1);
 	slide(window_[0], back_->bxsize, 0);
-	
+
 	// system info tab page
 	window_[1] = alloc(scrnx_ - back_->bxsize, scrny_, false);
 	drawRect(window_[1], 0, 0, 0, window_[1]->bxsize, window_[1]->bysize);
 	fillRect(window_[1], Rgb(255, 255, 255), 1, 1, window_[1]->bxsize - 1, window_[1]->bysize - 1);
 	slide(window_[1], back_->bxsize, 0);
-	
-	// index.htm タブを全面へ
-	upDown(window_[0], 1);
+
+	// system info タブを全面へ
+	upDown(window_[1], 1);
 
 	/* 右クリックメニュー */
 	context_menu_ = alloc(150, 150, true);
@@ -84,7 +84,7 @@ void SheetCtl::init() {
 
 // シートを確保
 Sheet *SheetCtl::alloc(int xsize, int ysize, bool inv) {
-	Sheet* sht;
+	Sheet *sht;
 	for (int i = 0; i < kMaxSheets; i++) {
 		if (!sheets0_[i].flags) {
 			sht = &sheets0_[i];
@@ -102,7 +102,7 @@ Sheet *SheetCtl::alloc(int xsize, int ysize, bool inv) {
 }
 
 // シートの高さを変更
-void SheetCtl::upDown(Sheet* sht, int height) {
+void SheetCtl::upDown(Sheet *sht, int height) {
 	int old = sht->height;
 
 	if (height > top_ + 1) height = top_ + 1;
@@ -168,7 +168,7 @@ void SheetCtl::refreshMap(int vx0, int vy0, int vx1, int vy1, int h0) {
 	if (vy1 > scrny_) vy1 = scrny_;
 	for (int h = h0; h <= top_; h++) {
 		sht = sheets_[h];
-		sid = sht - sheets0_; /* 番地を引き算してそれを下じき番号として利用 */
+		sid = h;//sht - sheets0_; /* 番地を引き算してそれを下じき番号として利用 */
 		bx0 = vx0 - sht->vx0;
 		by0 = vy0 - sht->vy0;
 		bx1 = vx1 - sht->vx0;
@@ -224,7 +224,7 @@ void SheetCtl::refreshSub(int vx0, int vy0, int vx1, int vy1, int h1) {
 
 	for (int h = 0; h <= h1; h++) {
 		sht = sheets_[h];
-		sid = sht - sheets0_;
+		sid = h;//sht - sheets0_; // hと同じ？
 		/* vx0～vy1を使って、bx0～by1を逆算する */
 		bx0 = (vx0 - sht->vx0 < 0)? 0 : vx0 - sht->vx0;
 		by0 = (vy0 - sht->vy0 < 0)? 0 : vy0 - sht->vy0;
@@ -236,7 +236,7 @@ void SheetCtl::refreshSub(int vx0, int vy0, int vx1, int vy1, int h1) {
 					if (map_[(sht->vy0 + by) * scrnx_ + sht->vx0 + bx] == sid) {
 						rgb = sht->buf[by * sht->bxsize + bx];
 						((unsigned int *)vram_)[((sht->vy0 + by) * scrnx_ + (sht->vx0 + bx))]
-							= (h <= 1) ? rgb 
+							= (h <= 1) ? rgb
 							           : MixRgb(rgb, backrgb[(sht->vy0 + by - vy0) * (vx1 - vx0) + (sht->vx0 + bx - vx0)]);
 					} else {
 						rgb = sht->buf[by * sht->bxsize + bx];
@@ -276,7 +276,7 @@ void SheetCtl::refreshSub(int vx0, int vy0, int vx1, int vy1, int h1) {
 }
 
 // シートを移動
-void SheetCtl::slide(Sheet* sht, int vx0, int vy0) {
+void SheetCtl::slide(Sheet *sht, int vx0, int vy0) {
 	int old_vx0 = sht->vx0, old_vy0 = sht->vy0;
 	sht->vx0 = vx0;
 	sht->vy0 = vy0;
@@ -289,14 +289,14 @@ void SheetCtl::slide(Sheet* sht, int vx0, int vy0) {
 }
 
 // シートを解放
-void SheetCtl::freeSheet(Sheet* sht) {
+void SheetCtl::freeSheet(Sheet *sht) {
 	if (sht->height >= 0) upDown(sht, -1);
 	sht->flags = 0;
 	delete sht->buf;
 }
 
 // 単色直線を描画
-void SheetCtl::drawLine(Sheet* sht, unsigned int c, int x0, int y0, int x1, int y1) {
+void SheetCtl::drawLine(Sheet *sht, unsigned int c, int x0, int y0, int x1, int y1) {
 	int x, y, dx, dy, len;
 
 	// 直線高速化
@@ -336,7 +336,7 @@ void SheetCtl::drawLine(Sheet* sht, unsigned int c, int x0, int y0, int x1, int 
 }
 
 // グラデーション直線を描画
-void SheetCtl::gradLine(Sheet* sht, unsigned int c0, unsigned int c1, int x0, int y0, int x1, int y1, int d) {
+void SheetCtl::gradLine(Sheet *sht, unsigned int c0, unsigned int c1, int x0, int y0, int x1, int y1, int d) {
 	int x, y, dx, dy, len;
 
 	dx = (x1 - x0 < 0)? x0 - x1 : x1 - x0;
@@ -387,7 +387,7 @@ void SheetCtl::gradLine(Sheet* sht, unsigned int c0, unsigned int c1, int x0, in
 }
 
 // 枠のみ長方形を描画
-void SheetCtl::drawRect(Sheet* sht, unsigned int c, int x0, int y0, int x1, int y1) {
+void SheetCtl::drawRect(Sheet *sht, unsigned int c, int x0, int y0, int x1, int y1) {
 	for (int x = x0; x < x1; x++) {
 		sht->buf[y0 * sht->bxsize + x] = c;
 		sht->buf[(y1 - 1) * sht->bxsize + x] = c;
@@ -399,7 +399,7 @@ void SheetCtl::drawRect(Sheet* sht, unsigned int c, int x0, int y0, int x1, int 
 }
 
 // 塗りつぶし長方形を描画
-void SheetCtl::fillRect(Sheet* sht, unsigned int c, int x0, int y0, int x1, int y1) {
+void SheetCtl::fillRect(Sheet *sht, unsigned int c, int x0, int y0, int x1, int y1) {
 	for (int y = y0; y < y1; y++) {
 		for (int x = x0; x < x1; x++) {
 			sht->buf[y * sht->bxsize + x] = c;
@@ -408,7 +408,7 @@ void SheetCtl::fillRect(Sheet* sht, unsigned int c, int x0, int y0, int x1, int 
 }
 
 // グラデーション長方形を描画
-void SheetCtl::gradRect(Sheet* sht, unsigned int c0, unsigned int c1, int x0, int y0, int x1, int y1, int d) {
+void SheetCtl::gradRect(Sheet *sht, unsigned int c0, unsigned int c1, int x0, int y0, int x1, int y1, int d) {
 	if (d == 0) {	// 横
 		for (int y = y0; y < y1; y++) {
 			for (int x = x0; x < x1; x++) {
@@ -425,7 +425,7 @@ void SheetCtl::gradRect(Sheet* sht, unsigned int c0, unsigned int c1, int x0, in
 }
 
 // 枠のみ円を描画
-void SheetCtl::drawCircle(Sheet* sht, unsigned int c, int x0, int y0, int d) {
+void SheetCtl::drawCircle(Sheet *sht, unsigned int c, int x0, int y0, int d) {
 	int x = d / 2;
 	int y = 0;
 	int F = -2 * (d / 2) + 3;
@@ -469,7 +469,7 @@ void SheetCtl::drawCircle(Sheet* sht, unsigned int c, int x0, int y0, int d) {
 }
 
 // 塗りつぶし円を描画
-void SheetCtl::fillCircle(Sheet* sht, unsigned int c, int x0, int y0, int d) {
+void SheetCtl::fillCircle(Sheet *sht, unsigned int c, int x0, int y0, int d) {
 	int x = d / 2;
 	int y = 0;
 	int F = -2 * (d / 2) + 3;
@@ -513,7 +513,7 @@ void SheetCtl::fillCircle(Sheet* sht, unsigned int c, int x0, int y0, int d) {
 }
 
 // グラデーション円を描画
-void SheetCtl::gradCircle(Sheet* sht, unsigned int c0, unsigned int c1, int x0, int y0, int d) {
+void SheetCtl::gradCircle(Sheet *sht, unsigned int c0, unsigned int c1, int x0, int y0, int d) {
 	int x = d / 2;
 	int y = 0;
 	int F = -2 * (d / 2) + 3;
@@ -557,7 +557,7 @@ void SheetCtl::gradCircle(Sheet* sht, unsigned int c0, unsigned int c1, int x0, 
 }
 
 // 単色文字を描画
-void SheetCtl::drawChar(Sheet* sht, int x, int y, unsigned int c, unsigned char * font) {
+void SheetCtl::drawChar(Sheet *sht, int x, int y, unsigned int c, unsigned char * font) {
 	unsigned int *p;
 	unsigned char d;
 	for (int i = 0; i < 16; i++) {
@@ -647,7 +647,7 @@ void SheetCtl::drawString(Sheet *sht, int x, int y, unsigned int c, const char *
 	}
 }
 
-void SheetCtl::kadotori(Sheet* sht, bool leftt, bool rightt, bool leftb, bool rightb) {
+void SheetCtl::kadotori(Sheet *sht, bool leftt, bool rightt, bool leftb, bool rightb) {
 	int x = sht->bxsize, y = sht->bysize;
 	// 左上
 	if (leftt) {
@@ -676,7 +676,7 @@ void SheetCtl::kadotori(Sheet* sht, bool leftt, bool rightt, bool leftb, bool ri
 }
 
 // 画像を描画
-void SheetCtl::drawPicture(Sheet* sht, int x, int y, const char *fname, long col_inv, int mag) {
+void SheetCtl::drawPicture(Sheet *sht, int x, int y, const char *fname, long col_inv, int mag) {
 	int info[4];
 	unsigned int col;
 	int i;
@@ -687,16 +687,16 @@ void SheetCtl::drawPicture(Sheet* sht, int x, int y, const char *fname, long col
 		unsigned char* filebuf = imagefile->read();
 		unsigned int fsize = imagefile->size();
 
-		if (!info_JPEG(&env, info, fsize, filebuf) && !info_BMP(&env, info, fsize, filebuf)) {
+		if (!_info_JPEG(&env, info, fsize, filebuf) && !_info_BMP(&env, info, fsize, filebuf)) {
 			return;
 		}
 
 		RGB* picbuf = new RGB[info[2] * info[3]];
 		if (picbuf) {
 			if (info[0] == 1) {
-				i = decode0_BMP(&env, fsize, filebuf, 4, (unsigned char*)picbuf, 0);
+				i = _decode0_BMP(&env, fsize, filebuf, 4, (unsigned char*)picbuf, 0);
 			} else {
-				i = decode0_JPEG(&env, fsize, filebuf, 4, (unsigned char*)picbuf, 0);
+				i = _decode0_JPEG(&env, fsize, filebuf, 4, (unsigned char*)picbuf, 0);
 			}
 			if (!i && info[2] <= scrnx_ && info[3] <= scrny_) {
 				for (int yy = 0; yy < info[3]; yy++) {
@@ -715,7 +715,7 @@ void SheetCtl::drawPicture(Sheet* sht, int x, int y, const char *fname, long col
 }
 
 // 指定色を変更
-void SheetCtl::colorChange(Sheet* sht, int x0, int y0, int x1, int y1, unsigned int c0, unsigned int c1) {
+void SheetCtl::colorChange(Sheet *sht, int x0, int y0, int x1, int y1, unsigned int c0, unsigned int c1) {
 	for (int y = 0; y < y1 - y0; y++) {
 		for (int x = 0; x < x1 - x0; x++) {
 			if (sht->buf[(y + y0) * sht->bxsize + x + x0] == c0) {

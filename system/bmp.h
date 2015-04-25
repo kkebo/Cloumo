@@ -10,8 +10,8 @@ struct DLL_STRPICENV {
 };
 
 extern "C" {
-	int info_BMP(DLL_STRPICENV *, int *, int, unsigned char *);
-	int decode0_BMP(DLL_STRPICENV *, int, unsigned char *, int, unsigned char*, int);
+	int _info_BMP(DLL_STRPICENV *, int *, int, unsigned char *);
+	int _decode0_BMP(DLL_STRPICENV *, int, unsigned char *, int, unsigned char*, int);
 }
 
 #endif

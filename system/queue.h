@@ -11,15 +11,15 @@ class Task;
 
 class Queue {
 private:
-	int* buf_;
+	int *buf_;
 	int head_, tail_, size_, free_, flags_;
-	Task* task_;
+	Task *task_;
 
 public:
-	Queue(int, Task* = 0);
+	Queue(int, Task * = 0);
 	~Queue();
 	bool push(int);
-	int  pop();
+	int pop();
 	bool isempty();
 };
 

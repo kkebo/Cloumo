@@ -41,7 +41,7 @@ public:
 
 public:
 	static void init();
-	static Sheet* alloc(int, int, bool);
+	static Sheet *alloc(int, int, bool);
 	static void upDown(Sheet *, int);
 	static void refresh(Sheet *, int, int, int, int);
 	static void refreshMap(int, int, int, int, int);

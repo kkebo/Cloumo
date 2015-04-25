@@ -10,7 +10,7 @@ class Timer;
 class DateTime {
 private:
 	static unsigned char t_[];
-	static Timer* timer_;
+	static Timer *timer_;
 
 public:
 	static void init();

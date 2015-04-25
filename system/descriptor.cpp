@@ -1,4 +1,4 @@
-#include "headers.h"
+#include "../headers.h"
 
 // GDT/IDT初期化
 void DescriptorInit() {

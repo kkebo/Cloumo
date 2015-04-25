@@ -8,12 +8,11 @@ else
 	bim2bin  = $(TOOLPATH)bim2bin
 endif
 
-# デフォルト動作
+# Default
 
-default :
-	$(MAKE) index.htm
+default: index.htm
 
-# 一般規則
+# 一般生成規則
 
-%.htm : %_.htm Makefile
+%.htm: %_.htm Makefile
 	$(bim2bin) -osacmp in:$*_.htm out:$*.htm
