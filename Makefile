@@ -13,7 +13,6 @@ OBJS = \
 	system/utf82kt.o \
 	system/sysinfo.o \
 	system/asmfunc.o \
-	system/alloca.o \
 	driver/file.o \
 	driver/keyboard.o \
 	driver/mouse.o \
@@ -36,9 +35,9 @@ else
 	TOOLPATH = ../z_tools/
 	INCPATH  = $(TOOLPATH)include/
 	MAKE     = make -r
-	LD       = i686-elf-ld
+	LD       = ~/opt/cross/bin/i686-elf-ld
 	EDIMG    = $(TOOLPATH)edimg
-	QEMU     = qemu-system-x86_64 -vga std
+	QEMU     = /usr/local/bin/qemu-system-x86_64 -vga std
 	DEL      = rm -f
 	os.sys   = cat system/asmhead.bin bootpack.bin > os.sys
 endif

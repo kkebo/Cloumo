@@ -1,18 +1,8 @@
 OBJS = \
-	bootpack.o \
-	int.o \
-	descriptor.o \
-	memory.o \
-	browser.o \
-	queue.o \
-	multitask.o \
-	timer.o \
-	datetime.o \
-	graphic.o \
-	tek.o \
-	utf82kt.o \
-	sysinfo.o \
-	asmfunc.o
+	mouse.o \
+	keyboard.o \
+	sound.o \
+	file.o
 
 ifeq ($(OS),Windows_NT)
 # Windows
@@ -34,12 +24,12 @@ else
 	CFLAGS   = -I$(INCPATH) -Os -Wall -nostdinc -fno-exceptions -B$(TOOLPATH) -std=c11 -fno-stack-protector
 	CXX      = ~/opt/cross/bin/i686-elf-g++
 	CXXFLAGS = -I$(INCPATH) -Os -Wall -nostdinc -fno-exceptions -fno-rtti -B$(TOOLPATH) -std=c++1y -fpermissive -fno-stack-protector
-	NASM     = /usr/local/bin/nasm
+	NASM     = nasm
 	DEL      = rm -f
 endif
 
 # Default
-all: $(OBJS) ipl.bin asmhead.bin
+all: $(OBJS)
 
 # 一般生成規則
 %.o: %.asm
@@ -51,10 +41,6 @@ all: $(OBJS) ipl.bin asmhead.bin
 %.o: %.c
 	$(CC) $(CFLAGS) -c $<
 
-%.bin: %.asm
-	$(NASM) -fbin -o $@ $<
-
 # Options
 clean:
-	$(DEL) *.bin
 	$(DEL) $(OBJS)
