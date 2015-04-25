@@ -29,11 +29,11 @@ void Task::sleep() {
 	}
 }
 
-Timer     *TaskController::timer_    = 0;
+Timer     *TaskController::timer_    = nullptr;
 int       TaskController::now_lv_    = 0;
 char      TaskController::lv_change_ = 0;
-TaskLevel *TaskController::level_    = 0;
-Task      *TaskController::tasks0_   = 0;
+TaskLevel *TaskController::level_    = nullptr;
+Task      *TaskController::tasks0_   = nullptr;
 
 Task *TaskController::init() {
 	level_ = new TaskLevel[MAX_TASKLEVELS];
@@ -93,7 +93,7 @@ Task *TaskController::alloc() {
 		}
 	}
 	// もうタスクは作れない
-	return 0;
+	return nullptr;
 }
 
 void TaskController::switchTask() {

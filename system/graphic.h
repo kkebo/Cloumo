@@ -59,7 +59,7 @@ public:
 	static void drawChar(Sheet *, int, int, unsigned int, unsigned char *);
 	static void drawString(Sheet *, int, int, unsigned int, const char *, int = 1);
 	static void kadotori(Sheet *, bool, bool, bool, bool);
-	static void drawPicture(Sheet *, int, int, const char*, long = -1, int = 1);
+	static void drawPicture(Sheet *, int, int, const char *, long = -1, int = 1);
 	static void colorChange(Sheet *, int, int, int, int, unsigned int, unsigned int);
 };
 

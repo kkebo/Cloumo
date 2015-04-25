@@ -22,7 +22,7 @@ void SysinfoMain() {
 
 	for (;;) {
 		SheetCtl::fillRect(SheetCtl::window_[1], Rgb(255, 255, 255), 2, 2, SheetCtl::window_[1]->bxsize - 1, 34 + 5 * 16 + 8);
-		unsigned int memTotal = MemoryTotal();
+		auto memTotal = MemoryTotal();
 		sprintf(str, "RAM: %d MB    FREE: %u MB (%u Byte)", MemoryTest(0x00400000, 0xbfffffff) / 1024 / 1024, memTotal / 1024 / 1024, memTotal);
 		SheetCtl::drawString(SheetCtl::window_[1], 2, 2, 0, str);
 		SheetCtl::drawString(SheetCtl::window_[1], 2, 2 + 16 * 2, 0, "level priority task name");

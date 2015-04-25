@@ -2,15 +2,15 @@
 
 int SheetCtl::top_        = -1;
 int SheetCtl::tbox_cpos_  = 2;
-unsigned short* SheetCtl::vram_ = nullptr;
+unsigned short *SheetCtl::vram_ = nullptr;
 int SheetCtl::scrnx_      = 0;
 int SheetCtl::scrny_      = 0;
-unsigned char* SheetCtl::map_ = nullptr;
-Sheet* SheetCtl::back_    = nullptr;
-Sheet* SheetCtl::context_menu_ = nullptr;
-Sheet** SheetCtl::window_ = nullptr;
-Sheet* SheetCtl::sheets0_ = nullptr;
-Sheet** SheetCtl::sheets_ = nullptr;
+unsigned char *SheetCtl::map_ = nullptr;
+Sheet *SheetCtl::back_    = nullptr;
+Sheet *SheetCtl::context_menu_ = nullptr;
+Sheet **SheetCtl::window_ = nullptr;
+Sheet *SheetCtl::sheets0_ = nullptr;
+Sheet **SheetCtl::sheets_ = nullptr;
 int SheetCtl::color_      = 0;
 int SheetCtl::adrfont_    = 0;
 
@@ -681,10 +681,10 @@ void SheetCtl::drawPicture(Sheet *sht, int x, int y, const char *fname, long col
 	unsigned int col;
 	int i;
 	DLL_STRPICENV env;
-	File* imagefile = FAT12::open(fname);
+	File *imagefile = FAT12::open(fname);
 
 	if (imagefile) {
-		unsigned char* filebuf = imagefile->read();
+		unsigned char *filebuf = imagefile->read();
 		unsigned int fsize = imagefile->size();
 
 		if (!_info_JPEG(&env, info, fsize, filebuf) && !_info_BMP(&env, info, fsize, filebuf)) {
