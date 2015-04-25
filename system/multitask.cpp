@@ -29,13 +29,13 @@ void Task::sleep() {
 	}
 }
 
-Timer*     TaskController::timer_     = 0;
-int        TaskController::now_lv_    = 0;
-char       TaskController::lv_change_ = 0;
-TaskLevel* TaskController::level_     = 0;
-Task*      TaskController::tasks0_    = 0;
+Timer     *TaskController::timer_    = 0;
+int       TaskController::now_lv_    = 0;
+char      TaskController::lv_change_ = 0;
+TaskLevel *TaskController::level_    = 0;
+Task      *TaskController::tasks0_   = 0;
 
-Task* TaskController::init() {
+Task *TaskController::init() {
 	level_ = new TaskLevel[MAX_TASKLEVELS];
 	tasks0_ = (Task*)malloc4k(MAX_TASKS * sizeof(Task));//new Task[kMaxTasks];
 	for (int i = 0; i < MAX_TASKS; i++) {
@@ -49,8 +49,8 @@ Task* TaskController::init() {
 	}
 
 	/* メインタスク */
-	Task* task = alloc();
-	task->name_ = (char*)kMainTaskName;
+	Task *task = alloc();
+	task->name_ = (char *)kMainTaskName;
 	task->flags_ =  TASKFLAG_RUNNING;
 	task->priority_ = 2; /* 0.02秒 */
 	task->level_ = 0;
@@ -65,7 +65,7 @@ Task* TaskController::init() {
 	return task;
 }
 
-Task* TaskController::alloc() {
+Task *TaskController::alloc() {
 	for (int i = 0; i < MAX_TASKS; i++) {
 		if (tasks0_[i].flags_ ==  TASKFLAG_FREE) {
 			Task *task = &tasks0_[i];
@@ -134,7 +134,7 @@ void TaskController::add(Task *task) {
 
 void TaskController::remove(Task *task) {
 	int i;
-	TaskLevel* tl = &level_[task->level_];
+	TaskLevel *tl = &level_[task->level_];
 
 	for (i = 0; i < tl->running; i++)
 		if (tl->tasks[i] == task)

@@ -46,7 +46,7 @@ void PICInit() {
 
 // PIT割り込み
 void IntHandler20(int *esp) {
-	Timer* timer;
+	Timer *timer;
 	char ts = 0;
 	/* IRQ-00受付完了をPICに通知 */
 	Output8(kPic0Ocw2, 0x60);

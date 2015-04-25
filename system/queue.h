@@ -16,7 +16,7 @@ private:
 	Task *task_;
 
 public:
-	Queue(int, Task * = 0);
+	Queue(int, Task * = nullptr);
 	~Queue();
 	bool push(int);
 	int pop();
