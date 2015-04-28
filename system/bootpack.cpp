@@ -12,8 +12,7 @@ extern "C" void _main() {
 	FAT12::init();
 	SheetCtl::init();
 	TimerController::init();
-	Task* mainTask = TaskController::init();
-	mainTask->run(1, 2); // mainTask の level を下げる
+	Task *mainTask = TaskController::init();
 	DateTime::init();
 	KeyboardController::init();
 	Mouse::Init();

@@ -37,7 +37,7 @@ Task      *TaskController::tasks0_   = nullptr;
 
 Task *TaskController::init() {
 	level_ = new TaskLevel[MAX_TASKLEVELS];
-	tasks0_ = (Task*)malloc4k(MAX_TASKS * sizeof(Task));//new Task[kMaxTasks];
+	tasks0_ = (Task *)malloc4k(MAX_TASKS * sizeof(Task));//new Task[kMaxTasks];
 	for (int i = 0; i < MAX_TASKS; i++) {
 		tasks0_[i].flags_ =  TASKFLAG_FREE;
 		tasks0_[i].selector_ = (kTaskGdt0 + i) * 8;

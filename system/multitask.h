@@ -60,7 +60,6 @@ public:
 	static Task *getNowTask();
 	static void add(Task*);
 	static void remove(Task*);
-	static void idleLoop();
 };
 
 #endif
