@@ -23,7 +23,21 @@ static unsigned int Tekgetnum_s7s(unsigned char **pp) {
 
 int TekGetSize(unsigned char *p) {
 	static char header[15] = {
-		0xff, 0xff, 0xff, 0x01, 0x00, 0x00, 0x00, 0x4f, 0x53, 0x41, 0x53, 0x4b, 0x43, 0x4d, 0x50
+		static_cast<char>(0xff),
+		static_cast<char>(0xff),
+		static_cast<char>(0xff),
+		static_cast<char>(0x01),
+		static_cast<char>(0x00),
+		static_cast<char>(0x00),
+		static_cast<char>(0x00),
+		static_cast<char>(0x4f),
+		static_cast<char>(0x53),
+		static_cast<char>(0x41),
+		static_cast<char>(0x53),
+		static_cast<char>(0x4b),
+		static_cast<char>(0x43),
+		static_cast<char>(0x4d),
+		static_cast<char>(0x50)
 	};
 	if (memcmp(p + 1, header, 15) == 0 && (*p == 0x83 || *p == 0x85 || *p == 0x89)) {
 		return Tekgetnum_s7s(&(p += 16));
@@ -111,7 +125,8 @@ struct TekStrPrb {
 struct TekStrRngDec {
 	unsigned char *p;
 	unsigned int range, code, rmsk;
-	jmp_buf errjmp;
+	//jmp_buf errjmp; original
+	void **errjmp;
 	TekStrBitModel bm[32], *ptbm[16];
 	TekStrPrb probs;
 };

@@ -17,7 +17,7 @@ int SheetCtl::adrfont_    = 0;
 // シートコントロールを初期化
 void SheetCtl::init() {
 	/* オブジェクト初期化 */
-	BootInfo *binfo   = (BootInfo *)ADDRESS_BOOTINFO;
+	BootInfo *binfo = (BootInfo *)ADDRESS_BOOTINFO;
 	vram_    = (unsigned short *)binfo->vram;
 	scrnx_   = binfo->scrnx;
 	scrny_   = binfo->scrny;
