@@ -1,6 +1,7 @@
 #include "../headers.h"
 
-Task::Task(char *name, int level, int priority, void (*mainLoop)()) : name_(name) {
+Task::Task(char *name, int level, int priority, void (*mainLoop)(), Queue *queue) : name_(name), queue_(queue) {
+	queue_->task_ = this;
 	tss_.esp = (int)malloc4k(64 * 1024) + 64 * 1024 - 12;
 	tss_.eip = mainLoop;
 	tss_.es = 1 * 8;
@@ -30,7 +31,7 @@ void Task::run(int level, int priority) {
 		TaskController::add(this);
 	}
 
-	TaskController::lv_change_ = 1;
+	TaskController::lv_change_ = true;
 }
 
 void Task::sleep() {
@@ -47,7 +48,7 @@ void Task::sleep() {
 
 Timer     *TaskController::timer_    = nullptr;
 int       TaskController::now_lv_    = 0;
-char      TaskController::lv_change_ = 0;
+bool      TaskController::lv_change_ = false;
 TaskLevel *TaskController::level_    = nullptr;
 Task      *TaskController::tasks0_   = nullptr;
 
@@ -133,7 +134,7 @@ void TaskController::switchTaskSub() {
 		if (level_[i].running > 0) break;
 	}
 	now_lv_ = i;
-	lv_change_ = 0;
+	lv_change_ = false;
 }
 
 Task *TaskController::getNowTask() {

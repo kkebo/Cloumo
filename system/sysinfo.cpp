@@ -1,8 +1,6 @@
 #include "../headers.h"
 #include <stdio.h>
 
-void SysinfoMain();
-
 void SysinfoInit() {
 	Task *task = new Task((char *)kSysInfoTaskName, 2, 2, []() {
 		char str[100];

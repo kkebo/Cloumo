@@ -40,3 +40,47 @@ ret:
 #endif
 
 }
+
+int	strncmpi (char *d, const char *s, size_t sz)
+{
+	int i;
+	char d2[sz + 1];
+	char s2[sz + 1];
+	strncpy(d2, d, sz);
+	d2[sz] = 0;
+	strncpy(s2, s, sz);
+	s2[sz] = 0;
+	
+#if 0
+	/* Gaku's code */
+	
+	i = 0;
+	while ( sz-- && '\0' != *d ) {
+		if ('A' <= d2[i] && d2[i] <= 'Z') d2[i] += 0x20;
+		if ('A' <= s2[i] && s2[i] <= 'Z') s2[i] += 0x20;
+		if (d2[i] != s2[i])
+			return d2[i] - s2[i];
+		i++;
+	}
+	return d2[i] - s2[i]; /* bug? (if sz == 0) */
+	
+#endif
+	
+#if 1
+	/* Kawai & Kenta's code */
+	
+	while (sz--) {
+		if (d2[i] == '\0')
+			goto ret;
+		if ('A' <= d2[i] && d2[i] <= 'Z') d2[i] += 0x20;
+		if ('A' <= s2[i] && s2[i] <= 'Z') s2[i] += 0x20;
+		if (d2[i] != s2[i]) {
+		ret:
+			return d2[i] - s2[i];
+		}
+		i++;
+	}
+	return 0;
+#endif
+	
+}

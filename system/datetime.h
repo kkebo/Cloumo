@@ -14,7 +14,6 @@ private:
 
 public:
 	static void init();
-	static void mainLoop();
 };
 
 #endif

@@ -27,21 +27,53 @@ void DateTime::init() {
 	}
 
 	char s[20];
-	Task *task = TaskController::alloc();
-	task->name_ = (char *)kTimeTaskName;
-	task->tss_.esp = (int)malloc4k(64 * 1024) + 64 * 1024 - 12;
-	task->tss_.eip = (int)&mainLoop;
-	task->tss_.es = 1 * 8;
-	task->tss_.cs = 2 * 8;
-	task->tss_.ss = 1 * 8;
-	task->tss_.ds = 1 * 8;
-	task->tss_.fs = 1 * 8;
-	task->tss_.gs = 1 * 8;
-	task->run(2, 1); /* level=2, priority=1 */
-	task->queue_ = Queue(128, task);
+	Task *task = new Task((char *)kTimeTaskName, 2, 1, []() {
+		Task *task = TaskController::getNowTask();
+		int i;
+		bool timechk = false;
+		char s[20];
+		
+		for (;;) {
+			Cli();
+			if (task->queue_->isempty()) {
+				if (timechk) {
+					Sti();
+					if (t_[2] >= 12) {
+						sprintf(s, "PM %02d:%02d", t_[2] - 12, t_[1]);
+					} else {
+						sprintf(s, "AM %02d:%02d", t_[2], t_[1]);
+					}
+					SheetCtl::fillRect(SheetCtl::back_, Rgb(0, 84, 255), 2, SheetCtl::back_->bysize - 18, 2 + 8 * 8, SheetCtl::back_->bysize - 2);
+					SheetCtl::drawString(SheetCtl::back_, 2, SheetCtl::back_->bysize - 18, Rgb(255, 255, 255), s);
+					SheetCtl::refresh(SheetCtl::back_, 2, SheetCtl::back_->bysize - 18, 2 + 8 * 8, SheetCtl::back_->bysize - 2);
+					timechk = false;
+				} else {
+					task->sleep();
+					Sti();
+				}
+			} else {
+				i = task->queue_->pop();
+				Sti();
+				if (i == timer_->data()) { // 番号が合っているか確認
+					timer_->set(100);
+					t_[0]++;	// □□□□/□□/□□ □□:□□:■■
+					if (t_[0] >= 60) {
+						t_[0] -= 60;
+						t_[1]++;	// □□□□/□□/□□ □□:■■:□□
+						if (t_[1] >= 60) {
+							t_[1] -= 60;
+							t_[2]++;	// □□□□/□□/□□ ■■:□□:□□
+							if (t_[2] >= 24) t_[3]++;	// □□□□/□□/■■ □□:□□:□□
+						}
+						timechk = true;
+					}
+				}
+			}
+		}
+	}, new Queue(128));
 
 	timer_ = TimerController::alloc();
-	timer_->init(&task->queue_);
+	timer_->init(task->queue_);
 	timer_->set(100); // 1秒おき
 
 	// バーに時刻を表示
@@ -52,49 +84,4 @@ void DateTime::init() {
 	}
 	SheetCtl::drawString(SheetCtl::back_, 2, SheetCtl::back_->bysize - 18, Rgb(255, 255, 255), s);
 	SheetCtl::refresh(SheetCtl::back_, 2, SheetCtl::back_->bysize - 18, 2 + 8 * 8, SheetCtl::back_->bysize - 2);
-}
-
-void DateTime::mainLoop() {
-	Task *task = TaskController::getNowTask();
-	int i;
-	bool timechk = false;
-	char s[20];
-
-	for (;;) {
-		Cli();
-		if (task->queue_.isempty()) {
-			if (timechk) {
-				Sti();
-				if (t_[2] >= 12) {
-					sprintf(s, "PM %02d:%02d", t_[2] - 12, t_[1]);
-				} else {
-					sprintf(s, "AM %02d:%02d", t_[2], t_[1]);
-				}
-				SheetCtl::fillRect(SheetCtl::back_, Rgb(0, 84, 255), 2, SheetCtl::back_->bysize - 18, 2 + 8 * 8, SheetCtl::back_->bysize - 2);
-				SheetCtl::drawString(SheetCtl::back_, 2, SheetCtl::back_->bysize - 18, Rgb(255, 255, 255), s);
-				SheetCtl::refresh(SheetCtl::back_, 2, SheetCtl::back_->bysize - 18, 2 + 8 * 8, SheetCtl::back_->bysize - 2);
-				timechk = false;
-			} else {
-				task->sleep();
-				Sti();
-			}
-		} else {
-			i = task->queue_.pop();
-			Sti();
-			if (i == timer_->data()) { // 番号が合っているか確認
-				timer_->set(100);
-				t_[0]++;	// □□□□/□□/□□ □□:□□:■■
-				if (t_[0] >= 60) {
-					t_[0] -= 60;
-					t_[1]++;	// □□□□/□□/□□ □□:■■:□□
-					if (t_[1] >= 60) {
-						t_[1] -= 60;
-						t_[2]++;	// □□□□/□□/□□ ■■:□□:□□
-						if (t_[2] >= 24) t_[3]++;	// □□□□/□□/■■ □□:□□:□□
-					}
-					timechk = true;
-				}
-			}
-		}
-	}
 }

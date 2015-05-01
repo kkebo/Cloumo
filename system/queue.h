@@ -13,10 +13,11 @@ class Queue {
 private:
 	int *buf_;
 	int head_, tail_, size_, free_, flags_;
+
+public:
 	Task *task_;
 
 public:
-	Queue() {}; // とりあえずつけている状態．すぐに再考すること．
 	Queue(int, Task * = nullptr);
 	~Queue();
 	bool push(int);

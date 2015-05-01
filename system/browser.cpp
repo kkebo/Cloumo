@@ -1,25 +1,5 @@
 #include "../headers.h"
-
-int strcmpi(const char* string1, const char* string2) {
-	return 0;
-}
-
-int strncmpi(const char* string1, const char* string2, size_t length) {
-	// 仮(これは文字数が多いとかなり遅い)
-	char string1Capital[length + 1];
-	char string2Capital[length + 1];
-	for (int i = 0; i < length; i++) {
-		char c1 = string1[i];
-		string1Capital[i] = ('A' <= c1 && c1 <= 'Z') ? c1 + 0x20 : c1;
-	}
-	string1Capital[length] = 0;
-	for (int i = 0; i < length; i++) {
-		char c2 = string2[i];
-		string2Capital[i] = ('A' <= c2 && c2 <= 'Z') ? c2 + 0x20 : c2;
-	}
-	string2Capital[length] = 0;
-	return strncmp(string1Capital, string2Capital, length);
-}
+#include <string.h>
 
 // HTMLファイルを表示
 void Browser::View(const char* url) {

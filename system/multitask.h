@@ -25,15 +25,18 @@ public:
 	int selector_;
 	TaskFlag flags_;
 	int level_, priority_;
-	Queue queue_; // ポインタにしたい
+	Queue *queue_;
 	TSS32 tss_;
 	//int fpu[108 / 4];
 	//int stack;
 
 public:
-	Task(char *name, int level, int priority, void (*mainLoop)());
+	Task(char *name, int level, int priority, void (*mainLoop)(), Queue *queue = nullptr);
+	~Task() {
+		if (queue_) delete queue_;
+	};
 	static void *operator new(size_t size);
-	static void operator delete(void *) {};
+	static void operator delete(void *) {}; // タスクの削除を行うべき
 	void run(int, int);
 	void sleep();
 };
@@ -47,7 +50,7 @@ struct TaskLevel {
 class TaskController {
 public:
 	static int now_lv_; // the index of a running level
-	static char lv_change_; // 次回タスクスイッチ時にレベルも変えたほうがいいか
+	static bool lv_change_; // 次回タスクスイッチ時にレベルも変えたほうがいいか
 	static TaskLevel *level_;
 	static Task *tasks0_;
 

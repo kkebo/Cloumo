@@ -27,7 +27,6 @@ public:
 
 public:
 	static void init();
-	static void mainLoop();
 	static void decode(unsigned char);
 	static void wait();
 };

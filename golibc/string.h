@@ -16,6 +16,7 @@ char *strcat(char *s, const char *ct);
 char *strncat(char *s, const char *ct, size_t n);
 int strcmp(const char *cs, const char *ct);
 int strncmp(const char *cs, const char *ct, size_t n);
+int strncmpi(const char *cs, const char *ct, size_t n);
 char *strchr(const char *cs, int c);
 char *strrchr(const char *cs, int c);
 size_t strspn(const char *s, const char *accept);

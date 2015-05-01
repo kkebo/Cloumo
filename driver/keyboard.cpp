@@ -27,7 +27,7 @@ Queue *KeyboardController::cmd_ = nullptr;
 Queue *KeyboardController::queue_ = nullptr;
 
 void KeyboardController::init() {
-	BootInfo *binfo = (BootInfo*)ADDRESS_BOOTINFO;
+	BootInfo *binfo = (BootInfo *)ADDRESS_BOOTINFO;
 	leds_ = (binfo->leds >> 4) & 7;
 
 	wait();
@@ -35,41 +35,28 @@ void KeyboardController::init() {
 	wait();
 	Output8(kPortKeyData, kKBCMode);
 
-	Task* task = TaskController::alloc();
-	task->name_ = (char*)kKeyboardTaskName;
-	task->tss_.esp = (int)malloc4k(64 * 1024) + 64 * 1024 - 12;
-	task->tss_.eip = (int)&mainLoop;
-	task->tss_.es = 1 * 8;
-	task->tss_.cs = 2 * 8;
-	task->tss_.ss = 1 * 8;
-	task->tss_.ds = 1 * 8;
-	task->tss_.fs = 1 * 8;
-	task->tss_.gs = 1 * 8;
-	task->run(2, 1);
-	task->queue_ = Queue(128, task);
-	queue_ = &task->queue_;
+	Task *task = new Task((char *)kKeyboardTaskName, 2, 1, []() {
+		Task *task = TaskController::getNowTask();
+		
+		for (;;) {
+			if (!cmd_->isempty() && cmd_wait_ < 0) {
+				cmd_wait_ = cmd_->pop();
+				wait();
+				Output8(kPortKeyData, cmd_wait_);
+			}
+			Cli();
+			if (task->queue_->isempty()) {
+				task->sleep();
+				Sti();
+			} else {
+				unsigned char code = task->queue_->pop();
+				Sti();
+				decode(code);
+			}
+		}
+	}, new Queue(128));
+	queue_ = task->queue_;
 	cmd_ = new Queue(32);
-}
-
-void KeyboardController::mainLoop() {
-	Task *task = TaskController::getNowTask();
-
-	for (;;) {
-		if (!cmd_->isempty() && cmd_wait_ < 0) {
-			cmd_wait_ = cmd_->pop();
-			wait();
-			Output8(kPortKeyData, cmd_wait_);
-		}
-		Cli();
-		if (task->queue_.isempty()) {
-			task->sleep();
-			Sti();
-		} else {
-			unsigned char code = task->queue_.pop();
-			Sti();
-			decode(code);
-		}
-	}
 }
 
 void KeyboardController::decode(unsigned char code) {

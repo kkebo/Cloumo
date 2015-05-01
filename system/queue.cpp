@@ -1,6 +1,6 @@
 #include "../headers.h"
 
-Queue::Queue(int size, Task* task) : buf_(new int[size]), head_(0), tail_(0), size_(size), free_(size), flags_(0), task_(task) {}
+Queue::Queue(int size, Task *task) : buf_(new int[size]), head_(0), tail_(0), size_(size), free_(size), flags_(0), task_(task) {}
 
 Queue::~Queue() {
 	delete buf_;

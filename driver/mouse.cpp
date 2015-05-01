@@ -61,19 +61,8 @@ void Mouse::Init() {
 	Mouse::sheet_->vy0 = Mouse::y_ - 8;
 	SheetCtl::upDown(Mouse::sheet_, SheetCtl::top_ + 1);
 
-	Task *task = TaskController::alloc();
-	task->name_ = (char *)kMouseTaskName;
-	task->tss_.esp = (int)malloc4k(64 * 1024) + 64 * 1024 - 12;
-	task->tss_.eip = (int)&Mouse::Main;
-	task->tss_.es = 1 * 8;
-	task->tss_.cs = 2 * 8;
-	task->tss_.ss = 1 * 8;
-	task->tss_.ds = 1 * 8;
-	task->tss_.fs = 1 * 8;
-	task->tss_.gs = 1 * 8;
-	task->run(1, 1);
-	task->queue_ = Queue(128, task);
-	Mouse::queue_ = &task->queue_;
+	Task *task = new Task((char *)kMouseTaskName, 1, 1, &Mouse::Main, new Queue(128));
+	Mouse::queue_ = task->queue_;
 }
 
 void Mouse::Main() {
@@ -83,7 +72,7 @@ void Mouse::Main() {
 
 	for (;;) { // ÁÑ°Èôê„É´„Éº„É
 		Cli();
-		if (task->queue_.isempty()) {	// FIFO„Éê„ÉÉ„Éï„Ç°„ÅåÁ©∫„Å„Å£„ÅüÂ¥Âê
+		if (task->queue_->isempty()) {	// FIFO„Éê„ÉÉ„Éï„Ç°„ÅåÁ©∫„Å„Å£„ÅüÂ¥Âê
 			if (Mouse::new_mx_ >= 0) {	// „Éû„Ç¶„Çπ„Éù„Ç§„É≥„Çø„ÇíÁßªÂã
 				Sti();
 				SheetCtl::slide(Mouse::sheet_, Mouse::new_mx_ - 8, Mouse::new_my_ - 8);
@@ -93,7 +82,7 @@ void Mouse::Main() {
 				Sti();
 			}
 		} else {	// FIFO„Éê„ÉÉ„Éï„Ç°„ÅÆÂá¶Áê
-			code = task->queue_.pop();
+			code = task->queue_->pop();
 			Sti();
 			switch (phase_) {
 			case 0:
