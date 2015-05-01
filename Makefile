@@ -83,7 +83,7 @@ $(GOLIBC):
 
 run:
 	$(MAKE) all
-	$(QEMU) -m 32 -localtime -soundhw all -fda cloumo.img -L .
+	$(QEMU) -m 64 -localtime -soundhw all -fda cloumo.img -L .
 
 run-virtualbox:
 	$(MAKE) all
