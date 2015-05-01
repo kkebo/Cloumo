@@ -16,6 +16,7 @@ private:
 	Task *task_;
 
 public:
+	Queue() {}; // とりあえずつけている状態．すぐに再考すること．
 	Queue(int, Task * = nullptr);
 	~Queue();
 	bool push(int);

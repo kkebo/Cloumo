@@ -25,12 +25,15 @@ public:
 	int selector_;
 	TaskFlag flags_;
 	int level_, priority_;
-	Queue queue_;
+	Queue queue_; // ポインタにしたい
 	TSS32 tss_;
 	//int fpu[108 / 4];
 	//int stack;
 
 public:
+	Task(char *name, int level, int priority, void (*mainLoop)());
+	static void *operator new(size_t size);
+	static void operator delete(void *) {};
 	void run(int, int);
 	void sleep();
 };

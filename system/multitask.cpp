@@ -1,5 +1,21 @@
 #include "../headers.h"
 
+Task::Task(char *name, int level, int priority, void (*mainLoop)()) : name_(name) {
+	tss_.esp = (int)malloc4k(64 * 1024) + 64 * 1024 - 12;
+	tss_.eip = mainLoop;
+	tss_.es = 1 * 8;
+	tss_.cs = 2 * 8;
+	tss_.ss = 1 * 8;
+	tss_.ds = 1 * 8;
+	tss_.fs = 1 * 8;
+	tss_.gs = 1 * 8;
+	run(level, priority);
+}
+
+static void *Task::operator new(size_t size) {
+	return TaskController::alloc();
+}
+
 void Task::run(int level, int priority) {
 	// level が負ならレベルを変更しない
 	if (level < 0) level = level_;
