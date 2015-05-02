@@ -19,6 +19,7 @@ OBJS = \
 	driver/sound.o
 
 GOLIBC = golibc/golibc.a
+QEMU_REMOTE =
 
 ifeq ($(OS),Windows_NT)
 # Windows
@@ -84,6 +85,10 @@ $(GOLIBC):
 run:
 	$(MAKE) all
 	$(QEMU) -m 64 -localtime -soundhw all -fda cloumo.img -L .
+
+run-remote:
+	QEMU_REMOTE = -vnc :2
+	$(MAKE) run
 
 run-virtualbox:
 	$(MAKE) all
