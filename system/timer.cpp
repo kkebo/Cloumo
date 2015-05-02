@@ -65,7 +65,7 @@ void TimerController::init() {
 	Output8(PIT_CNT0, 0x9c);
 	Output8(PIT_CNT0, 0x2e);
 
-	timers0_ = (Timer *)malloc4k(MAX_TIMER * sizeof(Timer));//new Timer[MAX_TIMER];
+	timers0_ = (Timer *)malloc4k(MAX_TIMER * sizeof(Timer));
 	for (int i = 0; i < MAX_TIMER; i++) {
 		timers0_[i].flags_ = TIMERFLAG_FREE;
 	}
@@ -77,7 +77,7 @@ void TimerController::init() {
 }
 
 // タイマーを確保
-Timer* TimerController::alloc() {
+Timer *TimerController::alloc() {
 	for (int i = 0; i < MAX_TIMER; i++) {
 		if (!timers0_[i].flags_) {
 			timers0_[i].flags_ = TIMERFLAG_ALLOCATED;
@@ -85,7 +85,7 @@ Timer* TimerController::alloc() {
 		}
 	}
 	// 空きがない
-	return 0;
+	return nullptr;
 }
 
 // count_ をリセット

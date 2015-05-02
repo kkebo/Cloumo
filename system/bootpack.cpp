@@ -23,8 +23,11 @@ extern "C" void _main() {
 	/* system information */
 	SysinfoInit();
 
-	/* HTML */
-	Browser::View("index.htm");
+	/* Web Browser */
+	new Task("Web Browsing Task", 1, 2, []() {
+		Browser::View("index.htm");
+		TaskController::getNowTask()->sleep(); // 永遠にスリープ
+	});
 
 	/* 起動音 */
 	/*Timer* btsound = TimerController::alloc();

@@ -17,7 +17,7 @@ struct TSS32 {
 	int ldtr, iomap;
 };
 
-enum TaskFlag { TASKFLAG_FREE, TASKFLAG_SLEEPING, TASKFLAG_RUNNING };
+enum class TaskFlag { Free, Sleeping, Running };
 
 class Task {
 public:
@@ -31,6 +31,7 @@ public:
 	//int stack;
 
 public:
+	Task() {}
 	Task(char *name, int level, int priority, void (*mainLoop)(), Queue *queue = nullptr);
 	~Task() {
 		if (queue_) delete queue_;
@@ -42,14 +43,14 @@ public:
 };
 
 struct TaskLevel {
-	int running; // the number of running tasks
-	int now; // the index of a runnning task
-	Task *tasks[kMaxTasksLevel]; // tasks on this level
+	int running; // the number of running tasks on the level
+	int now; // the index of the now running task
+	Task *tasks[kMaxTasksLevel]; // tasks on the level
 };
 
 class TaskController {
 public:
-	static int now_lv_; // the index of a running level
+	static int now_lv_;
 	static bool lv_change_; // 次回タスクスイッチ時にレベルも変えたほうがいいか
 	static TaskLevel *level_;
 	static Task *tasks0_;

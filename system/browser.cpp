@@ -2,7 +2,7 @@
 #include <string.h>
 
 // HTMLファイルを表示
-void Browser::View(const char* url) {
+void Browser::View(const char *url) {
 	int x = 15, y = 15, /*titlex = 50, */j, encode = 0/* Shift_JIS */;
 	char s[11];
 	bool uline = false, bold = false, title = false, line = false, pre = false, list = false;
@@ -11,9 +11,9 @@ void Browser::View(const char* url) {
 	//int tcount = 0;
 
 	// ファイル読み込み
-	File* htmlfile = FAT12::open(url);
+	File *htmlfile = FAT12::open(url);
 	if (!htmlfile) return;
-	unsigned char* source = htmlfile->read();
+	unsigned char *source = htmlfile->read();
 	unsigned int fsize = htmlfile->size();
 
 	for (int i = 0; i < fsize; i++) {
