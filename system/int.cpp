@@ -55,7 +55,7 @@ void IntHandler20(int *esp) {
 		return;
 	timer = TimerController::t0_;
 	while (timer->timeout_ <= TimerController::count_) {
-		timer->flags_ = TIMERFLAG_ALLOCATED;
+		timer->flags_ = TimerFlag::Reserved;
 		if (timer != TaskController::timer_) {
 			timer->queue_->push(timer->data());
 		} else {

@@ -1,6 +1,6 @@
 #include "../headers.h"
 
-void Timer::init(Queue *queue) {
+Timer::Timer(Queue *queue) {
 	queue_ = queue;
 	for (int i = 0; i < MAX_TIMER; i++) {
 		if (this == &TimerController::timers0_[i]) {
@@ -11,20 +11,35 @@ void Timer::init(Queue *queue) {
 	data_ = -1;
 }
 
-void Timer::init(Queue *queue, int data) {
+Timer::Timer(Queue *queue, int data) {
 	queue_ = queue;
 	data_ = data;
 }
 
+void *Timer::operator new(size_t size){
+	for (int i = 0; i < MAX_TIMER; i++) {
+		if (TimerController::timers0_[i].flags_ == TimerFlag::Free) {
+			TimerController::timers0_[i].flags_ = TimerFlag::Reserved;
+			return &TimerController::timers0_[i];
+		}
+	}
+	// 空きがない
+	return nullptr;
+}
+
+void Timer::operator delete(void *p) {
+	if (p) reinterpret_cast<Timer *>(p)->flags_ = TimerFlag::Free;
+	// メモリが開放されてしまう？
+}
+
 void Timer::free() {
-	flags_ = TIMERFLAG_FREE;
+	flags_ = TimerFlag::Free;
 }
 
 void Timer::set(unsigned int timeout) {
-	Timer *t;
-	Timer *s;
+	Timer *t, *s;
 	timeout_ = timeout + TimerController::count_; // 絶対時間に変換
-	flags_ = TIMERFLAG_INUSE;
+	flags_ = TimerFlag::Running;
 	Cli();
 	t = TimerController::t0_;
 
@@ -67,25 +82,13 @@ void TimerController::init() {
 
 	timers0_ = (Timer *)malloc4k(MAX_TIMER * sizeof(Timer));
 	for (int i = 0; i < MAX_TIMER; i++) {
-		timers0_[i].flags_ = TIMERFLAG_FREE;
+		timers0_[i].flags_ = TimerFlag::Free;
 	}
 
 	t0_ = &timers0_[0];
 	t0_->timeout_ = 0xffffffff;
-	t0_->flags_ = TIMERFLAG_INUSE;
+	t0_->flags_ = TimerFlag::Running;
 	t0_->next_ = 0;
-}
-
-// タイマーを確保
-Timer *TimerController::alloc() {
-	for (int i = 0; i < MAX_TIMER; i++) {
-		if (!timers0_[i].flags_) {
-			timers0_[i].flags_ = TIMERFLAG_ALLOCATED;
-			return &timers0_[i];
-		}
-	}
-	// 空きがない
-	return nullptr;
 }
 
 // count_ をリセット
@@ -96,7 +99,7 @@ void TimerController::reset() {
 	// t0 以外の動作中のタイマーを調整
 	for (int i = 1; i < MAX_TIMER; i++) {
 		Timer &timer = timers0_[i];
-		if (timer.flags_ == TIMERFLAG_INUSE) {
+		if (timer.flags_ == TimerFlag::Running) {
 			timer.timeout_ -= lastcount;
 		}
 	}

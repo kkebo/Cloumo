@@ -25,8 +25,7 @@ void SysinfoInit() {
 	new Task((char *)kSysInfoTaskName, 2, 2, []() {
 		Task *task = TaskController::getNowTask();
 		
-		Timer *timer = TimerController::alloc();
-		timer->init(task->queue_);
+		Timer *timer = new Timer(task->queue_);
 		timer->set(100);
 		
 		for (;;) {

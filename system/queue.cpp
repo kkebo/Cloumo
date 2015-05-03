@@ -18,7 +18,7 @@ bool Queue::push(int data) {
 		tail_ = 0;
 	}
 	free_--;
-	if (task_ && task_->flags_ != 2) {
+	if (task_ && task_->flags_ != TaskFlag::Running) {
 		task_->run(-1, 0);
 	}
 	return true;

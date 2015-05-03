@@ -101,7 +101,7 @@ Task *TaskController::init() {
 	add(task);
 	switchTaskSub();
 	LoadTr(task->selector_);
-	timer_ = TimerController::alloc();
+	timer_ = new Timer();
 	timer_->set(task->priority_);
 
 	// TASKFLAG_fpu_ = null;

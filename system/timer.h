@@ -9,7 +9,7 @@ const int PIT_CTRL = 0x0043;
 const int PIT_CNT0 = 0x0040;
 const int MAX_TIMER = 500;
 
-enum TimerFlag { TIMERFLAG_FREE, TIMERFLAG_ALLOCATED, TIMERFLAG_INUSE };
+enum class TimerFlag { Free, Reserved, Running };
 
 class Timer {
 private:
@@ -22,8 +22,11 @@ public:
 	Queue *queue_;
 
 public:
-	void init(Queue *);
-	void init(Queue *, int);
+	Timer() {}
+	Timer(Queue *);
+	Timer(Queue *, int);
+	static void *operator new(size_t size);
+	static void operator delete(void *p);
 	void free();
 	void set(unsigned int);
 	int data();
@@ -38,7 +41,6 @@ public:
 
 public:
 	static void init();
-	static Timer *alloc();
 	static void reset();
 };
 

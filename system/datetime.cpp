@@ -72,8 +72,7 @@ void DateTime::init() {
 		}
 	}, new Queue(128));
 
-	timer_ = TimerController::alloc();
-	timer_->init(task->queue_);
+	timer_ = new Timer(task->queue_);
 	timer_->set(100); // 1秒おき
 
 	// バーに時刻を表示

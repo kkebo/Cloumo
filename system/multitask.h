@@ -33,9 +33,6 @@ public:
 public:
 	Task() {}
 	Task(char *name, int level, int priority, void (*mainLoop)(), Queue *queue = nullptr);
-	~Task() {
-		if (queue_) delete queue_;
-	};
 	static void *operator new(size_t size);
 	static void operator delete(void *) {}; // タスクの削除を行うべき
 	void run(int, int);
@@ -61,7 +58,6 @@ public:
 
 public:
 	static Task *init();
-	static Task *alloc();
 	static void switchTask();
 	static void switchTaskSub();
 	static Task *getNowTask();
