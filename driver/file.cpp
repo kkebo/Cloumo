@@ -12,7 +12,7 @@ int File::size() {
 	return size_;
 }
 
-int *FAT12::fat_ = 0;
+int *FAT12::fat_ = nullptr;
 
 void FAT12::init() {
 	unsigned char *img = (unsigned char*)(ADDRESS_DISK_IMAGE + 0x000200);

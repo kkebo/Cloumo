@@ -1,26 +1,41 @@
 #include "../headers.h"
 #include <string.h>
 
+Browser::Browser(const char *url) {
+	// ファイル読み込み
+	if (htmlFile = FAT12::open(url)) {
+		source = htmlFile->read();
+		size = htmlFile->size();
+		
+		// 内部シート作成
+		sheet = SheetCtl::alloc(SheetCtl::scrnx_ - SheetCtl::back_->bxsize - 1, SheetCtl::scrny_ * 3, false);
+		SheetCtl::fillRect(sheet, Rgb(255, 255, 255), 0, 0, sheet->bxsize - 1, sheet->bysize - 1);
+		
+		// マウスに登録
+		Mouse::browserTask = TaskController::getNowTask();
+	}
+}
+
+Browser::~Browser() {
+	if (htmlFile) delete htmlFile;
+	if (sheet) SheetCtl::freeSheet(sheet);
+}
+
 // HTMLファイルを表示
-void Browser::View(const char *url) {
-	int x = 15, y = 15, /*titlex = 50, */j, encode = 0/* Shift_JIS */;
+void Browser::Render() {
+	int x = 15, y = 15, /*titlex = 50, */j;
+	Encoding encode = Encoding::SJIS;
 	char s[11];
 	bool uline = false, bold = false, title = false, line = false, pre = false, list = false;
 	unsigned int fcolor = 0;
 	//char text[240 * 1024];
 	//int tcount = 0;
 
-	// ファイル読み込み
-	File *htmlfile = FAT12::open(url);
-	if (!htmlfile) return;
-	unsigned char *source = htmlfile->read();
-	unsigned int fsize = htmlfile->size();
-
-	for (int i = 0; i < fsize; i++) {
+	for (int i = 0; i < size; i++) {
 		if (source[i] == '<') { // タグ
 			i++;
 			// 要素名を小文字でsに代入
-			for (j = 0; source[i] != ' ' && source[i] != '>' && j < 10 && i < fsize; i++, j++) {
+			for (j = 0; source[i] != ' ' && source[i] != '>' && j < 10 && i < size; i++, j++) {
 				if ('A' <= source[i] && source[i] <= 'Z') source[i] += 0x20;
 				s[j] = source[i];
 			}
@@ -32,27 +47,27 @@ void Browser::View(const char *url) {
 					i += 8;
 					if (source[i] == '"') i++;
 					if (!strncmpi((char*)source + i, "shift_jis", 9)) {
-						encode = 0;
+						encode = Encoding::SJIS;
 					} else if (!strncmpi((char*)source + i, "utf-8", 5)) {
-						encode = 1;
+						encode = Encoding::UTF8;
 					} else if (!strncmpi((char*)source + i, "euc-jp", 6)) {
-						encode = 2;
+						encode = Encoding::EUCJP;
 					}
 				} else if (!strncmpi((char*)source + i, "http-equiv=\"content-type\" ", 26)) {
 					i += 26;
 					if (!strncmpi((char*)source + i, "content=\"", 9)) {
 						i += 9;
-						while (source[i] != '"' && source[i] != '>' && i + 8 < fsize) {
+						while (source[i] != '"' && source[i] != '>' && i + 8 < size) {
 							if (!strncmp((char*)source + i, "charset=", 8)) {
 								i += 8;
 								if (!strncmpi((char*)source + i, "shift_jis", 9)) {
-									encode = 0;
+									encode = Encoding::SJIS;
 									break;
 								} else if (!strncmpi((char*)source + i, "utf-8", 5)) {
-									encode = 1;
+									encode = Encoding::UTF8;
 									break;
 								} else if (!strncmpi((char*)source + i, "euc-jp", 6)) {
-									encode = 2;
+									encode = Encoding::EUCJP;
 									break;
 								}
 							}
@@ -72,8 +87,8 @@ void Browser::View(const char *url) {
 					y += 18;
 					x = 15;
 				}
-				if (y < SheetCtl::window_[0]->bysize - 1 - 16 - 4) {
-					SheetCtl::drawLine(SheetCtl::window_[0], Rgb(0, 0, 0), x, y + 8, SheetCtl::window_[0]->bxsize - 1 - 4, y + 8);
+				if (y < sheet->bysize - 1 - 16 - 4) {
+					SheetCtl::drawLine(sheet, Rgb(0, 0, 0), x, y + 8, sheet->bxsize - 1 - 4, y + 8);
 				}
 				y += 18;
 			} else if (!strcmp(s, "p")) {
@@ -182,9 +197,9 @@ void Browser::View(const char *url) {
 				uline = false;
 				fcolor = Rgb(0, 0, 0);
 			} else if (!strcmp(s, "button")) {
-				for (; source[i] != '>' && i < fsize; i++) {}
+				for (; source[i] != '>' && i < size; i++) {}
 				i++;
-				for (; source[i] != '>' && i < fsize; i++) {}
+				for (; source[i] != '>' && i < size; i++) {}
 				continue;
 			} else if (!strcmp(s, "s")) {
 				line = true;
@@ -201,46 +216,46 @@ void Browser::View(const char *url) {
 			} else if (!strcmp(s, "li") && list) {
 				x = 15 + 8;
 				y += 18;
-				//SheetCtl::fillenn(SheetCtl::window_[0], 0, x + 4, y + 4, x + 12, y + 12);
+				//SheetCtl::fillenn(sheet, 0, x + 4, y + 4, x + 12, y + 12);
 				x += 16;
 			} else if (!strcmp(s, "/li")) {
 			} else if (!strcmp(s, "img")) {
-				SheetCtl::drawRect(SheetCtl::window_[0], 0, x, y, x + 40, y + 16);
+				SheetCtl::drawRect(sheet, 0, x, y, x + 40, y + 16);
 				x = 15;
 				y += 18;
 			}
-			for (; source[i] != '>' && i < fsize; i++) {}
+			for (; source[i] != '>' && i < size; i++) {}
 			continue;
 		} else if (source[i] == '&') { // 特殊記号
 			i++;
 			if (!strncmpi((char*)source + i, "lt", 2)) {	// 不等号より小
-				SheetCtl::drawString(SheetCtl::window_[0], x, y, fcolor, "<");
+				SheetCtl::drawString(sheet, x, y, fcolor, "<");
 				x += 8;
 				i += 2;
 			} else if (!strncmpi((char*)source + i, "gt", 2)) {	// 不等号より大
-				SheetCtl::drawString(SheetCtl::window_[0], x, y, fcolor, ">");
+				SheetCtl::drawString(sheet, x, y, fcolor, ">");
 				x += 8;
 				i += 2;
 			} else if (!strncmpi((char*)source + i, "amp", 3)) {	// アンパサンド
-				SheetCtl::drawString(SheetCtl::window_[0], x, y, fcolor, "&");
+				SheetCtl::drawString(sheet, x, y, fcolor, "&");
 				x += 8;
 				i += 3;
 			} else if (!strncmpi((char*)source + i, "copy", 4)) {	// 著作権記号
-				SheetCtl::drawString(SheetCtl::window_[0], x + 4, y, fcolor, "C");
-				//SheetCtl::drawenn(SheetCtl::window_[0], fcolor, x, y, x + 16, y + 16);
+				SheetCtl::drawString(sheet, x + 4, y, fcolor, "C");
+				//SheetCtl::drawenn(sheet, fcolor, x, y, x + 16, y + 16);
 				x += 16;
 				i += 4;
 			} else if (!strncmpi((char*)source + i, "yen", 3)) {	// 円記号
-				SheetCtl::drawString(SheetCtl::window_[0], x, y, fcolor, "\\");
+				SheetCtl::drawString(sheet, x, y, fcolor, "\\");
 				x += 8;
 				i += 3;
 			} else if (!strncmpi((char*)source + i, "reg", 3)) {	// 登録商標記号
-				SheetCtl::drawString(SheetCtl::window_[0], x + 4, y, fcolor, "R");
-				//SheetCtl::drawenn(SheetCtl::window_[0], fcolor, x, y, x + 16, y + 16);
+				SheetCtl::drawString(sheet, x + 4, y, fcolor, "R");
+				//SheetCtl::drawenn(sheet, fcolor, x, y, x + 16, y + 16);
 				x += 16;
 				i += 3;
 			} else if (!strncmpi((char*)source + i, "quot", 4)) {	// 引用符
-				SheetCtl::drawString(SheetCtl::window_[0], x, y, fcolor, "\"");
+				SheetCtl::drawString(sheet, x, y, fcolor, "\"");
 				x += 8;
 				i += 4;
 			} else {
@@ -254,7 +269,7 @@ void Browser::View(const char *url) {
 				x = 15;
 				y += 18;
 			} else if (x > 15) {
-				for (; source[i] == 0x0a || source[i] == 0x0d || source[i] == ' ' && i < fsize; i++) {}
+				for (; source[i] == 0x0a || source[i] == 0x0d || source[i] == ' ' && i < size; i++) {}
 				x += 8;
 				i--;
 			}
@@ -264,68 +279,90 @@ void Browser::View(const char *url) {
 		}
 
 		// ウィンドウからx座標がはみ出ていたら無視
-		if (x >= SheetCtl::window_[0]->bxsize - 8 - 15)  continue;
+		if (x >= sheet->bxsize - 8 - 15)  continue;
 		// ウィンドウからy座標がはみ出ていたら終了
-		if (y >= SheetCtl::window_[0]->bysize - 16 - 15) break;
+		if (y >= sheet->bysize - 16 - 15) break;
 
-		if (0xe2 <= source[i] && source[i] <= 0xef && encode == 1) { // UTF-8 3バイト全角文字
+		if (0xe2 <= source[i] && source[i] <= 0xef && encode == Encoding::UTF8) { // UTF-8 3バイト全角文字
 			s[0] = source[i];
 			s[1] = source[i + 1];
 			s[2] = source[i + 2];
 			s[3] = 0;
 			if (title) {
-				//SheetCtl::drawString(SheetCtl::window_[0], titlex - SheetCtl::window_[0].x0, 5 - SheetCtl::window_[0].y0, Rgb(0, 0, 0), s);
+				//SheetCtl::drawString(sheet, titlex - sheet.x0, 5 - sheet.y0, Rgb(0, 0, 0), s);
 				//titlex += 16;
 			} else {
-				SheetCtl::drawString(SheetCtl::window_[0], x, y, fcolor, s);
+				SheetCtl::drawString(sheet, x, y, fcolor, s);
 				//text[tcount .. tcount + 2] = s[0 .. 2];
 				//tcount += 3;
 				x += 16;
 			}
 			i += 2;
-			if (bold) SheetCtl::drawString(SheetCtl::window_[0], x - 15, y, fcolor, s);
-			if (uline) SheetCtl::drawLine(SheetCtl::window_[0], fcolor, x - 16, y + 15, x, y + 15);
-			if (line) SheetCtl::drawLine(SheetCtl::window_[0], fcolor, x - 16, y + 7, x, y + 7);
-		} else if ((0xc2 <= source[i] && source[i] <= 0xd1 && encode == 1)
-			|| ((0x81 <= source[i] && source[i] <= 0x9f) || (0xe0 <= source[i] && source[i] <= 0xfc) && encode == 0)
-			|| (0x81 <= source[i] && source[i] <= 0xfe && encode == 2)) { // 2バイト全角文字
+			if (bold) SheetCtl::drawString(sheet, x - 15, y, fcolor, s);
+			if (uline) SheetCtl::drawLine(sheet, fcolor, x - 16, y + 15, x, y + 15);
+			if (line) SheetCtl::drawLine(sheet, fcolor, x - 16, y + 7, x, y + 7);
+		} else if ((0xc2 <= source[i] && source[i] <= 0xd1 && encode == Encoding::UTF8)
+				   || ((0x81 <= source[i] && source[i] <= 0x9f) || (0xe0 <= source[i] && source[i] <= 0xfc) && encode == Encoding::SJIS)
+				   || (0x81 <= source[i] && source[i] <= 0xfe && encode == Encoding::EUCJP)) { // 2バイト全角文字
 			s[0] = source[i];
 			s[1] = source[i + 1];
 			s[2] = 0;
 			if (title) {
-				//SheetCtl::drawString(SheetCtl::window_[0], titlex - SheetCtl::window_[0].x0, 5 - SheetCtl::window_[0].y0, Rgb(0, 0, 0), s, encode);
+				//SheetCtl::drawString(sheet, titlex - sheet.x0, 5 - sheet.y0, Rgb(0, 0, 0), s, encode);
 				//titlex += 16;
 			} else {
-				SheetCtl::drawString(SheetCtl::window_[0], x, y, fcolor, s, encode);
+				SheetCtl::drawString(sheet, x, y, fcolor, s, encode);
 				//text[tcount .. tcount + 1] = s[0 .. 1];
 				//tcount += 2;
 				x += 16;
 			}
 			i++;
-			if (bold) SheetCtl::drawString(SheetCtl::window_[0], x - 15, y, fcolor, s, encode);
-			if (uline) SheetCtl::drawLine(SheetCtl::window_[0], fcolor, x - 16, y + 15, x, y + 15);
-			if (line) SheetCtl::drawLine(SheetCtl::window_[0], fcolor, x - 16, y + 7, x, y + 7);
+			if (bold) SheetCtl::drawString(sheet, x - 15, y, fcolor, s, encode);
+			if (uline) SheetCtl::drawLine(sheet, fcolor, x - 16, y + 15, x, y + 15);
+			if (line) SheetCtl::drawLine(sheet, fcolor, x - 16, y + 7, x, y + 7);
 		} else { // 半角文字
 			s[0] = source[i];
 			s[1] = 0;
 			if (title) {
-				//SheetCtl::drawString(SheetCtl::window_[0], titlex - SheetCtl::window_[0].x0, 5 - SheetCtl::window_[0].y0, Rgb(0, 0, 0), s);
+				//SheetCtl::drawString(sheet, titlex - sheet.x0, 5 - sheet.y0, Rgb(0, 0, 0), s);
 				//titlex += 8;
 			} else {
-				SheetCtl::drawString(SheetCtl::window_[0], x, y, fcolor, s);
+				SheetCtl::drawString(sheet, x, y, fcolor, s);
 				//text[tcount] = s[0];
 				//tcount++;
 				x += 8;
 			}
-			if (bold) SheetCtl::drawString(SheetCtl::window_[0], x - 7, y, fcolor, s);
-			if (uline) SheetCtl::drawLine(SheetCtl::window_[0], fcolor, x - 8, y + 15, x, y + 15);
-			if (line) SheetCtl::drawLine(SheetCtl::window_[0], fcolor, x - 8, y + 7, x, y + 7);
+			if (bold) SheetCtl::drawString(sheet, x - 7, y, fcolor, s);
+			if (uline) SheetCtl::drawLine(sheet, fcolor, x - 8, y + 15, x, y + 15);
+			if (line) SheetCtl::drawLine(sheet, fcolor, x - 8, y + 7, x, y + 7);
 		}
 	}
-
-	SheetCtl::refresh(SheetCtl::window_[0], 0, 0, SheetCtl::window_[0]->bxsize, SheetCtl::window_[0]->bysize);
+	
 	//text[tcount] = 0;
 	//SheetCtl::drawString(SheetCtl::back, 0, 0, Rgb(255, 255, 255), text);
+	
+	// sheet の内容の一部を window_[0] に表示
+	dy = 0;
+	Mapping();
+}
 
-	delete htmlfile;
+void Browser::Scroll(int data) {
+	if (data > 0) {
+		dy += 16;
+		if (dy > sheet->bysize - SheetCtl::window_[0]->bysize) dy = sheet->bysize - SheetCtl::window_[0]->bysize;
+		Mapping();
+	} else if (data < 0) {
+		dy -= 16;
+		if (dy < 0) dy = 0;
+		Mapping();
+	}
+}
+
+void Browser::Mapping() {
+	for (int y = 0; y < SheetCtl::window_[0]->bysize - 2; y++) {
+		for (int x = 0; x < SheetCtl::window_[0]->bxsize - 2; x++) {
+			SheetCtl::window_[0]->buf[(y + 1) * SheetCtl::window_[0]->bxsize + x + 1] = sheet->buf[(y + dy) * sheet->bxsize + x];
+		}
+	}
+	SheetCtl::refresh(SheetCtl::window_[0], 1, 1, SheetCtl::window_[0]->bxsize - 2, SheetCtl::window_[0]->bysize - 1);
 }

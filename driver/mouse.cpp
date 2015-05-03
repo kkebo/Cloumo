@@ -1,7 +1,6 @@
 #include "../headers.h"
+#include <stdio.h>
 
-unsigned char Mouse::phase_ = 0;
-unsigned char Mouse::buf_[] = { 0, 0, 0 };
 const char *Mouse::cursor_[] = {
 	"*****OOOOOO*****",
 	"***OO@@@@@@OO***",
@@ -20,23 +19,20 @@ const char *Mouse::cursor_[] = {
 	"***OO@@@@@@OO***",
 	"*****OOOOOO*****"
 };
-int Mouse::btn_ = 0;
+bool Mouse::scroll_ = false;
 int Mouse::new_mx_ = -1;
 int Mouse::new_my_ = 0;
 Sheet *Mouse::sheet_ = nullptr;
-int Mouse::x_ = 0;
-int Mouse::y_ = 0;
 Queue *Mouse::queue_ = nullptr;
+MouseDecode Mouse::mdec_;
+Task *Mouse::browserTask = nullptr;
 
 void Mouse::Init() {
-	KeyboardController::wait();
-	Output8(kPortKeyCmd, kKeyCmdSendToMouse);
-	KeyboardController::wait();
-	Output8(kPortKeyData, kMouseCmdEnable);
+	// 初期マウスポインタ位置
+	mdec_.x_ = SheetCtl::scrnx_ / 2;
+	mdec_.y_ = SheetCtl::scrny_ / 2;
 
-	Mouse::x_ = SheetCtl::scrnx_ / 2;
-	Mouse::y_ = SheetCtl::scrny_ / 2;
-
+	// マウスポインタ描画
 	Mouse::sheet_ = SheetCtl::alloc(16, 16, true);
 	for (int y = 0; y < 16; y++) {
 		for (int x = 0; x < 16; x++) {
@@ -57,12 +53,107 @@ void Mouse::Init() {
 			}
 		}
 	}
-	Mouse::sheet_->vx0 = Mouse::x_ - 8;
-	Mouse::sheet_->vy0 = Mouse::y_ - 8;
+	Mouse::sheet_->vx0 = mdec_.x_ - 8;
+	Mouse::sheet_->vy0 = mdec_.y_ - 8;
 	SheetCtl::upDown(Mouse::sheet_, SheetCtl::top_ + 1);
 
+	// マウスドライバタスク作成
 	Task *task = new Task((char *)kMouseTaskName, 1, 1, &Mouse::Main, new Queue(128));
-	Mouse::queue_ = task->queue_;
+	queue_ = task->queue_;
+	
+	// マウス初期化 by uchan
+	int i = 0;
+	int errors = 0; // エラーの回数
+	bool send = false; // マウスへ送信したらtrue
+	for (;;) {
+		/*
+		 * まずマウスへ制御信号送信
+		 */
+		if (i == 0 && send == false) {
+			KeyboardController::wait();
+			Output8(kPortKeyCmd, kKeyCmdSendToMouse);
+			KeyboardController::wait();
+			Output8(kPortKeyData, 0xf3);
+			send = true;
+		} else if (i == 1 && send == false) {
+			KeyboardController::wait();
+			Output8(kPortKeyCmd, kKeyCmdSendToMouse);
+			KeyboardController::wait();
+			Output8(kPortKeyData, 200);
+			send = true;
+		} else if (i == 2 && send == false) {
+			KeyboardController::wait();
+			Output8(kPortKeyCmd, kKeyCmdSendToMouse);
+			KeyboardController::wait();
+			Output8(kPortKeyData, 0xf3);
+			send = true;
+		} else if (i == 3 && send == false) {
+			KeyboardController::wait();
+			Output8(kPortKeyCmd, kKeyCmdSendToMouse);
+			KeyboardController::wait();
+			Output8(kPortKeyData, 100);
+			send = true;
+		} else if (i == 4 && send == false) {
+			KeyboardController::wait();
+			Output8(kPortKeyCmd, kKeyCmdSendToMouse);
+			KeyboardController::wait();
+			Output8(kPortKeyData, 0xf3);
+			send = true;
+		} else if (i == 5 && send == false) {
+			KeyboardController::wait();
+			Output8(kPortKeyCmd, kKeyCmdSendToMouse);
+			KeyboardController::wait();
+			Output8(kPortKeyData, 80);
+			send = true;
+		} else if (i == 6 && send == false) {
+			KeyboardController::wait();
+			Output8(kPortKeyCmd, kKeyCmdSendToMouse);
+			KeyboardController::wait();
+			Output8(kPortKeyData, 0xf2);
+			send = true;
+		}
+		Cli();
+		if (queue_->isempty()) {
+			task->sleep();
+			Sti();
+		} else {
+			int data = queue_->pop();
+			Sti();
+				
+			if (0 <= i && i <= 6 && data == 0xfa) {
+				// エラー無し
+			} else if (i == 7 && data == 0) {
+				// ホイール無し
+				scroll_ = false;
+			} else if (i == 7 && data == 3) {
+				// ホイール有り
+				scroll_ = true;
+			}
+			
+			if (i == 7 || errors > 10) {
+				/*
+				 * マウス有効化が終わったのでループを抜ける
+				 */
+				break;
+			}
+			
+			if (data != 0xfe) {
+				// 再送要求では無かった
+				i++;
+				send = false;
+			} else {
+				errors++;
+			}
+		}
+	}
+	
+	KeyboardController::wait();
+	Output8(kPortKeyCmd, kKeyCmdSendToMouse);
+	KeyboardController::wait();
+	Output8(kPortKeyData, kMouseCmdEnable);
+	
+	mdec_.phase_ = 0;
+	mdec_.scroll_ = 0;
 }
 
 void Mouse::Main() {
@@ -70,83 +161,116 @@ void Mouse::Main() {
 	unsigned char code;
     int dx, dy;
 
-	for (;;) { // ÁÑ°Èôê„É´„Éº„É
+	for (;;) {
 		Cli();
-		if (task->queue_->isempty()) {	// FIFO„Éê„ÉÉ„Éï„Ç°„ÅåÁ©∫„Å„Å£„ÅüÂ¥Âê
-			if (Mouse::new_mx_ >= 0) {	// „Éû„Ç¶„Çπ„Éù„Ç§„É≥„Çø„ÇíÁßªÂã
+		if (queue_->isempty()) {
+			if (Mouse::new_mx_ >= 0) {
 				Sti();
 				SheetCtl::slide(Mouse::sheet_, Mouse::new_mx_ - 8, Mouse::new_my_ - 8);
 				Mouse::new_mx_ = -1;
-			} else {	// „Çø„Çπ„ÇØ„ÅÆ„Çπ„É™„Éº„É
+			} else {
 				task->sleep();
 				Sti();
 			}
-		} else {	// FIFO„Éê„ÉÉ„Éï„Ç°„ÅÆÂá¶Áê
-			code = task->queue_->pop();
+		} else {
+			code = queue_->pop();
 			Sti();
-			switch (phase_) {
-			case 0:
-				if (code == 0xfa) phase_++;
-				break;
-			case 1:
-				if ((code & 0xc8) == 0x08) {
-					buf_[0] = code;
-					phase_++;
-				}
-				break;
-			case 2:
-				buf_[1] = code;
-				phase_++;
-				break;
-			case 3:
-				buf_[2] = code;
-				phase_ = 1;
-				btn_ = buf_[0] & 0x07;
-				dx = buf_[1];
-				dy = buf_[2];
-				if (buf_[0] & 0x10) dx |= 0xffffff00;
-				if (buf_[0] & 0x20) dy |= 0xffffff00;
-				x_ += dx;
-				y_ -= dy;
-				if (x_ < 0) x_ = 0;
-				if (y_ < 0) y_ = 0;
-				if (x_ > SheetCtl::scrnx_ - 1) {
-					x_ = SheetCtl::scrnx_ - 1;
-				}
-				if (y_ > SheetCtl::scrny_ - 1) {
-					y_ = SheetCtl::scrny_ - 1;
-				}
-				new_mx_ = x_;
-				new_my_ = y_;
-				if (btn_ & 0x01) {	// Â∑¶„ÇØ„É™„É?ÇØ
-					if (SheetCtl::context_menu_->height > 0) {
-						SheetCtl::upDown(SheetCtl::context_menu_, -1);
-					} else if (2 <= Mouse::x_ && Mouse::x_ < SheetCtl::back_->bxsize) {
-						if (35 <= Mouse::y_ && Mouse::y_ < 33 + 16 + 8) {
-							SheetCtl::colorChange(SheetCtl::back_, 2, 35, SheetCtl::back_->bxsize, 33 + 16 + 8, Rgb(127, 169, 255), Rgb(255, 255, 255));
-							SheetCtl::colorChange(SheetCtl::back_, 2, 35, SheetCtl::back_->bxsize, 33 + 16 + 8, Rgb(0, 42, 127), 0);
-							SheetCtl::colorChange(SheetCtl::back_, 2, 33 + 16 + 8 + 1, SheetCtl::back_->bxsize, 31 + 16 + 8 + 1 + 16 + 8, Rgb(255, 255, 255), Rgb(127, 169, 255));
-							SheetCtl::colorChange(SheetCtl::back_, 2, 33 + 16 + 8 + 1, SheetCtl::back_->bxsize, 31 + 16 + 8 + 1 + 16 + 8, 0, Rgb(0, 42, 127));
-							SheetCtl::refresh(SheetCtl::back_, 2, 35, SheetCtl::back_->bxsize, 31 + 16 + 8 + 1 + 16 + 8);
-							SheetCtl::upDown(SheetCtl::window_[1], -1);
-							SheetCtl::upDown(SheetCtl::window_[0], 1);
-						} else if (33 + 16 + 8 + 1 <= Mouse::y_ && Mouse::y_ < 31 + 16 + 8 + 1 + 16 + 8) {
-							SheetCtl::colorChange(SheetCtl::back_, 2, 35, SheetCtl::back_->bxsize, 33 + 16 + 8, Rgb(255, 255, 255), Rgb(127, 169, 255));
-							SheetCtl::colorChange(SheetCtl::back_, 2, 35, SheetCtl::back_->bxsize, 33 + 16 + 8, 0, Rgb(0, 42, 127));
-							SheetCtl::colorChange(SheetCtl::back_, 2, 33 + 16 + 8 + 1, SheetCtl::back_->bxsize, 31 + 16 + 8 + 1 + 16 + 8, Rgb(127, 169, 255), Rgb(255, 255, 255));
-							SheetCtl::colorChange(SheetCtl::back_, 2, 33 + 16 + 8 + 1, SheetCtl::back_->bxsize, 31 + 16 + 8 + 1 + 16 + 8, Rgb(0, 42, 127), 0);
-							SheetCtl::refresh(SheetCtl::back_, 2, 35, SheetCtl::back_->bxsize, 31 + 16 + 8 + 1 + 16 + 8);
-							SheetCtl::upDown(SheetCtl::window_[0], -1);
-							SheetCtl::upDown(SheetCtl::window_[1], 1);
+			switch (mdec_.phase_) {
+				case 0:
+					if (code == 0xfa) mdec_.phase_++;
+					break;
+				case 1:
+					if ((code & 0xc8) == 0x08) {
+						mdec_.buf_[0] = code;
+						mdec_.phase_++;
+					}
+					break;
+				case 2:
+					mdec_.buf_[1] = code;
+					mdec_.phase_++;
+					break;
+				case 3:
+					mdec_.buf_[2] = code;
+					
+					if (scroll_) {
+						mdec_.phase_++;
+					} else {
+						mdec_.phase_ = 1;
+					}
+					
+					mdec_.btn_ = mdec_.buf_[0] & 0x07;
+					dx = mdec_.buf_[1];
+					dy = mdec_.buf_[2];
+					
+					if (mdec_.buf_[0] & 0x10) dx |= 0xffffff00;
+					if (mdec_.buf_[0] & 0x20) dy |= 0xffffff00;
+					mdec_.x_ += dx;
+					mdec_.y_ -= dy;
+					if (mdec_.x_ < 0) mdec_.x_ = 0;
+					if (mdec_.y_ < 0) mdec_.y_ = 0;
+					if (mdec_.x_ > SheetCtl::scrnx_ - 1) {
+						mdec_.x_ = SheetCtl::scrnx_ - 1;
+					}
+					if (mdec_.y_ > SheetCtl::scrny_ - 1) {
+						mdec_.y_ = SheetCtl::scrny_ - 1;
+					}
+					new_mx_ = mdec_.x_;
+					new_my_ = mdec_.y_;
+					
+					if (mdec_.btn_ & 0x01) {	// On left click
+						if (SheetCtl::context_menu_->height > 0) {
+							SheetCtl::upDown(SheetCtl::context_menu_, -1);
+						} else if (2 <= mdec_.x_ && mdec_.x_ < SheetCtl::back_->bxsize) {
+							if (35 <= mdec_.y_ && mdec_.y_ < 33 + 16 + 8) {
+								SheetCtl::colorChange(SheetCtl::back_, 2, 35, SheetCtl::back_->bxsize, 33 + 16 + 8, Rgb(127, 169, 255), Rgb(255, 255, 255));
+								SheetCtl::colorChange(SheetCtl::back_, 2, 35, SheetCtl::back_->bxsize, 33 + 16 + 8, Rgb(0, 42, 127), 0);
+								SheetCtl::colorChange(SheetCtl::back_, 2, 33 + 16 + 8 + 1, SheetCtl::back_->bxsize, 31 + 16 + 8 + 1 + 16 + 8, Rgb(255, 255, 255), Rgb(127, 169, 255));
+								SheetCtl::colorChange(SheetCtl::back_, 2, 33 + 16 + 8 + 1, SheetCtl::back_->bxsize, 31 + 16 + 8 + 1 + 16 + 8, 0, Rgb(0, 42, 127));
+								SheetCtl::refresh(SheetCtl::back_, 2, 35, SheetCtl::back_->bxsize, 31 + 16 + 8 + 1 + 16 + 8);
+								SheetCtl::upDown(SheetCtl::window_[1], -1);
+								SheetCtl::upDown(SheetCtl::window_[0], 1);
+							} else if (33 + 16 + 8 + 1 <= mdec_.y_ && mdec_.y_ < 31 + 16 + 8 + 1 + 16 + 8) {
+								SheetCtl::colorChange(SheetCtl::back_, 2, 35, SheetCtl::back_->bxsize, 33 + 16 + 8, Rgb(255, 255, 255), Rgb(127, 169, 255));
+								SheetCtl::colorChange(SheetCtl::back_, 2, 35, SheetCtl::back_->bxsize, 33 + 16 + 8, 0, Rgb(0, 42, 127));
+								SheetCtl::colorChange(SheetCtl::back_, 2, 33 + 16 + 8 + 1, SheetCtl::back_->bxsize, 31 + 16 + 8 + 1 + 16 + 8, Rgb(127, 169, 255), Rgb(255, 255, 255));
+								SheetCtl::colorChange(SheetCtl::back_, 2, 33 + 16 + 8 + 1, SheetCtl::back_->bxsize, 31 + 16 + 8 + 1 + 16 + 8, Rgb(0, 42, 127), 0);
+								SheetCtl::refresh(SheetCtl::back_, 2, 35, SheetCtl::back_->bxsize, 31 + 16 + 8 + 1 + 16 + 8);
+								SheetCtl::upDown(SheetCtl::window_[0], -1);
+								SheetCtl::upDown(SheetCtl::window_[1], 1);
+							}
+						}
+					} else if (mdec_.btn_ & 0x02) {	// On right click
+						SheetCtl::slide(SheetCtl::context_menu_, mdec_.x_ - SheetCtl::context_menu_->bxsize / 2, mdec_.y_ - SheetCtl::context_menu_->bysize / 2);
+						if (SheetCtl::context_menu_->height < 0) {
+							SheetCtl::upDown(SheetCtl::context_menu_, SheetCtl::top_);
 						}
 					}
-				} else if (btn_ & 0x02) {	// Âè≥„ÇØ„É™„É?ÇØ
-					SheetCtl::slide(SheetCtl::context_menu_, x_ - SheetCtl::context_menu_->bxsize / 2, y_ - SheetCtl::context_menu_->bysize / 2);
-					if (SheetCtl::context_menu_->height < 0) {
-						SheetCtl::upDown(SheetCtl::context_menu_, SheetCtl::top_);
+					break;
+				case 4:
+					mdec_.buf_[3] = code;
+					mdec_.phase_ = 1;
+					
+					// mdec_.buf_[3]は、下位4ビットだけが有効な値である
+					// とりあえず解析せずに値をしまう。
+					mdec_.scroll_ = mdec_.buf_[3] & 0x0f;
+					if (mdec_.scroll_ & 0x08) {
+						// マイナスの値だった
+						mdec_.scroll_ |= 0xfffffff0;
 					}
-				}
-				break;
+					
+					// とりあえず表示
+					/*char str[20];
+					sprintf(str, "%d", mdec_.scroll_);
+					SheetCtl::fillRect(SheetCtl::back_, Rgb(255, 255, 255), 2, 300, SheetCtl::back_->bxsize - 3, 316);
+					SheetCtl::drawString(SheetCtl::back_, 2, 300, 0, str);
+					SheetCtl::refresh(SheetCtl::back_, 2, 300, SheetCtl::back_->bxsize - 3, 316);*/
+					
+					// スクロール
+					if (browserTask) {
+						browserTask->queue_->push(mdec_.scroll_);
+					}
+					
+					break;
 			}
 		}
 	}

@@ -33,8 +33,8 @@ void SheetCtl::init() {
 	}
 
 	/* フォント読み込み */
-	File *fontfile = FAT12::open("japanese.fnt");
-	adrfont_ = (int)fontfile->read();
+	File *fontFile = FAT12::open("japanese.fnt");
+	adrfont_ = (int)fontFile->read();
 
 	/* サイドバー */
 	back_ = alloc(150, scrny_, false);
@@ -577,7 +577,7 @@ void SheetCtl::drawChar(Sheet *sht, int x, int y, unsigned int c, unsigned char 
 }
 
 // 単色文字列を描画
-void SheetCtl::drawString(Sheet *sht, int x, int y, unsigned int c, const char *str, int encode) {
+void SheetCtl::drawString(Sheet *sht, int x, int y, unsigned int c, const char *str, Encoding encode) {
 	unsigned char *fontdat = (unsigned char *)adrfont_;
 	unsigned char *font;
 	unsigned char *s = (unsigned char *)str;
@@ -586,9 +586,9 @@ void SheetCtl::drawString(Sheet *sht, int x, int y, unsigned int c, const char *
 	unsigned int u8code;
 	for (; *s; s++) {
 		if (!langbyte1) {
-			if (encode == 0 && ((0x81 <= *s && *s <= 0x9f) || (0xe0 <= *s && *s <= 0xfc))) {	// Shift_JIS
+			if (encode == Encoding::SJIS && ((0x81 <= *s && *s <= 0x9f) || (0xe0 <= *s && *s <= 0xfc))) {	// Shift_JIS
 				langbyte1 = *s;
-			} else if (encode == 1) {	// UTF-8
+			} else if (encode == Encoding::UTF8) {	// UTF-8
 				if (((0xe2 <= *s && *s <= 0xef) || (0xc2 <= *s && *s <= 0xd1))
 					&& 0x80 <= *(s + 1) && *(s + 1) <= 0xbf) {
 					langbyte1 = ((*s << 8) | *(s + 1));
@@ -612,13 +612,13 @@ void SheetCtl::drawString(Sheet *sht, int x, int y, unsigned int c, const char *
 					drawChar(sht, x, y, c, fontdat + 0x5c * 16);
 					langbyte1 = 0;
 				}
-			} else if (encode == 2 && 0x81 <= *s && *s <= 0xfe) {	// EUC-JP
+			} else if (encode == Encoding::EUCJP && 0x81 <= *s && *s <= 0xfe) {	// EUC-JP
 				langbyte1 = *s;
 			} else {	// 半角1バイト文字
 				drawChar(sht, x, y, c, fontdat + *s * 16);
 			}
 		} else {
-			if (encode == 0) {
+			if (encode == Encoding::SJIS) {
 				k = (0x81 <= langbyte1 && langbyte1 <= 0x9f) ? (langbyte1 - 0x81) * 2
 				                                             : (langbyte1 - 0xe0) * 2 + 62;
 				if (0x40 <= *s && *s <= 0x7e) {
@@ -630,7 +630,7 @@ void SheetCtl::drawString(Sheet *sht, int x, int y, unsigned int c, const char *
 					k++;
 				}
 				font = fontdat + 256 * 16 + (k * 94 + t) * 32;
-			} else if (encode == 1) {
+			} else if (encode == Encoding::UTF8) {
 				if (langbyte1 >> 12 != 0xc && langbyte1 >> 12 != 0xd) {
 					u8code = ((langbyte1 << 8) | *s);
 				} else {
@@ -638,7 +638,7 @@ void SheetCtl::drawString(Sheet *sht, int x, int y, unsigned int c, const char *
 					s--;
 				}
 				font = fontdat + 256 * 16 + Utf8ToKT(u8code) * 32;
-			} else/* if (encode == 2)*/ {
+			} else/* if (encode == Encoding::EUCJP)*/ {
 				font = fontdat + 256 * 16 + ((langbyte1 - 0xa1) * 94 + *s - 0xa1) * 32;
 			}
 			langbyte1 = 0;

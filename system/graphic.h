@@ -10,6 +10,8 @@ const int kMaxTabs = 200;
 const int kSheetUse = 1;
 const int kTransColor = 255 << 24;
 
+enum class Encoding { SJIS, UTF8, EUCJP };
+
 struct Sheet {
 	unsigned int *buf;
 	int bxsize;
@@ -59,7 +61,7 @@ public:
 	static void fillCircle(Sheet *, unsigned int, int, int, int);
 	static void gradCircle(Sheet *, unsigned int, unsigned int, int, int, int);
 	static void drawChar(Sheet *, int, int, unsigned int, unsigned char *);
-	static void drawString(Sheet *, int, int, unsigned int, const char *, int = 1);
+	static void drawString(Sheet *, int, int, unsigned int, const char *, Encoding = Encoding::UTF8);
 	static void borderRadius(Sheet *, bool, bool, bool, bool);
 	static void drawPicture(Sheet *, int, int, const char *, long = -1, int = 1);
 	static void colorChange(Sheet *, int, int, int, int, unsigned int, unsigned int);

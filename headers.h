@@ -1,7 +1,6 @@
 #include "system/asmfunc.h"
 #include "system/asmhead.h"
 #include "system/bmp.h"
-#include "system/browser.h"
 #include "system/datetime.h"
 #include "system/descriptor.h"
 #include "system/queue.h"
@@ -19,3 +18,4 @@
 #include "driver/keyboard.h"
 #include "driver/mouse.h"
 #include "driver/sound.h"
+#include "system/browser.h"

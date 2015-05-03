@@ -14,20 +14,33 @@ extern "C" void _main() {
 	TimerController::init();
 	Task *mainTask = TaskController::init();
 	DateTime::init();
-	KeyboardController::init();
-	Mouse::Init();
 	Output8(kPic0Imr, 0xf8); /* PITとPIC1とキーボードを許可(11111000) */
 	Output8(kPic1Imr, 0xef); /* マウスを許可(11101111) */
 	Sti();
+	KeyboardController::init();
+	Mouse::Init();
 
 	/* system information */
 	SysinfoInit();
 
 	/* Web Browser */
-	new Task("Web Browsing Task", 1, 2, []() {
-		Browser::View("index.htm");
-		TaskController::getNowTask()->sleep(); // 永遠にスリープ
-	});
+	new Task("Web Browsing Task", 2, 2, []() {
+		Task *task = TaskController::getNowTask();
+		Browser *browser = new Browser("index.htm");
+		browser->Render();
+		
+		for (;;) {
+			Cli();
+			if (task->queue_->isempty()) {
+				task->sleep();
+				Sti();
+			} else {
+				int data = task->queue_->pop();
+				Sti();
+				browser->Scroll(data);
+			}
+		}
+	}, new Queue(128));
 
 	/* 起動音 */
 	/*Timer* btsound = TimerController::alloc();
