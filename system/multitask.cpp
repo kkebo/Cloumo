@@ -140,9 +140,11 @@ Task *TaskController::getNowTask() {
 
 void TaskController::add(Task *task) {
 	TaskLevel *tl = &level_[task->level_];
-	tl->tasks[tl->running] = task;
-	tl->running++;
-	task->flags_ = TaskFlag::Running;
+	if (tl->running < kMaxTasksLevel) {
+		tl->tasks[tl->running] = task;
+		tl->running++;
+		task->flags_ = TaskFlag::Running;
+	}
 }
 
 void TaskController::remove(Task *task) {
