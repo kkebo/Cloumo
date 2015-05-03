@@ -137,7 +137,7 @@ void KeyboardController::decode(unsigned char code) {
 		case 0x0e:
 			if (SheetCtl::tbox_cpos_ > 2) {
 				SheetCtl::tbox_cpos_ -= 8;
-				SheetCtl::fillRect(SheetCtl::back_, Rgb(255, 255, 255), SheetCtl::tbox_cpos_ + 2, SheetCtl::back_->bysize - 20 - 22 + 2, SheetCtl::tbox_cpos_ + 2 + 8 + 1, SheetCtl::back_->bysize - 20 - 2);
+				SheetCtl::fillRect(SheetCtl::back_, Rgb(255, 255, 255), SheetCtl::tbox_cpos_ + 2, SheetCtl::back_->bysize - 20 - 22 + 2, SheetCtl::tbox_cpos_ + 2 + 8 + 1, SheetCtl::back_->bysize - 20 - 1);
 				SheetCtl::tbox_col_ = 0;
 				SheetCtl::drawLine(SheetCtl::back_, SheetCtl::tbox_col_, SheetCtl::tbox_cpos_ + 2, SheetCtl::back_->bysize - 20 - 22 + 2, SheetCtl::tbox_cpos_ + 2, SheetCtl::back_->bysize - 20 - 2);
 				SheetCtl::refresh(SheetCtl::back_, SheetCtl::tbox_cpos_ + 2, SheetCtl::back_->bysize - 20 - 22 + 2, SheetCtl::tbox_cpos_ + 2 + 8 + 1, SheetCtl::back_->bysize - 20 - 2);
