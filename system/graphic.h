@@ -38,6 +38,8 @@ public:
 	static Sheet **window_;
 	static Sheet *context_menu_;
 	static int tbox_cpos_;
+	static unsigned int tbox_col_;
+	static Timer *tbox_timer_;
 
 public:
 	static void init();
@@ -58,7 +60,7 @@ public:
 	static void gradCircle(Sheet *, unsigned int, unsigned int, int, int, int);
 	static void drawChar(Sheet *, int, int, unsigned int, unsigned char *);
 	static void drawString(Sheet *, int, int, unsigned int, const char *, int = 1);
-	static void kadotori(Sheet *, bool, bool, bool, bool);
+	static void borderRadius(Sheet *, bool, bool, bool, bool);
 	static void drawPicture(Sheet *, int, int, const char *, long = -1, int = 1);
 	static void colorChange(Sheet *, int, int, int, int, unsigned int, unsigned int);
 };

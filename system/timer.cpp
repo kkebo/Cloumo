@@ -32,10 +32,6 @@ void Timer::operator delete(void *p) {
 	// メモリが開放されてしまう？
 }
 
-void Timer::free() {
-	flags_ = TimerFlag::Free;
-}
-
 void Timer::set(unsigned int timeout) {
 	Timer *t, *s;
 	timeout_ = timeout + TimerController::count_; // 絶対時間に変換

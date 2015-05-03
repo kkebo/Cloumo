@@ -2,6 +2,8 @@
 
 int SheetCtl::top_        = -1;
 int SheetCtl::tbox_cpos_  = 2;
+unsigned int SheetCtl::tbox_col_ = 0;
+Timer *SheetCtl::tbox_timer_ = nullptr;
 unsigned short *SheetCtl::vram_ = nullptr;
 int SheetCtl::scrnx_      = 0;
 int SheetCtl::scrny_      = 0;
@@ -647,7 +649,7 @@ void SheetCtl::drawString(Sheet *sht, int x, int y, unsigned int c, const char *
 	}
 }
 
-void SheetCtl::kadotori(Sheet *sht, bool leftt, bool rightt, bool leftb, bool rightb) {
+void SheetCtl::borderRadius(Sheet *sht, bool leftt, bool rightt, bool leftb, bool rightb) {
 	int x = sht->bxsize, y = sht->bysize;
 	// 左上
 	if (leftt) {

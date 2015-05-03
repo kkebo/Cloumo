@@ -27,7 +27,6 @@ public:
 	Timer(Queue *, int);
 	static void *operator new(size_t size);
 	static void operator delete(void *p);
-	void free();
 	void set(unsigned int);
 	int data();
 };

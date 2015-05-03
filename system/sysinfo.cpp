@@ -24,18 +24,22 @@ void showSysInfo() {
 void SysinfoInit() {
 	new Task((char *)kSysInfoTaskName, 2, 2, []() {
 		Task *task = TaskController::getNowTask();
+		int count = 0;
 		
 		Timer *timer = new Timer(task->queue_);
 		timer->set(100);
 		
 		for (;;) {
+			count++;
 			Cli();
 			if (task->queue_->isempty()) {
 				task->sleep();
+				Sti();
 			} else {
 				int data = task->queue_->pop();
 				Sti();
 				if (data == timer->data()) {
+					//showBenchmarkResult();
 					showSysInfo();
 				}
 			}
