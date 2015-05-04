@@ -46,9 +46,9 @@ void SheetCtl::init() {
 	drawPicture(back_, 59, 4, "btn_r.bmp", Rgb(255, 0, 255));
 	// タブ
 	drawString(back_, 6, 39, 0, "index.htm");
-	colorChange(back_, 2, 35, back_->bxsize, 33 + 16 + 8, Rgb(0, 84, 255), Rgb(127, 169, 255));
+	colorChange(*back_, 2, 35, back_->bxsize, 33 + 16 + 8, Rgb(0, 84, 255), Rgb(127, 169, 255));
 	drawString(back_, 6, 33 + 16 + 8 + 1 + 4, Rgb(0, 42, 127), "system info");
-	colorChange(back_, 2, 33 + 16 + 8 + 1, back_->bxsize, 31 + 16 + 8 + 1 + 16 + 8, Rgb(0, 84, 255), Rgb(255, 255, 255));
+	colorChange(*back_, 2, 33 + 16 + 8 + 1, back_->bxsize, 31 + 16 + 8 + 1 + 16 + 8, Rgb(0, 84, 255), Rgb(255, 255, 255));
 	// 検索窓
 	fillRect(back_, Rgb(255, 255, 255), 2, back_->bysize - 20 - 22, back_->bxsize - 2, back_->bysize - 20);
 	// 表示設定
@@ -86,10 +86,9 @@ void SheetCtl::init() {
 
 // シートを確保
 Sheet *SheetCtl::alloc(int xsize, int ysize, bool inv) {
-	Sheet *sht;
 	for (int i = 0; i < kMaxSheets; i++) {
 		if (!sheets0_[i].flags) {
-			sht = &sheets0_[i];
+			Sheet *sht = &sheets0_[i];
 			sht->flags = kSheetUse;
 			sht->height = -1;
 
@@ -100,7 +99,7 @@ Sheet *SheetCtl::alloc(int xsize, int ysize, bool inv) {
 			return sht;
 		}
 	}
-	return 0;
+	return nullptr;
 }
 
 // シートの高さを変更
@@ -152,25 +151,23 @@ void SheetCtl::upDown(Sheet *sht, int height) {
 }
 
 // 指定シート内の指定範囲をリフレッシュ
-void SheetCtl::refresh(Sheet *sht, int bx0, int by0, int bx1, int by1) {
-	if (sht->height >= 0) {	// 非表示シートはリフレッシュしない
-		refreshMap(sht->vx0 + bx0, sht->vy0 + by0, sht->vx0 + bx1, sht->vy0 + by1, sht->height);
-		refreshSub(sht->vx0 + bx0, sht->vy0 + by0, sht->vx0 + bx1, sht->vy0 + by1, sht->height);
+void SheetCtl::refresh(Sheet &sht, int bx0, int by0, int bx1, int by1) {
+	if (sht.height >= 0) {	// 非表示シートはリフレッシュしない
+		refreshMap(sht.vx0 + bx0, sht.vy0 + by0, sht.vx0 + bx1, sht.vy0 + by1, sht.height);
+		refreshSub(sht.vx0 + bx0, sht.vy0 + by0, sht.vx0 + bx1, sht.vy0 + by1, sht.height);
 	}
 }
 
 // 指定範囲の変更をmapに適用
 void SheetCtl::refreshMap(int vx0, int vy0, int vx1, int vy1, int h0) {
 	int bx0, by0, bx1, by1, sid4;
-	unsigned char sid;
 	Sheet *sht;
 	if (vx0 < 0) vx0 = 0;
 	if (vy0 < 0) vy0 = 0;
 	if (vx1 > scrnx_) vx1 = scrnx_;
 	if (vy1 > scrny_) vy1 = scrny_;
-	for (int h = h0; h <= top_; h++) {
-		sht = sheets_[h];
-		sid = h;//sht - sheets0_; /* 番地を引き算してそれを下じき番号として利用 */
+	for (int sid = h0; sid <= top_; sid++) {
+		sht = sheets_[sid];
 		bx0 = vx0 - sht->vx0;
 		by0 = vy0 - sht->vy0;
 		bx1 = vx1 - sht->vx0;
@@ -738,11 +735,11 @@ void SheetCtl::drawPicture(Sheet *sht, int x, int y, const char *fname, long col
 }
 
 // 指定色を変更
-void SheetCtl::colorChange(Sheet *sht, int x0, int y0, int x1, int y1, unsigned int c0, unsigned int c1) {
+void SheetCtl::colorChange(Sheet &sht, int x0, int y0, int x1, int y1, unsigned int c0, unsigned int c1) {
 	for (int y = 0; y < y1 - y0; y++) {
 		for (int x = 0; x < x1 - x0; x++) {
-			if (sht->buf[(y + y0) * sht->bxsize + x + x0] == c0) {
-				sht->buf[(y + y0) * sht->bxsize + x + x0] = c1;
+			if (sht.buf[(y + y0) * sht.bxsize + x + x0] == c0) {
+				sht.buf[(y + y0) * sht.bxsize + x + x0] = c1;
 			}
 		}
 	}

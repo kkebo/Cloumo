@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 void showSysInfo(int benchScore) {
-	char str[100];
+	char str[50];
 	auto memTotal = MemoryTotal();
 	
 	// Clear the screen
@@ -39,7 +39,7 @@ void showSysInfo(int benchScore) {
 	SheetCtl::drawLine(SheetCtl::window_[1], 0, 3 + 19 * 8 + 3, 2 + 16 * 4 + 1, 3 + 19 * 8 + 3, 2 + 16 * 5 + j * 16 + 2);
 	
 	// Refresh the screen
-	SheetCtl::refresh(SheetCtl::window_[1], 2, 2, SheetCtl::window_[1]->bxsize - 1, SheetCtl::window_[1]->bysize - 1);
+	SheetCtl::refresh(*SheetCtl::window_[1], 2, 2, SheetCtl::window_[1]->bxsize - 1, SheetCtl::window_[1]->bysize - 1);
 }
 
 void SysinfoInit() {

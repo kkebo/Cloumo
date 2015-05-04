@@ -47,7 +47,7 @@ public:
 	static void init();
 	static Sheet *alloc(int, int, bool);
 	static void upDown(Sheet *, int);
-	static void refresh(Sheet *, int, int, int, int);
+	static void refresh(Sheet &, int, int, int, int);
 	static void refreshMap(int, int, int, int, int);
 	static void refreshSub(int, int, int, int, int);
 	static void slide(Sheet *, int, int);
@@ -64,7 +64,7 @@ public:
 	static void drawString(Sheet *, int, int, unsigned int, const char *, Encoding = Encoding::UTF8);
 	static void borderRadius(Sheet *, bool, bool, bool, bool);
 	static void drawPicture(Sheet *, int, int, const char *, long = -1, int = 1);
-	static void colorChange(Sheet *, int, int, int, int, unsigned int, unsigned int);
+	static void colorChange(Sheet &, int, int, int, int, unsigned int, unsigned int);
 };
 
 unsigned int Rgb(unsigned char, unsigned char, unsigned char, unsigned char = 0);

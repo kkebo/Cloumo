@@ -11,7 +11,7 @@
 		29016C8B1AEB505A00A10693 /* driver */ = {isa = PBXFileReference; lastKnownFileType = folder; path = driver; sourceTree = "<group>"; };
 		29016C8C1AEB507700A10693 /* headers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = headers.h; sourceTree = "<group>"; };
 		29016C8D1AEB507700A10693 /* main.ls */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = main.ls; sourceTree = "<group>"; };
-		29016C8E1AEB509800A10693 /* system */ = {isa = PBXFileReference; lastKnownFileType = folder; path = system; sourceTree = "<group>"; };
+		29016C8E1AEB509800A10693 /* kernel */ = {isa = PBXFileReference; lastKnownFileType = folder; path = kernel; sourceTree = "<group>"; };
 		29016C8F1AEB509800A10693 /* images */ = {isa = PBXFileReference; lastKnownFileType = folder; path = images; sourceTree = "<group>"; };
 		29016C901AEB509800A10693 /* html */ = {isa = PBXFileReference; lastKnownFileType = folder; path = html; sourceTree = "<group>"; };
 		29016C911AEB509800A10693 /* fonts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = fonts; sourceTree = "<group>"; };
@@ -27,7 +27,7 @@
 				29163A0F1955E09600D09C58 /* Makefile */,
 				29016C8C1AEB507700A10693 /* headers.h */,
 				29016C8D1AEB507700A10693 /* main.ls */,
-				29016C8E1AEB509800A10693 /* system */,
+				29016C8E1AEB509800A10693 /* kernel */,
 				29016C8B1AEB505A00A10693 /* driver */,
 				29016C901AEB509800A10693 /* html */,
 				29016C8F1AEB509800A10693 /* images */,
