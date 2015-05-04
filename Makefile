@@ -13,6 +13,7 @@ OBJS = \
 	kernel/utf82kt.o \
 	kernel/sysinfo.o \
 	kernel/asmfunc.o \
+	kernel/SmartPointer.o \
 	driver/file.o \
 	driver/keyboard.o \
 	driver/mouse.o \

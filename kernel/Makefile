@@ -12,7 +12,8 @@ OBJS = \
 	tek.o \
 	utf82kt.o \
 	sysinfo.o \
-	asmfunc.o
+	asmfunc.o \
+	SmartPointer.o
 
 ifeq ($(OS),Windows_NT)
 # Windows
