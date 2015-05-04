@@ -25,16 +25,16 @@ struct Sheet {
 
 class SheetCtl {
 private:
-	static unsigned short *vram_;
+	static unsigned char *vram_;
 	static unsigned char *map_;
 	static Sheet *sheets0_;
-	static int color_;
 	static int adrfont_;
 
 public:
 	static Sheet **sheets_;
 	static int scrnx_;
 	static int scrny_;
+	static int color_;
 	static int top_;
 	static Sheet *back_;
 	static Sheet **window_;

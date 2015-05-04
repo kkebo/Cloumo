@@ -33,7 +33,7 @@ tbl3:	jmp		_loop
 tbl4:
 
 ; MacBook Air 11-inch での開発用
-		jmp		scrn640_16
+;		jmp		scrn1024_32
 
 ; 1280x1024 32bit
 		mov		cx,0x11B

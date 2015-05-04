@@ -4,7 +4,7 @@ int SheetCtl::top_        = -1;
 int SheetCtl::tbox_cpos_  = 2;
 unsigned int SheetCtl::tbox_col_ = 0;
 Timer *SheetCtl::tbox_timer_ = nullptr;
-unsigned short *SheetCtl::vram_ = nullptr;
+unsigned char *SheetCtl::vram_ = nullptr;
 int SheetCtl::scrnx_      = 0;
 int SheetCtl::scrny_      = 0;
 unsigned char *SheetCtl::map_ = nullptr;
@@ -20,7 +20,7 @@ int SheetCtl::adrfont_    = 0;
 void SheetCtl::init() {
 	/* オブジェクト初期化 */
 	BootInfo *binfo = (BootInfo *)ADDRESS_BOOTINFO;
-	vram_    = (unsigned short *)binfo->vram;
+	vram_    = binfo->vram;
 	scrnx_   = binfo->scrnx;
 	scrny_   = binfo->scrny;
 	color_   = binfo->vmode;
@@ -249,12 +249,33 @@ void SheetCtl::refreshSub(int vx0, int vy0, int vx1, int vy1, int h1) {
 					}
 				}
 			}
+		} else if (color_ == 24) {
+			for (int by = by0; by < by1; by++) {
+				for (int bx = bx0; bx < bx1; bx++) {
+					if (map_[(sht->vy0 + by) * scrnx_ + sht->vx0 + bx] == sid) {
+						rgb = sht->buf[by * sht->bxsize + bx];
+						unsigned char *vram24 = (unsigned char *)(vram_ + ((sht->vy0 + by) * scrnx_ + (sht->vx0 + bx)) * 3);
+						if (h > 1) {
+							rgb = MixRgb(rgb, backrgb[(sht->vy0 + by - vy0) * (vx1 - vx0) + (sht->vx0 + bx - vx0)]);
+						}
+						vram24[2] = (unsigned char)(rgb >> 16);
+						vram24[1] = (unsigned char)(rgb >> 8);
+						vram24[0] = (unsigned char)rgb;
+					} else {
+						rgb = sht->buf[by * sht->bxsize + bx];
+						if ((unsigned char)(rgb >> 24) == 255) continue;
+						backrgb[(sht->vy0 + by - vy0) * (vx1 - vx0) + (sht->vx0 + bx - vx0)]
+						= (h <= 1) ? rgb
+						: MixRgb(rgb, backrgb[(sht->vy0 + by - vy0) * (vx1 - vx0) + (sht->vx0 + bx - vx0)]);
+					}
+				}
+			}
 		} else if (color_ == 16) {
 			for (int by = by0; by < by1; by++) {
 				for (int bx = bx0; bx < bx1; bx++) {
 					if (map_[(sht->vy0 + by) * scrnx_ + sht->vx0 + bx] == sid) {
 						rgb = sht->buf[by * sht->bxsize + bx];
-						vram_[(sht->vy0 + by) * scrnx_ + (sht->vx0 + bx)]
+						((unsigned short *)vram_)[(sht->vy0 + by) * scrnx_ + (sht->vx0 + bx)]
 						              = (h <= 1)?
 						            		  ((((unsigned char) (rgb >> 16) << 8) & 0xf800)
 								                 | (((unsigned char) (rgb >> 8) << 3) & 0x07e0)
