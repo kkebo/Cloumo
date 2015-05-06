@@ -35,7 +35,7 @@ void KeyboardController::init() {
 	wait();
 	Output8(kPortKeyData, kKBCMode);
 
-	Task *task = new Task((char *)kKeyboardTaskName, 2, 1, []() {
+	Task *task = new Task((char *)kKeyboardTaskName, 2, 2, []() {
 		Task *task = TaskController::getNowTask();
 		
 		// キャレットの表示とタイマー設定

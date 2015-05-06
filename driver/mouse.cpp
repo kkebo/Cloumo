@@ -58,7 +58,7 @@ void Mouse::Init() {
 	SheetCtl::upDown(Mouse::sheet_, SheetCtl::top_ + 1);
 
 	// マウスドライバタスク作成
-	Task *task = new Task((char *)kMouseTaskName, 1, 1, &Mouse::Main, new Queue(128));
+	Task *task = new Task((char *)kMouseTaskName, 1, 10, &Mouse::Main, new Queue(128));
 	queue_ = task->queue_;
 	
 	// マウス初期化 by uchan

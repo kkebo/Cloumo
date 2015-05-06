@@ -43,7 +43,7 @@ void showSysInfo(int benchScore) {
 }
 
 void SysinfoInit() {
-	new Task((char *)kSysInfoTaskName, 2, 2, []() {
+	new Task((char *)kSysInfoTaskName, 2, 1, []() {
 		Task *task = TaskController::getNowTask();
 		int count = 0, count0 = 0;
 		
