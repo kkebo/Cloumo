@@ -8,8 +8,8 @@ void MemoryInit() {
 	memoryManager->maxfrees = 0;
 	memoryManager->lostsize = 0;
 	memoryManager->losts = 0;
-	free0((void*)0x00001000, 0x0009e000);
-	free0((void*)0x00400000, MemoryTest(0x00400000, 0xbfffffff) - 0x00400000);
+	free0((void *)0x00001000, 0x0009e000);
+	free0((void *)0x00400000, MemoryTest(0x00400000, 0xbfffffff) - 0x00400000);
 }
 
 unsigned int MemoryTotal() {
@@ -53,8 +53,8 @@ unsigned int MemoryTest(unsigned int start, unsigned int end) {
 	return i;
 }
 
-void* malloc(unsigned int size) {
-	MemoryManager *memoryManager = (MemoryManager*)ADDRESS_MEMORY_MANAGER;
+void *malloc(unsigned int size) {
+	MemoryManager *memoryManager = (MemoryManager *)ADDRESS_MEMORY_MANAGER;
 
 	size += sizeof(unsigned int); // サイズ記録分空ける
 
@@ -130,7 +130,7 @@ bool free(void *addr) {
 	return free0(realaddr, realaddr[0]);
 }
 
-void* malloc4k(unsigned int size) {
+void *malloc4k(unsigned int size) {
 	return malloc((size + 0xfff) & 0xfffff000);
 }
 
@@ -158,11 +158,11 @@ bool free4k(void *addr) {
 	return s1;
 }*/
 
-void* operator new(size_t size) throw() {
+void *operator new(size_t size) throw() {
 	return malloc4k(size);
 }
 
-void* operator new[](size_t size) throw() {
+void *operator new[](size_t size) throw() {
 	return malloc4k(size);
 }
 

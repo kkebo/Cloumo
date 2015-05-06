@@ -54,17 +54,13 @@ void SheetCtl::init() {
 	// 表示設定
 	upDown(back_, 0);
 
-	// index.htm tab page
-	window_[0] = alloc(scrnx_ - back_->bxsize, scrny_, false);
-	drawRect(window_[0], 0, 0, 0, window_[0]->bxsize, window_[0]->bysize);
-	fillRect(window_[0], Rgb(255, 255, 255), 1, 1, window_[0]->bxsize - 1, window_[0]->bysize - 1);
-	slide(window_[0], back_->bxsize, 0);
-
-	// system info tab page
-	window_[1] = alloc(scrnx_ - back_->bxsize, scrny_, false);
-	drawRect(window_[1], 0, 0, 0, window_[1]->bxsize, window_[1]->bysize);
-	fillRect(window_[1], Rgb(255, 255, 255), 1, 1, window_[1]->bxsize - 1, window_[1]->bysize - 1);
-	slide(window_[1], back_->bxsize, 0);
+	// tabs
+	for (int i = 0; i < 2; i++) {
+		window_[i] = alloc(scrnx_ - back_->bxsize, scrny_, false);
+		drawRect(window_[i], 0, 0, 0, window_[i]->bxsize, window_[i]->bysize);
+		fillRect(window_[i], Rgb(255, 255, 255), 1, 1, window_[i]->bxsize - 1, window_[i]->bysize - 1);
+		slide(window_[i], back_->bxsize, 0);
+	}
 
 	// system info タブを全面へ
 	upDown(window_[1], 1);

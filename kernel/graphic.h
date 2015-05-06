@@ -6,7 +6,7 @@
 #define _GRAPHIC_H_
 
 const int kMaxSheets = 256;
-const int kMaxTabs = 200;
+const int kMaxTabs = 20;
 const int kSheetUse = 1;
 const int kTransColor = 255 << 24;
 
