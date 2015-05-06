@@ -88,8 +88,8 @@ run:
 	$(QEMU) -m 64 -localtime -soundhw all -fda cloumo.img -L .
 
 run-remote:
-	QEMU_REMOTE = -vnc :2
-	$(MAKE) run
+	$(MAKE) all
+	$(QEMU) -vnc :2 -m 64 -localtime -soundhw all -fda cloumo.img -L .
 
 run-virtualbox:
 	$(MAKE) all
