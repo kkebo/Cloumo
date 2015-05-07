@@ -32,9 +32,61 @@ tbl2:
 tbl3:	jmp		_loop
 tbl4:
 
-; MacBook Air 11-inch での開発用
+; テスト用
 ;		jmp		scrn1024_32
 
+; 1600x1200 32bit
+		mov		cx,0x11F
+		mov		ax,0x4f01
+		int		0x10
+		cmp		ax,0x004f
+		jne		scrn1440_32
+
+		cmp		byte [es:di+0x19],32
+		jne		scrn1600_24			; try 24-bit
+		jmp		scrn1600_32.next	; ok
+scrn1600_24:
+		cmp		byte [es:di+0x19],24
+		jne		scrn1440_32
+scrn1600_32.next:
+		cmp		byte [es:di+0x1b],6
+		jne		scrn1440_32
+		mov		ax,[es:di+0x00]
+		and		ax,0x0080
+		jz		scrn1440_32
+
+		mov		ax,0x4f02
+		mov		bx,0x411F
+		int		0x10
+		jmp		keystatus
+
+scrn1440_32:
+; 1440x900 32bit
+		mov		cx,0x163
+		mov		ax,0x4f01
+		int		0x10
+		cmp		ax,0x004f
+		jne		scrn1280_32
+
+		cmp		byte [es:di+0x19],32
+		jne		scrn1440_24			; try 24-bit
+		jmp		scrn1440_32.next	; ok
+scrn1440_24:
+		cmp		byte [es:di+0x19],24
+		jne		scrn1280_32
+scrn1440_32.next:
+		cmp		byte [es:di+0x1b],6
+		jne		scrn1280_32
+		mov		ax,[es:di+0x00]
+		and		ax,0x0080
+		jz		scrn1280_32
+
+		mov		ax,0x4f02
+		mov		bx,0x4163
+		int		0x10
+		jmp		keystatus
+
+scrn1280_32:
 ; 1280x1024 32bit
 		mov		cx,0x11B
 		mov		ax,0x4f01
@@ -135,6 +187,48 @@ scrn640_32.next:
 
 		mov		ax,0x4f02
 		mov		bx,0x4112
+		int		0x10
+		jmp		keystatus
+
+scrn1600_16:
+; 1600x1200 16bit
+		mov		cx,0x11E
+		mov		ax,0x4f01
+		int		0x10
+		cmp		ax,0x004f
+		jne		scrn1440_16
+
+		cmp		byte [es:di+0x19],16
+		jne		scrn1440_16
+		cmp		byte [es:di+0x1b],6
+		jne		scrn1440_16
+		mov		ax,[es:di+0x00]
+		and		ax,0x0080
+		jz		scrn1440_16
+
+		mov		ax,0x4f02
+		mov		bx,0x411E
+		int		0x10
+		jmp		keystatus
+
+scrn1440_16:
+; 1440x900 16bit
+		mov		cx,0x162
+		mov		ax,0x4f01
+		int		0x10
+		cmp		ax,0x004f
+		jne		scrn1280_16
+
+		cmp		byte [es:di+0x19],16
+		jne		scrn1280_16
+		cmp		byte [es:di+0x1b],6
+		jne		scrn1280_16
+		mov		ax,[es:di+0x00]
+		and		ax,0x0080
+		jz		scrn1280_16
+
+		mov		ax,0x4f02
+		mov		bx,0x4162
 		int		0x10
 		jmp		keystatus
 
