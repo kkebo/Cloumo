@@ -4,4 +4,5 @@
 *.bin
 os.sys
 cloumo.img
+cloumo.iso
 golibc.a
