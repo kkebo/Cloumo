@@ -36,20 +36,28 @@ void Mouse::Init() {
 	Mouse::sheet_ = SheetCtl::alloc(16, 16, true);
 	for (int y = 0; y < 16; y++) {
 		for (int x = 0; x < 16; x++) {
-			if (Mouse::cursor_[x][y] == 'O') {
-				Mouse::sheet_->buf[y * 16 + x] = Rgb(255, 255, 255, 100);
-			} else if (Mouse::cursor_[x][y] == '@') {
-				Mouse::sheet_->buf[y * 16 + x] = Rgb(12, 69, 255, 100);
-			} else if (Mouse::cursor_[x][y] == 'G') {
-				Mouse::sheet_->buf[y * 16 + x] = Rgb(27, 81, 255, 100);
-			} else if (Mouse::cursor_[x][y] == 'J') {
-				Mouse::sheet_->buf[y * 16 + x] = Rgb(58, 104, 255, 100);
-			} else if (Mouse::cursor_[x][y] == 'C') {
-				Mouse::sheet_->buf[y * 16 + x] = Rgb(73, 116, 255, 100);
-			} else if (Mouse::cursor_[x][y] == 'U') {
-				Mouse::sheet_->buf[y * 16 + x] = Rgb(0, 182, 200, 100);
-			} else {
-				Mouse::sheet_->buf[y * 16 + x] = kTransColor;
+			switch (Mouse::cursor_[x][y]) {
+				case 'O':
+					Mouse::sheet_->buf[y * 16 + x] = Rgb(255, 255, 255, 100);
+					break;
+				case '@':
+					Mouse::sheet_->buf[y * 16 + x] = Rgb(12, 69, 255, 100);
+					break;
+				case 'G':
+					Mouse::sheet_->buf[y * 16 + x] = Rgb(27, 81, 255, 100);
+					break;
+				case 'J':
+					Mouse::sheet_->buf[y * 16 + x] = Rgb(58, 104, 255, 100);
+					break;
+				case 'C':
+					Mouse::sheet_->buf[y * 16 + x] = Rgb(73, 116, 255, 100);
+					break;
+				case 'U':
+					Mouse::sheet_->buf[y * 16 + x] = Rgb(0, 182, 200, 100);
+					break;
+				default:
+					Mouse::sheet_->buf[y * 16 + x] = kTransColor;
+					break;
 			}
 		}
 	}
@@ -58,7 +66,7 @@ void Mouse::Init() {
 	SheetCtl::upDown(Mouse::sheet_, SheetCtl::top_ + 1);
 
 	// マウスドライバタスク作成
-	Task *task = new Task((char *)kMouseTaskName, 1, 10, &Mouse::Main, new Queue(128));
+	Task *task = new Task((char *)kMouseTaskName, 1, 1, &Mouse::Main, new Queue(128));
 	queue_ = task->queue_;
 	
 	// マウス初期化 by uchan
@@ -69,48 +77,58 @@ void Mouse::Init() {
 		/*
 		 * まずマウスへ制御信号送信
 		 */
-		if (i == 0 && send == false) {
-			KeyboardController::wait();
-			Output8(kPortKeyCmd, kKeyCmdSendToMouse);
-			KeyboardController::wait();
-			Output8(kPortKeyData, 0xf3);
-			send = true;
-		} else if (i == 1 && send == false) {
-			KeyboardController::wait();
-			Output8(kPortKeyCmd, kKeyCmdSendToMouse);
-			KeyboardController::wait();
-			Output8(kPortKeyData, 200);
-			send = true;
-		} else if (i == 2 && send == false) {
-			KeyboardController::wait();
-			Output8(kPortKeyCmd, kKeyCmdSendToMouse);
-			KeyboardController::wait();
-			Output8(kPortKeyData, 0xf3);
-			send = true;
-		} else if (i == 3 && send == false) {
-			KeyboardController::wait();
-			Output8(kPortKeyCmd, kKeyCmdSendToMouse);
-			KeyboardController::wait();
-			Output8(kPortKeyData, 100);
-			send = true;
-		} else if (i == 4 && send == false) {
-			KeyboardController::wait();
-			Output8(kPortKeyCmd, kKeyCmdSendToMouse);
-			KeyboardController::wait();
-			Output8(kPortKeyData, 0xf3);
-			send = true;
-		} else if (i == 5 && send == false) {
-			KeyboardController::wait();
-			Output8(kPortKeyCmd, kKeyCmdSendToMouse);
-			KeyboardController::wait();
-			Output8(kPortKeyData, 80);
-			send = true;
-		} else if (i == 6 && send == false) {
-			KeyboardController::wait();
-			Output8(kPortKeyCmd, kKeyCmdSendToMouse);
-			KeyboardController::wait();
-			Output8(kPortKeyData, 0xf2);
-			send = true;
+		if (send == false) {
+			switch (i) {
+				case 0:
+					KeyboardController::wait();
+					Output8(kPortKeyCmd, kKeyCmdSendToMouse);
+					KeyboardController::wait();
+					Output8(kPortKeyData, 0xf3);
+					send = true;
+					break;
+				case 1:
+					KeyboardController::wait();
+					Output8(kPortKeyCmd, kKeyCmdSendToMouse);
+					KeyboardController::wait();
+					Output8(kPortKeyData, 200);
+					send = true;
+					break;
+				case 2:
+					KeyboardController::wait();
+					Output8(kPortKeyCmd, kKeyCmdSendToMouse);
+					KeyboardController::wait();
+					Output8(kPortKeyData, 0xf3);
+					send = true;
+					break;
+				case 3:
+					KeyboardController::wait();
+					Output8(kPortKeyCmd, kKeyCmdSendToMouse);
+					KeyboardController::wait();
+					Output8(kPortKeyData, 100);
+					send = true;
+					break;
+				case 4:
+					KeyboardController::wait();
+					Output8(kPortKeyCmd, kKeyCmdSendToMouse);
+					KeyboardController::wait();
+					Output8(kPortKeyData, 0xf3);
+					send = true;
+					break;
+				case 5:
+					KeyboardController::wait();
+					Output8(kPortKeyCmd, kKeyCmdSendToMouse);
+					KeyboardController::wait();
+					Output8(kPortKeyData, 80);
+					send = true;
+					break;
+				case 6:
+					KeyboardController::wait();
+					Output8(kPortKeyCmd, kKeyCmdSendToMouse);
+					KeyboardController::wait();
+					Output8(kPortKeyData, 0xf2);
+					send = true;
+					break;
+			}
 		}
 		Cli();
 		if (queue_->isempty()) {
@@ -131,9 +149,6 @@ void Mouse::Init() {
 			}
 			
 			if (i == 7 || errors > 10) {
-				/*
-				 * マウス有効化が終わったのでループを抜ける
-				 */
 				break;
 			}
 			
@@ -159,7 +174,7 @@ void Mouse::Init() {
 void Mouse::Main() {
 	Task *task = TaskController::getNowTask();
 	unsigned char code;
-    int dx, dy;
+	int dx, dy;
 
 	for (;;) {
 		Cli();
