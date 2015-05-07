@@ -47,7 +47,7 @@ static void *Task::operator new(size_t size) {
 void Task::run(int level, int priority) {
 	// level が負ならレベルを変更しない
 	if (level < 0) level = level_;
-	// 優先度は 1 ~ MAX_TASKLEVELS
+	// 優先度は 1 以上
 	if (priority > 0) priority_ = priority;
 
 	if (flags_ ==  TaskFlag::Running && level_ != level) {
