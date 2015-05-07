@@ -19,18 +19,12 @@ VRAM	equ		0x0ff8			; グラフィックバッファの開始番地
 		mov		ax,0x4f00
 		int		0x10
 		cmp		ax,0x004f
-		jne		tbl1
-		jmp		tbl2
-tbl1:	jmp		_loop
-tbl2:
+		jne		_loop
 
 ; VBEのバージョンチェック
 		mov		ax,[es:di+4]
 		cmp		ax,0x0200
-		jb		tbl3
-		jmp		tbl4
-tbl3:	jmp		_loop
-tbl4:
+		jb		_loop
 
 ; テスト用
 ;		jmp		scrn1024_32
@@ -339,10 +333,14 @@ keystatus:
 
 ; PICが一切の割り込みを受け付けないようにする
 
+		cli
 		mov		al,0xff
 		out		0x21,al
 		nop						; out命令を連続させるとうまくいかない機種があるらしいので
 		out		0xa1,al
+		sti
+		nop
+		cli
 
 		cli						; さらにCPUレベルでも割り込み禁止
 

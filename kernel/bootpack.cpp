@@ -13,6 +13,7 @@ extern "C" void _main() {
 	SheetCtl::init();
 	TimerController::init();
 	Task *mainTask = TaskController::init();
+	Cli();
 	Output8(kPic0Imr, 0xf8); /* PITとPIC1とキーボードを許可(11111000) */
 	Output8(kPic1Imr, 0xef); /* マウスを許可(11101111) */
 	Sti();
