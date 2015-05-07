@@ -27,11 +27,18 @@ Queue *Mouse::queue_ = nullptr;
 MouseDecode Mouse::mdec_;
 Task *Mouse::browserTask = nullptr;
 
-void Mouse::Init() {
-	// 初期マウスポインタ位置
+void Mouse::Main() {
+	Task *task = TaskController::getNowTask();
+	unsigned char code;
+	int dx, dy;
+	
+	// メンバ初期化
 	mdec_.x_ = SheetCtl::scrnx_ / 2;
 	mdec_.y_ = SheetCtl::scrny_ / 2;
-
+	mdec_.phase_ = 0;
+	mdec_.scroll_ = 0;
+	queue_ = task->queue_;
+	
 	// マウスポインタ描画
 	Mouse::sheet_ = SheetCtl::alloc(16, 16, true);
 	for (int y = 0; y < 16; y++) {
@@ -64,10 +71,6 @@ void Mouse::Init() {
 	Mouse::sheet_->vx0 = mdec_.x_ - 8;
 	Mouse::sheet_->vy0 = mdec_.y_ - 8;
 	SheetCtl::upDown(Mouse::sheet_, SheetCtl::top_ + 1);
-
-	// マウスドライバタスク作成
-	Task *task = new Task((char *)kMouseTaskName, 1, 1, &Mouse::Main, new Queue(128));
-	queue_ = task->queue_;
 	
 	// マウス初期化 by uchan
 	int i = 0;
@@ -137,9 +140,9 @@ void Mouse::Init() {
 		} else {
 			int data = queue_->pop();
 			Sti();
-				
+			
 			if (0 <= i && i <= 6 && data == 0xfa) {
-				// エラー無し
+				// 正常に ACK が来た
 			} else if (i == 7 && data == 0) {
 				// ホイール無し
 				scroll_ = false;
@@ -153,10 +156,10 @@ void Mouse::Init() {
 			}
 			
 			if (data != 0xfe) {
-				// 再送要求では無かった
 				i++;
 				send = false;
 			} else {
+				// 再送要求
 				errors++;
 			}
 		}
@@ -166,15 +169,6 @@ void Mouse::Init() {
 	Output8(kPortKeyCmd, kKeyCmdSendToMouse);
 	KeyboardController::wait();
 	Output8(kPortKeyData, kMouseCmdEnable);
-	
-	mdec_.phase_ = 0;
-	mdec_.scroll_ = 0;
-}
-
-void Mouse::Main() {
-	Task *task = TaskController::getNowTask();
-	unsigned char code;
-	int dx, dy;
 
 	for (;;) {
 		Cli();

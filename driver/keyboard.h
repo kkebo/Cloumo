@@ -26,8 +26,8 @@ public:
 	static Queue *queue_;
 
 public:
-	static void init();
-	static void decode(unsigned char);
+	static void Main();
+	static void Decode(unsigned char);
 	static void wait();
 };
 

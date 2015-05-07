@@ -42,30 +42,29 @@ void showSysInfo(int benchScore) {
 	SheetCtl::refresh(*SheetCtl::window_[1], 2, 2, SheetCtl::window_[1]->bxsize - 1, SheetCtl::window_[1]->bysize - 1);
 }
 
-void SysinfoInit() {
-	new Task((char *)kSysInfoTaskName, 2, 1, []() {
-		Task *task = TaskController::getNowTask();
-		int count = 0, count0 = 0;
-		
-		Timer *timer = new Timer(task->queue_);
-		timer->set(100);
-		
-		for (;;) {
-			count++;
-			Cli();
-			if (task->queue_->isempty()) {
-				//task->sleep(); ベンチマーク測定のため
-				Sti();
-			} else {
-				int data = task->queue_->pop();
-				Sti();
-				if (data == timer->data()) {
-					showSysInfo(count - count0);
-					count0 = count;
-					timer->set(100);
-				}
+void SysinfoMain() {
+	Task *task = TaskController::getNowTask();
+	int count = 0, count0 = 0;
+	
+	Timer *timer = new Timer(task->queue_);
+	timer->set(100);
+	
+	showSysInfo(0);
+	
+	for (;;) {
+		count++;
+		Cli();
+		if (task->queue_->isempty()) {
+			//task->sleep(); ベンチマーク測定のため
+			Sti();
+		} else {
+			int data = task->queue_->pop();
+			Sti();
+			if (data == timer->data()) {
+				showSysInfo(count - count0);
+				count0 = count;
+				timer->set(100);
 			}
 		}
-	}, new Queue(128));
-	showSysInfo(0);
+	}
 }

@@ -13,7 +13,7 @@ private:
 	static Timer *timer_;
 
 public:
-	static void init();
+	static void Main();
 };
 
 #endif

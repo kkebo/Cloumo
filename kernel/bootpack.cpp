@@ -13,18 +13,16 @@ extern "C" void _main() {
 	SheetCtl::init();
 	TimerController::init();
 	Task *mainTask = TaskController::init();
-	DateTime::init();
 	Output8(kPic0Imr, 0xf8); /* PITとPIC1とキーボードを許可(11111000) */
 	Output8(kPic1Imr, 0xef); /* マウスを許可(11101111) */
 	Sti();
-	KeyboardController::init();
-	Mouse::Init();
-
-	/* system information */
-	SysinfoInit();
-
-	/* Web Browser */
-	new Task("Web Browsing Task", 2, 2, []() {
+	
+	// タスクの起動
+	new Task((char *)kTimeTaskName, 2, 1, &DateTime::Main, new Queue(128));
+	new Task((char *)kKeyboardTaskName, 2, 2, &KeyboardController::Main, new Queue(128));
+	new Task((char *)kMouseTaskName, 1, 1, &Mouse::Main, new Queue(128));
+	new Task((char *)kSysInfoTaskName, 2, 1, &SysinfoMain, new Queue(128));
+	new Task((char *)kBrowserTaskName, 2, 2, []() {
 		Task *task = TaskController::getNowTask();
 		Browser *browser = new Browser("index.htm");
 		browser->Render();

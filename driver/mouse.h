@@ -32,7 +32,6 @@ public:
 	static Task *browserTask;
 
 public:
-	static void Init();
 	static void Main();
 };
 
