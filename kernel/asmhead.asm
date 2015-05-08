@@ -311,6 +311,8 @@ scrn640_16:
 		jmp		keystatus
 
 _loop:
+		mov		si,msg_dame
+		call	putloop
 		hlt
 		jmp short $-1
 
@@ -418,6 +420,37 @@ waitkbdout:
 		and		al,0x02
 		jnz		waitkbdout		; ANDの結果が0でなければwaitkbdoutへ
 		ret
+
+return:
+		ret
+
+ptlp_err_msg:
+		db		0x0a, 0x0a		; 改行を2つ
+		db		"putloop error"
+		db		0x0a			; 改行
+		db		0
+
+putloop:
+		mov		al,[si]
+		add		si,1			; siに1を足す
+		cmp		al,0
+		je		return
+		mov		ah,0x0e			; 一文字表示ファンクション
+		mov		bx,15			; カラーコード
+		int		0x10			; ビデオBIOS呼び出し
+		jmp		putloop
+error:
+		mov		ax,0
+		mov		es,ax
+		mov		si,ptlp_err_msg
+		call	putloop
+fin:
+		hlt						; 何かあるまでCPUを停止させる
+		jmp		fin				; 無限ループ
+
+msg_dame:
+		db		"dame dame dame!!!"
+		db		0
 
 memcpy:
 		mov		eax,[esi]
