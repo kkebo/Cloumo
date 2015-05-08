@@ -251,9 +251,9 @@ void SheetCtl::refreshSub(int vx0, int vy0, int vx1, int vy1, int h1) {
 						if (h > 1) {
 							rgb = MixRgb(rgb, backrgb[(sht->vy0 + by - vy0) * (vx1 - vx0) + (sht->vx0 + bx - vx0)]);
 						}
-						vram24[2] = (unsigned char)(rgb >> 16);
-						vram24[1] = (unsigned char)(rgb >> 8);
 						vram24[0] = (unsigned char)rgb;
+						vram24[1] = (unsigned char)(rgb >> 8);
+						vram24[2] = (unsigned char)(rgb >> 16);
 					} else {
 						rgb = sht->buf[by * sht->bxsize + bx];
 						if ((unsigned char)(rgb >> 24) == 255) continue;
@@ -269,7 +269,7 @@ void SheetCtl::refreshSub(int vx0, int vy0, int vx1, int vy1, int h1) {
 					if (map_[(sht->vy0 + by) * scrnx_ + sht->vx0 + bx] == sid) {
 						rgb = sht->buf[by * sht->bxsize + bx];
 						((unsigned short *)vram_)[(sht->vy0 + by) * scrnx_ + (sht->vx0 + bx)]
-						              = (h <= 1)?
+						              = (h <= 1) ?
 						            		  ((((unsigned char) (rgb >> 16) << 8) & 0xf800)
 								                 | (((unsigned char) (rgb >> 8) << 3) & 0x07e0)
 								                 | ((unsigned char) rgb >> 3)) :
@@ -280,7 +280,7 @@ void SheetCtl::refreshSub(int vx0, int vy0, int vx1, int vy1, int h1) {
 						rgb = sht->buf[by * sht->bxsize + bx];
 						if ((unsigned char) (rgb >> 24) == 255) continue;
 						backrgb[(sht->vy0 + by - vy0) * (vx1 - vx0) + (sht->vx0 + bx - vx0)]
-						        = (h <= 1)?
+						        = (h <= 1) ?
 						        		rgb :
 						        		MixRgb(rgb, backrgb[(sht->vy0 + by - vy0) * (vx1 - vx0) + (sht->vx0 + bx - vx0)]);
 					}
