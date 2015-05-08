@@ -28,15 +28,22 @@ extern "C" void _main() {
 		Browser *browser = new Browser("index.htm");
 		browser->Render();
 		
+		bool refreshRequired = false;
+		
 		for (;;) {
 			Cli();
 			if (task->queue_->isempty()) {
+				if (refreshRequired) {
+					SheetCtl::refresh(*SheetCtl::window_[0], 1, 1, SheetCtl::window_[0]->bxsize - 2, SheetCtl::window_[0]->bysize - 1);
+					refreshRequired = false;
+				}
 				task->sleep();
 				Sti();
 			} else {
 				int data = task->queue_->pop();
 				Sti();
 				browser->Scroll(data);
+				refreshRequired = true;
 			}
 		}
 	}, new Queue(128));

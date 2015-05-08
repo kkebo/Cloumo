@@ -275,7 +275,7 @@ void Mouse::Main() {
 					SheetCtl::refresh(SheetCtl::back_, 2, 300, SheetCtl::back_->bxsize - 3, 316);*/
 					
 					// スクロール
-					if (browserTask) {
+					if (browserTask && (mdec_.scroll_ == 1 || mdec_.scroll_ == -1)) {
 						browserTask->queue_->push(mdec_.scroll_);
 					}
 					

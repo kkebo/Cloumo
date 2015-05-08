@@ -361,8 +361,8 @@ void Browser::Scroll(int data) {
 void Browser::Mapping() {
 	for (int y = 0; y < SheetCtl::window_[0]->bysize - 2; y++) {
 		for (int x = 0; x < SheetCtl::window_[0]->bxsize - 2; x++) {
-			SheetCtl::window_[0]->buf[(y + 1) * SheetCtl::window_[0]->bxsize + x + 1] = sheet->buf[(y + dy) * sheet->bxsize + x];
+			if (SheetCtl::window_[0]->buf[(y + 1) * SheetCtl::window_[0]->bxsize + x + 1] != sheet->buf[(y + dy) * sheet->bxsize + x])
+				SheetCtl::window_[0]->buf[(y + 1) * SheetCtl::window_[0]->bxsize + x + 1] = sheet->buf[(y + dy) * sheet->bxsize + x];
 		}
 	}
-	SheetCtl::refresh(*SheetCtl::window_[0], 1, 1, SheetCtl::window_[0]->bxsize - 2, SheetCtl::window_[0]->bysize - 1);
 }
