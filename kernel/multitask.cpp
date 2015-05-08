@@ -1,6 +1,10 @@
 #include "../headers.h"
 
-Task::Task(char *name, int level, int priority, void (*mainLoop)(), Queue *queue) : name_(name), queue_(queue) {
+Task::Task(char *name, int level, int priority, void (*mainLoop)()) {
+	Task::Task(name, level, priority, nullptr, mainLoop);
+}
+
+Task::Task(char *name, int level, int priority, Queue *queue, void (*mainLoop)()) : name_(name), queue_(queue) {
 	queue_->task_ = this;
 	tss_.esp = (int)malloc4k(64 * 1024) + 64 * 1024 - 12;
 	tss_.eip = mainLoop;

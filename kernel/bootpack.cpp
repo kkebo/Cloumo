@@ -19,11 +19,11 @@ extern "C" void _main() {
 	Sti();
 	
 	// タスクの起動
-	new Task((char *)kTimeTaskName, 2, 1, &DateTime::Main, new Queue(128));
-	new Task((char *)kKeyboardTaskName, 2, 2, &KeyboardController::Main, new Queue(128));
-	new Task((char *)kMouseTaskName, 1, 1, &Mouse::Main, new Queue(128));
-	new Task((char *)kSysInfoTaskName, 2, 1, &SysinfoMain, new Queue(128));
-	new Task((char *)kBrowserTaskName, 2, 2, []() {
+	new Task((char *)kTimeTaskName, 2, 1, new Queue(128), &DateTime::Main);
+	new Task((char *)kKeyboardTaskName, 2, 2, new Queue(128), &KeyboardController::Main);
+	new Task((char *)kMouseTaskName, 1, 1, new Queue(128), &Mouse::Main);
+	new Task((char *)kSysInfoTaskName, 2, 1, new Queue(128), &SysinfoMain);
+	new Task((char *)kBrowserTaskName, 2, 2, new Queue(128), []() {
 		Task *task = TaskController::getNowTask();
 		Browser *browser = new Browser("index.htm");
 		browser->Render();
@@ -46,7 +46,7 @@ extern "C" void _main() {
 				refreshRequired = true;
 			}
 		}
-	}, new Queue(128));
+	});
 
 	/* 起動音 */
 	/*Timer* btsound = TimerController::alloc();
