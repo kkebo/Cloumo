@@ -27,8 +27,8 @@ public:
 	int level_, priority_;
 	Queue *queue_;
 	TSS32 tss_;
-	//int fpu[108 / 4];
-	//int stack;
+	int fpu[108 / 4];
+	int stack;
 
 public:
 	Task() {}
@@ -54,7 +54,7 @@ public:
 	static Task *tasks0_;
 
 public:
-	//static Task *task_fpu_;
+	static Task *task_fpu_;
 	static Timer *timer_;
 
 public:

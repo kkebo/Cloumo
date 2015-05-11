@@ -12,7 +12,7 @@ extern "C" {
 	int Input8(int);
 	void Output8(int, int);
 
-//	void AsmIntHandler07();
+	void AsmIntHandler07();
 	void AsmIntHandler20();
 	void AsmIntHandler21();
 	void AsmIntHandler27();

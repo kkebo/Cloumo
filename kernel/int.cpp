@@ -30,19 +30,19 @@ void PICInit() {
 }
 
 // FPU
-/*void IntHandler07(int *esp) {
-	Task* now = TaskController::Now();
+void IntHandler07(int *esp) {
+	Task *now = TaskController::getNowTask();
 	asm volatile("clts");
 	if (TaskController::task_fpu_ != now) {
 		if (TaskController::task_fpu_) {
-			int *p = (int*)TaskController::task_fpu_->fpu;
+			int *p = (int *)TaskController::task_fpu_->fpu;
 			asm volatile("fnsave %0" : "=m"(p));
 		}
-		int *p = (int*)now->fpu;
+		int *p = (int *)now->fpu;
 		asm volatile("frstor %0" : "=m"(p));
 		TaskController::task_fpu_ = now;
 	}
-}*/
+}
 
 // PIT割り込み
 void IntHandler20(int *esp) {

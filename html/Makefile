@@ -10,7 +10,7 @@ endif
 
 # Default
 
-default: index.htm
+all: index.htm
 
 # 一般生成規則
 

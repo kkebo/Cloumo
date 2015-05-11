@@ -37,10 +37,12 @@ static void *Task::operator new(size_t size) {
 			task->tss_.ldtr = 0;
 			task->tss_.iomap = 0x40000000;
 			task->tss_.ss0 = 0;
-			//task->fpu[0] = 0x037f; /* CW(control word) */
-			//task->fpu[1] = 0x0000; /* SW(status word)  */
-			//task->fpu[2] = 0xffff; /* TW(tag word)     */
-			//task->fpu[3..108/4-1] = 0;
+			task->fpu[0] = 0x037f; /* CW(control word) */
+			task->fpu[1] = 0x0000; /* SW(status word)  */
+			task->fpu[2] = 0xffff; /* TW(tag word)     */
+			for (int i = 3; i < 108 / 4; i++) {
+				task->fpu[i] = 0;
+			}
 			return task;
 		}
 	}
@@ -82,6 +84,7 @@ int       TaskController::now_lv_    = 0;
 bool      TaskController::lv_change_ = false;
 TaskLevel *TaskController::level_    = nullptr;
 Task      *TaskController::tasks0_   = nullptr;
+Task      *TaskController::task_fpu_ = nullptr;
 
 Task *TaskController::init() {
 	level_ = new TaskLevel[MAX_TASKLEVELS];
@@ -107,8 +110,6 @@ Task *TaskController::init() {
 	LoadTr(task->selector_);
 	timer_ = new Timer();
 	timer_->set(task->priority_);
-
-	// TASKFLAG_fpu_ = null;
 
 	return task;
 }

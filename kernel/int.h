@@ -17,7 +17,7 @@
 void PICInit();
 
 extern "C" {
-	//void IntHandler07(int *);
+	void IntHandler07(int *);
 	void IntHandler20(int *);
 	void IntHandler21(int *);
 	void IntHandler2c(int *);

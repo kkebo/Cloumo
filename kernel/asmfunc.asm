@@ -7,13 +7,13 @@
 	global LoadGdtr, LoadIdtr
 	global LoadCr0, StoreCr0
 	global LoadTr
-	;global AsmIntHandler07
+	global AsmIntHandler07
 	global AsmIntHandler20
 	global AsmIntHandler21, AsmIntHandler2c
 	global AsmIntHandler27
 	global MemoryTestSub
 	global FarJump
-	;extern IntHandler07
+	extern IntHandler07
 	extern IntHandler20
 	extern IntHandler21, IntHandler2c
 
@@ -79,21 +79,21 @@ LoadTr:
 	LTR		[ESP+4]			; tr
 	RET
 
-;AsmIntHandler07:
-;	PUSH	ES
-;	PUSH	DS
-;	PUSHAD
-;	MOV	 EAX,ESP
-;	PUSH	EAX
-;	MOV	 AX,SS
-;	MOV	 DS,AX
-;	MOV	 ES,AX
-;	CALL	IntHandler07
-;	POP	 EAX
-;	POPAD
-;	POP	 DS
-;	POP	 ES
-;	IRETD
+AsmIntHandler07:
+	PUSH	ES
+	PUSH	DS
+	PUSHAD
+	MOV	 EAX,ESP
+	PUSH	EAX
+	MOV	 AX,SS
+	MOV	 DS,AX
+	MOV	 ES,AX
+	CALL	IntHandler07
+	POP	 EAX
+	POPAD
+	POP	 DS
+	POP	 ES
+	IRETD
 
 AsmIntHandler20:
 	PUSH ES
