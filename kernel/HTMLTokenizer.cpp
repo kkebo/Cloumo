@@ -3,77 +3,77 @@
 using namespace HTML;
 
 void Tokenizer::tokenize(const char *inputStream, unsigned int size) {
-	enum State {
-		DataState,
-		CharacterReferenceInDataState,
-		RCDATAState,
-		CharacterReferenceInRCDATAState,
-		RAWTEXTState,
-		ScriptDataState,
-		PLAINTEXTState,
-		TagOpenState,
-		EndTagOpenState,
-		TagNameState,
-		RCDATALessThanSignState,
-		RCDATAEndTagOpenState,
-		RCDATAEndTagNameState,
-		RAWTEXTLessThanSignState,
-		RAWTEXTEndTagOpenState,
-		RAWTEXTEndTagNameState,
-		ScriptDataLessThanSignState,
-		ScriptDataEndTagOpenState,
-		ScriptDataEndTagNameState,
-		ScriptDataEscapeStartState,
-		ScriptDataEscapeStartDashState,
-		ScriptDataEscapedState,
-		ScriptDataEscapedDashState,
-		ScriptDataEscapedDashDashState,
-		ScriptDataEscapedLessThanSignState,
-		ScriptDataEscapedEndTagOpenState,
-		ScriptDataEscapedEndTagNameState,
-		ScriptDataDoubleEscapeStartState,
-		ScriptDataDoubleEscapedState,
-		ScriptDataDoubleEscapedDashState,
-		ScriptDataDoubleEscapedDashDashState,
-		ScriptDataDoubleEscapedLessThanSignState,
-		ScriptDataDoubleEscapeEndState,
-		BeforeAttributeNameState,
-		AttributeNameState,
-		AfterAttributeNameState,
-		BeforeAttributeValueState,
-		AttributeValueDoubleQuotedState,
-		AttributeValueSingleQuotedState,
-		AttributeValueUnquotedState,
-		CharacterReferenceInAttributeValueState,
-		AfterAttributeValueQuotedState,
-		SelfClosingStartTagState,
-		BogusCommentState,
-		MarkupDeclarationOpenState,
-		CommentStartState,
-		CommentStartDashState,
-		CommentState,
-		CommentEndDashState,
-		CommentEndState,
-		CommentEndBangState,
-		DOCTYPEState,
-		BeforeDOCTYPENameState,
-		DOCTYPENameState,
-		AfterDOCTYPENameState,
-		AfterDOCTYPEPublicKeywordState,
-		BeforeDOCTYPEPublicIdentifierState,
-		DOCTYPEPublicIdentifierDoubleQuotedState,
-		DOCTYPEPublicIdentifierSingleQuotedState,
-		AfterDOCTYPEPublicIdentifierState,
-		BetweenDOCTYPEPublicAndSystemIdentifiersState,
-		AfterDOCTYPESystemKeywordState,
-		BeforeDOCTYPESystemIdentifierState,
-		DOCTYPESystemIdentifierDoubleQuotedState,
-		DOCTYPESystemIdentifierSingleQuotedState,
-		AfterDOCTYPESystemIdentifierState,
-		BogusDOCTYPEState,
+	enum class State {
+		Data,
+		CharacterReferenceInData,
+		RCDATA,
+		CharacterReferenceInRCDATA,
+		RAWTEXT,
+		ScriptData,
+		PLAINTEXT,
+		TagOpen,
+		EndTagOpen,
+		TagName,
+		RCDATALessThanSign,
+		RCDATAEndTagOpen,
+		RCDATAEndTagName,
+		RAWTEXTLessThanSign,
+		RAWTEXTEndTagOpen,
+		RAWTEXTEndTagName,
+		ScriptDataLessThanSign,
+		ScriptDataEndTagOpen,
+		ScriptDataEndTagName,
+		ScriptDataEscapeStart,
+		ScriptDataEscapeStartDash,
+		ScriptDataEscaped,
+		ScriptDataEscapedDash,
+		ScriptDataEscapedDashDash,
+		ScriptDataEscapedLessThanSign,
+		ScriptDataEscapedEndTagOpen,
+		ScriptDataEscapedEndTagName,
+		ScriptDataDoubleEscapeStart,
+		ScriptDataDoubleEscaped,
+		ScriptDataDoubleEscapedDash,
+		ScriptDataDoubleEscapedDashDash,
+		ScriptDataDoubleEscapedLessThanSign,
+		ScriptDataDoubleEscapeEnd,
+		BeforeAttributeName,
+		AttributeName,
+		AfterAttributeName,
+		BeforeAttributeValue,
+		AttributeValueDoubleQuoted,
+		AttributeValueSingleQuoted,
+		AttributeValueUnquoted,
+		CharacterReferenceInAttributeValue,
+		AfterAttributeValueQuoted,
+		SelfClosingStartTag,
+		BogusComment,
+		MarkupDeclarationOpen,
+		CommentStart,
+		CommentStartDash,
+		Comment,
+		CommentEndDash,
+		CommentEnd,
+		CommentEndBang,
+		DOCTYPE,
+		BeforeDOCTYPEName,
+		DOCTYPEName,
+		AfterDOCTYPEName,
+		AfterDOCTYPEPublicKeyword,
+		BeforeDOCTYPEPublicIdentifier,
+		DOCTYPEPublicIdentifierDoubleQuoted,
+		DOCTYPEPublicIdentifierSingleQuoted,
+		AfterDOCTYPEPublicIdentifier,
+		BetweenDOCTYPEPublicAndSystemIdentifiers,
+		AfterDOCTYPESystemKeyword,
+		BeforeDOCTYPESystemIdentifier,
+		DOCTYPESystemIdentifierDoubleQuoted,
+		DOCTYPESystemIdentifierSingleQuoted,
+		AfterDOCTYPESystemIdentifier,
+		BogusDOCTYPE,
 		CDATASectionState
 	}
-	State state = DataState; // Data state
+	State state = State::Data; // Data state
 	StartTagToken *startTagToken = nullptr;
 	char buffer[256];
 	int bufferIndex = 0;
@@ -83,7 +83,7 @@ void Tokenizer::tokenize(const char *inputStream, unsigned int size) {
 		char nextInputCharacter = inputStream[i];
 		
 		switch (state) {
-			case DataState: // Data state
+			case Data: // Data state
 				if (i == size) { // EOF
 					// Emit the end-of-file token.
 					emitEOFToken();
@@ -92,12 +92,12 @@ void Tokenizer::tokenize(const char *inputStream, unsigned int size) {
 				switch (nextInputCharacter) {
 					case '&':
 						// Switch to the character reference in data state.
-						state = CharacterReferenceInDataState;
+						state = State::CharacterReferenceInData;
 						continue;
 
 					case '<':
 						// Switch to the tag open state.
-						state = TagOpenState;
+						state = State::TagOpen;
 						continue;
 
 					case 0: // NULL
@@ -114,41 +114,41 @@ void Tokenizer::tokenize(const char *inputStream, unsigned int size) {
 				}
 				break;
 
-			case CharacterReferenceInDataState: // Character reference in data state
+			case CharacterReferenceInData: // Character reference in data state
 				break;
 
-			case RCDATAState: // RCDATA state
+			case RCDATA: // RCDATA state
 				break;
 
-			case CharacterReferenceInRCDATAState: // Character reference in RCDATA state
+			case CharacterReferenceInRCDATA: // Character reference in RCDATA state
 				break;
 
-			case RAWTEXTState: // RAWTEXT state
+			case RAWTEXT: // RAWTEXT state
 				break;
 
-			case ScriptDataState: // Script data state
+			case ScriptData: // Script data state
 				break;
 
-			case PLAINTEXTState: // PLAINTEXT state
+			case PLAINTEXT: // PLAINTEXT state
 				break;
 
-			case TagOpenState: // Tag open state
+			case TagOpen: // Tag open state
 				switch (nextInputCharacter) {
 					case '!':
 						// Switch to the markup declaration open state.
-						state = MarkupDeclarationOpenState;
+						state = State::MarkupDeclarationOpen;
 						break;
 
 					case '/':
 						// Switch to the end tag open state.
-						state = EndTagOpenState;
+						state = State::EndTagOpen;
 						break;
 
 					case '?':
 						// Parse Error.
 						parseError();
 						// Switch to the bogus comment state.
-						state = BogusCommentState;
+						state = State::BogusComment;
 						break;
 
 					default:
@@ -157,66 +157,66 @@ void Tokenizer::tokenize(const char *inputStream, unsigned int size) {
 							nextInputCharacter += 0x20;
 						if ('a' <= nextInputCharacter && nextInputCharacter <= 'z') {
 							// Create a new start tag token.
-							//if (tagToken) delete tagToken;
+							//delete tagToken;
 							tagToken = new TagToken(nextInputCharacter, true);
-							state = TagNameState;
+							state = State::TagName;
 							break;
 						}
 
 						// Emit a U+003C LESS-THAN SIGN character token and reconsume the current input character in the data state.
 						parseError();
 						emitCharacterToken("<");
-						state = DataState;
+						state = State::Data;
 						continue;
 				}
 				break;
 
-			case EndTagOpenState: // End tag open state
+			case EndTagOpen: // End tag open state
 				if (i == size) {
 					// Parse error. Emit a U+003C LESS-THAN SIGN character token and a U+002F SOLIDUS character token. Reconsume the EOF character in the data state.
 					parseError();
 					emitCharacterToken("<");
 					emitCharacterToken("/");
-					state = DataState;
+					state = State::Data;
 					continue;
 				}
 				if (nextInputCharacter == '>') {
 					parseError();
-					state = DataState;
+					state = State::Data;
 				} else {
 					if ('A' <= nextInputCharacter && nextInputCharacter <= 'Z')
 						nextInputCharacter += 0x20;
 					if ('a' <= nextInputCharacter && nextInputCharacter <= 'z') {
 						// Create a new end tag token, set its tag name to the current input character, then switch to the tag name state. (Don't emit the token yet; further details will be filled in before it is emitted.)
-						//if (tagToken) delete tagToken;
+						//delete tagToken;
 						tagToken = new TagToken(nextInputCharacter, false);
-						state = TagNameState;
+						state = State::TagName;
 					} else {
 						parseError();
-						state = BogusCommentState;
+						state = State::BogusComment;
 					}
 				}
 				break;
 
-			case TagNameState: // Tag name state
+			case TagName: // Tag name state
 				switch (nextInputCharacter) {
 					case 0x0009: // Tab
 					case 0x000a: // LF
 					case 0x000c: // FF
 					case ' ':
 						// Switch to the before attribute name state.
-						state = BeforeAttributeNameState;
+						state = State::BeforeAttributeName;
 						break;
 
 					case '/':
 						// Switch to the self-closing start tag state.
-						state = SelfClosingStartTagState;
+						state = State::SelfClosingStartTag;
 						break;
 
 					case '>':
 						// Emit the current tag token.
 						emitTagToken(tagToken);
-						state = DataState;
+						state = State::Data;
 						break;
 
 					case 0: // NULL
@@ -235,7 +235,7 @@ void Tokenizer::tokenize(const char *inputStream, unsigned int size) {
 				}
 				break;
 
-			case BeforeAttributeNameState: // Before attribute name state
+			case BeforeAttributeName: // Before attribute name state
 				switch (nextInputCharacter) {
 					case 0x09:
 					case 0x0a:
@@ -246,24 +246,24 @@ void Tokenizer::tokenize(const char *inputStream, unsigned int size) {
 
 					case '/':
 						// Switch to the self-closing start tag state.
-						state = SelfClosingStartTagState;
+						state = State::SelfClosingStartTag;
 						break;
 				}
 				break;
 
-			case SelfClosingStartTagState: // Self-closing start tag state
+			case SelfClosingStartTag: // Self-closing start tag state
 				if (i == size) {
 					parseError();
-					state = DataState;
+					state = State::Data;
 					continue;
 				}
 				if (nextInputCharacter == '>') {
 					// Set the self-closing flag of the current tag token. Switch to the data state. Emit the current tag token.
 					tagToken->selfClosingFlag = true;
 					emitTagToken(tagToken);
-					state = DataState;
+					state = State::Data;
 				} else {
-					state = BeforeAttributeNameState;
+					state = State::BeforeAttributeName;
 					continue;
 				}
 				break;
@@ -273,18 +273,18 @@ void Tokenizer::tokenize(const char *inputStream, unsigned int size) {
 					// create a comment token whose data is the empty string, and switch to the comment start state.
 					
 					i += 2;
-					state = CommentStartState;
+					state = State::CommentStart;
 					continue;
 				} else if (strncmpi(inputStream + i, "DOCTYPE", 7) == 0) {
 					i += 7;
-					state = DOCTYPEState;
+					state = State::DOCTYPE;
 					continue;
 				}
 				// Otherwise, if the insertion mode is "in foreign content" and the current node is not an element in the HTML namespace and the next seven characters are an case-sensitive match for the string "[CDATA[" (the five uppercase letters "CDATA" with a U+005B LEFT SQUARE BRACKET character before and after), then consume those characters and switch to the CDATA section state.
 				// Otherwise, this is a parse error. Switch to the bogus comment state. The next character that is consumed, if any, is the first character that will be in the comment.
 				else {
 					parseError();
-					state = BogusCommentState;
+					state = State::BogusComment;
 					continue;
 				}
 				break;
@@ -298,12 +298,12 @@ void Tokenizer::tokenize(const char *inputStream, unsigned int size) {
 					case 0x0a:
 					case 0x0c:
 					case ' ':
-						state = BeforeDOCTYPENameState;
+						state = State::BeforeDOCTYPEName;
 						break;
 					
 					default:
 						parseError();
-						state = BeforeDOCTYPENameState;
+						state = State::BeforeDOCTYPEName;
 						continue;
 				}
 				break;
@@ -324,14 +324,14 @@ void Tokenizer::tokenize(const char *inputStream, unsigned int size) {
 						break;
 					
 					case '>':
-						state = DataState;
+						state = State::Data;
 						break;
 					
 					default:
 						if ('A' <= nextInputCharacter && nextInputCharacter <= 'Z')
 							nextInputCharacter += 0x0020;
 						// create a new DOCTYPE token
-						state = DOCTYPENameState;
+						state = State::DOCTYPEName;
 						break;
 				break;
 			
@@ -341,11 +341,11 @@ void Tokenizer::tokenize(const char *inputStream, unsigned int size) {
 					case 0x0a:
 					case 0x0c:
 					case ' ':
-						state = afterDOCTYPENameState;
+						state = State::AfterDOCTYPEName;
 						break;
 					
 					case '>':
-						state = DataState;
+						state = State::Data;
 						// emit the current DOCTYPE token
 						break;
 					

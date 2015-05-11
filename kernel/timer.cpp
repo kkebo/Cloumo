@@ -108,8 +108,11 @@ void TimerController::init() {
 	t0_->next_ = 0;
 }
 
-// count_ をリセット
-void TimerController::reset() {
+// count_ をリセット (これじゃだめだった)
+/*void TimerController::reset() {
+	int e = LoadEflags();
+	Cli();
+	
 	int lastcount = count_;
 	count_ = 0;
 
@@ -120,4 +123,6 @@ void TimerController::reset() {
 			timer.timeout_ -= lastcount;
 		}
 	}
-}
+	
+	StoreEflags(e);
+}*/

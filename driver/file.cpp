@@ -1,7 +1,7 @@
 #include "../headers.h"
 
 File::~File() {
-	if (buf_) delete buf_;
+	delete buf_;
 }
 
 unsigned char *File::read() {

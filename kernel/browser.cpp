@@ -17,8 +17,8 @@ Browser::Browser(const char *url) {
 }
 
 Browser::~Browser() {
-	if (htmlFile) delete htmlFile;
-	if (sheet) SheetCtl::freeSheet(sheet);
+	delete htmlFile;
+	SheetCtl::freeSheet(sheet);
 }
 
 // HTMLファイルを表示

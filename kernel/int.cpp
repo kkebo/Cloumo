@@ -67,11 +67,9 @@ void IntHandler20(int *esp) {
 	TimerController::next_ = timer->timeout_;
 	if (ts)
 		TaskController::switchTask();
-	if (TimerController::count_ >= 0xf0000000) { // オーバーフローする前にリセット
-		Cli();
+	/*if (TimerController::count_ >= 0xf0000000) { // オーバーフローする前にリセット (これじゃだめだった)
 		TimerController::reset();
-		Sti();
-	}
+	}*/
 }
 
 // PS/2キーボードからの割り込み

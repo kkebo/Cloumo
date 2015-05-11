@@ -166,13 +166,13 @@ void *operator new[](size_t size) throw() {
 	return malloc4k(size);
 }
 
-void operator delete(void* address) {
+void operator delete(void *address) {
 	if (address) {
 		free4k(address);
 	}
 }
 
-void operator delete[](void* address) {
+void operator delete[](void *address) {
 	if (address) {
 		free4k(address);
 	}
