@@ -25,9 +25,11 @@ public:
 	Timer() {}
 	Timer(Queue *);
 	Timer(Queue *, int);
+	~Timer();
 	static void *operator new(size_t size);
-	static void operator delete(void *p);
+	static void Timer::operator delete(void *p) {}
 	void set(unsigned int);
+	bool cancel();
 	int data();
 };
 

@@ -50,15 +50,15 @@ extern "C" void _main() {
 	});
 
 	/* 起動音 */
-	/*Timer* btsound = TimerController::alloc();
-	btsound->init(new Queue(128, mainTask));
+	/*Queue *btsoundQueue = new Queue(128);
+	Timer *btsound = new Timer(btsoundQueue);
 	Beep('D', 8, btsound, true);
 	Beep('F', 8, btsound, true);
 	Beep(0, 8, btsound, true);
 	Beep('E', 8, btsound, true);
 	Beep('G', 8, btsound, true);
 	Beep(0, 8, btsound);
-	btsound->free();*/
+	delete btsound;*/
 
 	// もはや用無し
 	mainTask->run(MAX_TASKLEVELS - 1, 1);

@@ -16,6 +16,10 @@ Timer::Timer(Queue *queue, int data) {
 	data_ = data;
 }
 
+Timer::~Timer() {
+	flags_ = TimerFlag::Free;
+}
+
 void *Timer::operator new(size_t size){
 	for (int i = 0; i < MAX_TIMER; i++) {
 		if (TimerController::timers0_[i].flags_ == TimerFlag::Free) {
@@ -27,38 +31,55 @@ void *Timer::operator new(size_t size){
 	return nullptr;
 }
 
-void Timer::operator delete(void *p) {
-	if (p) reinterpret_cast<Timer *>(p)->flags_ = TimerFlag::Free;
-	// メモリが開放されてしまう？
-}
-
 void Timer::set(unsigned int timeout) {
-	Timer *t, *s;
-	timeout_ = timeout + TimerController::count_; // 絶対時間に変換
-	flags_ = TimerFlag::Running;
+	int e = LoadEflags();
 	Cli();
-	t = TimerController::t0_;
-
-	// this が先頭に入る
-	if (timeout_ <= t->timeout_) {
-		TimerController::t0_ = this;
-		next_ = t;
-		TimerController::next_ = timeout_;
-		Sti();
-		return;
-	}
-
-	// this が入る位置を決める
-	for (;;) {
-		s = t;
-		t = t->next_;
-		if (timeout_ <= t->timeout_) {
-			s->next_ = this;
-			next_ = t;
-			Sti();
-			return;
+	if (flags_ == TimerFlag::Reserved) {
+		Timer *timer0, *timer1;
+		timeout_ = timeout + TimerController::count_; // 絶対時間に変換
+		flags_ = TimerFlag::Running;
+		timer0 = TimerController::t0_;
+	
+		if (timeout_ <= timer0->timeout_) {
+			// 先頭に入る
+			TimerController::t0_ = this;
+			next_ = timer0;
+			TimerController::next_ = timeout_;
+		} else {
+			// this が入る位置を決める
+			while (timeout_ > timer0->timeout_) {
+				timer1 = timer0;
+				timer0 = timer0->next_;
+			}
+			timer1->next_ = this;
+			next_ = timer0;
 		}
 	}
+	StoreEflags(e);
+}
+
+bool Timer::cancel() {
+	int e = LoadEflags();
+	Cli();
+	if (flags_ == TimerFlag::Running) {
+		if (this == TimerController::t0_) {
+			// 先頭だった場合
+			TimerController::t0_ = next_;
+			TimerController::next_ = next_->timeout_;
+		} else {
+			// 1つ前と1つ後をつなげる
+			Timer *timer = TimerController::t0_;
+			while (timer->next_ != this) {
+				timer = timer->next_;
+			}
+			timer->next_ = next_;
+		}
+		flags_ = TimerFlag::Reserved;
+		StoreEflags(e);
+		return true;
+	}
+	StoreEflags(e);
+	return false;
 }
 
 // getter of data_

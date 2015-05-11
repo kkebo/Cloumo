@@ -84,7 +84,8 @@ void KeyboardController::Decode(unsigned char code) {
 		SheetCtl::tbox_col_ = 0;
 		SheetCtl::drawLine(SheetCtl::back_, SheetCtl::tbox_col_, SheetCtl::tbox_cpos_ + 2, SheetCtl::back_->bysize - 20 - 22 + 2, SheetCtl::tbox_cpos_ + 2, SheetCtl::back_->bysize - 20 - 2);
 		SheetCtl::refresh(*SheetCtl::back_, SheetCtl::tbox_cpos_ - 8 + 2, SheetCtl::back_->bysize - 20 - 22 + 2, SheetCtl::tbox_cpos_ - 8 + 2 + 8 + 1, SheetCtl::back_->bysize - 20 - 2);
-		//SheetCtl::tbox_timer_->set(50); タイマーキャンセルしたい
+		SheetCtl::tbox_timer_->cancel();
+		SheetCtl::tbox_timer_->set(50);
 	}
 	switch (code) {
 		case 0x57:
@@ -141,7 +142,8 @@ void KeyboardController::Decode(unsigned char code) {
 				SheetCtl::tbox_col_ = 0;
 				SheetCtl::drawLine(SheetCtl::back_, SheetCtl::tbox_col_, SheetCtl::tbox_cpos_ + 2, SheetCtl::back_->bysize - 20 - 22 + 2, SheetCtl::tbox_cpos_ + 2, SheetCtl::back_->bysize - 20 - 2);
 				SheetCtl::refresh(*SheetCtl::back_, SheetCtl::tbox_cpos_ + 2, SheetCtl::back_->bysize - 20 - 22 + 2, SheetCtl::tbox_cpos_ + 2 + 8 + 1, SheetCtl::back_->bysize - 20 - 2);
-				//SheetCtl::tbox_timer_->set(50); タイマーキャンセルしたい
+				SheetCtl::tbox_timer_->cancel();
+				SheetCtl::tbox_timer_->set(50);
 			}
 			break;
 	}
