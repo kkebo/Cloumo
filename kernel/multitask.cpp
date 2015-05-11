@@ -1,12 +1,8 @@
 #include "../headers.h"
 
-Task::Task(char *name, int level, int priority, void (*mainLoop)()) {
-	Task::Task(name, level, priority, nullptr, mainLoop);
-}
-
-Task::Task(char *name, int level, int priority, Queue *queue, void (*mainLoop)()) : name_(name), queue_(queue) {
-	queue_->task_ = this;
-	tss_.esp = (int)malloc4k(64 * 1024) + 64 * 1024 - 12;
+Task::Task(char *name, int level, int priority, void (*mainLoop)()) : name_(name), queue_(nullptr) {
+	stack = (int)malloc4k(64 * 1024);
+	tss_.esp = stack + 64 * 1024 - 12;
 	tss_.eip = mainLoop;
 	tss_.es = 1 * 8;
 	tss_.cs = 2 * 8;
@@ -15,6 +11,27 @@ Task::Task(char *name, int level, int priority, Queue *queue, void (*mainLoop)()
 	tss_.fs = 1 * 8;
 	tss_.gs = 1 * 8;
 	run(level, priority);
+}
+
+Task::Task(char *name, int level, int priority, Queue *queue, void (*mainLoop)()) : name_(name), queue_(queue) {
+	queue_->task_ = this;
+	stack = (int)malloc4k(64 * 1024);
+	tss_.esp = stack + 64 * 1024 - 12;
+	tss_.eip = mainLoop;
+	tss_.es = 1 * 8;
+	tss_.cs = 2 * 8;
+	tss_.ss = 1 * 8;
+	tss_.ds = 1 * 8;
+	tss_.fs = 1 * 8;
+	tss_.gs = 1 * 8;
+	run(level, priority);
+}
+
+Task::~Task() {
+	sleep();
+	delete queue_;
+	flags_ = TaskFlag::Free;
+	free4k(stack);
 }
 
 static void *Task::operator new(size_t size) {
@@ -88,7 +105,7 @@ Task      *TaskController::task_fpu_ = nullptr;
 
 Task *TaskController::init() {
 	level_ = new TaskLevel[MAX_TASKLEVELS];
-	tasks0_ = (Task *)malloc4k(MAX_TASKS * sizeof(Task));
+	tasks0_ = ::new Task[MAX_TASKS];
 	for (int i = 0; i < MAX_TASKS; i++) {
 		tasks0_[i].flags_ =  TaskFlag::Free;
 		tasks0_[i].selector_ = (kTaskGdt0 + i) * 8;

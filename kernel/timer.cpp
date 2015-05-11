@@ -97,7 +97,7 @@ void TimerController::init() {
 	Output8(PIT_CNT0, 0x9c);
 	Output8(PIT_CNT0, 0x2e);
 
-	timers0_ = (Timer *)malloc4k(MAX_TIMER * sizeof(Timer));
+	timers0_ = ::new Timer[MAX_TIMER];
 	for (int i = 0; i < MAX_TIMER; i++) {
 		timers0_[i].flags_ = TimerFlag::Free;
 	}

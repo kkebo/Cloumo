@@ -34,8 +34,9 @@ public:
 	Task() {}
 	Task(char *name, int level, int priority, void (*mainLoop)());
 	Task(char *name, int level, int priority, Queue *queue, void (*mainLoop)());
+	~Task();
 	static void *operator new(size_t size);
-	static void operator delete(void *) {}; // タスクの削除を行うべき
+	static void operator delete(void *) {}
 	void run(int, int);
 	void sleep();
 };
