@@ -3,7 +3,6 @@
  */
 
 #include "../headers.h"
-#include <stdio.h>
 
 extern "C" void _main() {
 	/* 初期化 */

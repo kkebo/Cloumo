@@ -56,7 +56,7 @@ all:
 # 特別生成規則
 
 bootpack.bin: $(OBJS) kernel/jpeg.obj kernel/bmp.obj $(GOLIBC)
-	$(LD) -m elf_i386 -Map bootpack.map -T main.ls -s -o $@ $(OBJS) kernel/jpeg.obj kernel/bmp.obj $(GOLIBC)
+	$(LD) --gc-sections -nostdlib -m elf_i386 -Map bootpack.map -T main.ls -s -o $@ $(OBJS) kernel/jpeg.obj kernel/bmp.obj $(GOLIBC)
 
 os.sys: kernel/asmhead.bin bootpack.bin
 	$(os.sys)
