@@ -25,25 +25,34 @@ extern "C" void _main() {
 	new Task((char *)kSysInfoTaskName, 2, 1, 128, &SysinfoMain);
 	new Task((char *)kBrowserTaskName, 2, 2, 128, []() {
 		Task *task = TaskController::getNowTask();
-		Browser *browser = new Browser("index.htm");
-		browser->Render();
+		//Browser *browser = new Browser("index.htm");
+		//browser->Render();
+		File *htmlFile;
+		if (htmlFile = FAT12::open("index.htm")) {
+			unsigned char *source = htmlFile->read();
+			HTML::Tokenizer tokenizer;
+			Queue<HTML::Token *> *tokens = tokenizer.tokenize(source);
+			for (int i = 0; !tokens->isempty(); i++) {
+				SheetCtl::drawString(SheetCtl::window_[0], 1, 1 + i * 16, 0, tokens->pop()->getData());
+			}
+		}
 		
-		bool refreshRequired = false;
+		//bool refreshRequired = false;
 		
 		for (;;) {
 			Cli();
 			if (task->queue_->isempty()) {
-				if (refreshRequired) {
+				/*if (refreshRequired) {
 					SheetCtl::refresh(*SheetCtl::window_[0], 1, 1, SheetCtl::window_[0]->bxsize - 2, SheetCtl::window_[0]->bysize - 1);
 					refreshRequired = false;
-				}
+				}*/
 				task->sleep();
 				Sti();
 			} else {
-				int data = task->queue_->pop();
+				//int data = task->queue_->pop();
 				Sti();
-				browser->Scroll(data);
-				refreshRequired = true;
+				//browser->Scroll(data);
+				//refreshRequired = true;
 			}
 		}
 	});

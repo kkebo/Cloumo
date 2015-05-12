@@ -12,7 +12,9 @@ OBJS = \
 	utf82kt.o \
 	sysinfo.o \
 	asmfunc.o \
-	SmartPointer.o
+	SmartPointer.o \
+	HTMLToken.o \
+	HTMLTokenizer.o
 
 ifeq ($(OS),Windows_NT)
 # Windows

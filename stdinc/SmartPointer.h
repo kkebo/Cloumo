@@ -36,10 +36,8 @@ public:
 		return pointer;
 	}
 	void reset(T *p) {
-		if (reference && reference->Release() == 0) {
-			delete pointer;
-			delete reference;
-		}
+		delete pointer;
+		delete reference;
 		
 		pointer = p;
 		reference = new ReferenceCounter();

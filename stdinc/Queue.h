@@ -36,7 +36,7 @@ public:
 	T pop() {
 		T data;
 		if (isempty()) { // queue is empty
-			return -1;
+			//return -1;
 		}
 		data = buf_[head_];
 		head_++;

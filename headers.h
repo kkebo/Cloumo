@@ -18,3 +18,5 @@
 #include "driver/mouse.h"
 #include "driver/sound.h"
 #include "kernel/browser.h"
+#include "kernel/HTMLToken.h"
+#include "kernel/HTMLTokenizer.h"

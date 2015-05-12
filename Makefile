@@ -13,6 +13,8 @@ OBJS = \
 	kernel/sysinfo.o \
 	kernel/asmfunc.o \
 	kernel/SmartPointer.o \
+	kernel/HTMLToken.o \
+	kernel/HTMLTokenizer.o \
 	driver/file.o \
 	driver/keyboard.o \
 	driver/mouse.o \
@@ -61,7 +63,8 @@ os.sys: kernel/asmhead.bin bootpack.bin
 	$(os.sys)
 
 cloumo.img: kernel/ipl.bin os.sys images/b_f.bmp images/btn_r.bmp \
-		images/copy.bmp images/source.bmp images/search.bmp images/refresh.bmp
+		images/copy.bmp images/source.bmp images/search.bmp images/refresh.bmp \
+		html/index.htm
 	$(EDIMG)   imgin:$(TOOLPATH)fdimg0at.tek \
 		wbinimg src:kernel/ipl.bin len:512 from:0 to:0 \
 		copy from:os.sys to:@: \
