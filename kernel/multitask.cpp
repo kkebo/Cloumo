@@ -13,7 +13,7 @@ Task::Task(char *name, int level, int priority, void (*mainLoop)()) : name_(name
 	run(level, priority);
 }
 
-Task::Task(char *name, int level, int priority, Queue *queue, void (*mainLoop)()) : name_(name), queue_(queue) {
+Task::Task(char *name, int level, int priority, Queue<int> *queue, void (*mainLoop)()) : name_(name), queue_(queue) {
 	queue_->task_ = this;
 	stack = (int)malloc4k(64 * 1024);
 	tss_.esp = stack + 64 * 1024 - 12;

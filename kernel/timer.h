@@ -19,12 +19,12 @@ public:
 	Timer *next_;
 	unsigned int timeout_;
 	TimerFlag flags_;
-	Queue *queue_;
+	Queue<int> *queue_;
 
 public:
 	Timer() {}
-	Timer(Queue *);
-	Timer(Queue *, int);
+	Timer(Queue<int> *);
+	Timer(Queue<int> *, int);
 	~Timer();
 	static void *operator new(size_t size);
 	static void Timer::operator delete(void *p) {}

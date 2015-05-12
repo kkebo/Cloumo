@@ -23,8 +23,8 @@ unsigned char KeyboardController::ascii_shift_table_[0x80] = {
 int KeyboardController::shift_ = 0;
 int KeyboardController::cmd_wait_ = -1;
 int KeyboardController::leds_ = 0;
-Queue *KeyboardController::cmd_ = nullptr;
-Queue *KeyboardController::queue_ = nullptr;
+Queue<int> *KeyboardController::cmd_ = nullptr;
+Queue<int> *KeyboardController::queue_ = nullptr;
 
 void KeyboardController::Main() {
 	Task *task = TaskController::getNowTask();
@@ -39,7 +39,7 @@ void KeyboardController::Main() {
 	BootInfo *binfo = (BootInfo *)ADDRESS_BOOTINFO;
 	leds_ = (binfo->leds >> 4) & 7;
 	queue_ = task->queue_;
-	cmd_ = new Queue(32);
+	cmd_ = new Queue<int>(32);
 	
 	// キャレットの表示とタイマー設定
 	SheetCtl::drawLine(SheetCtl::back_, SheetCtl::tbox_col_, SheetCtl::tbox_cpos_ + 2, SheetCtl::back_->bysize - 20 - 22 + 2, SheetCtl::tbox_cpos_ + 2, SheetCtl::back_->bysize - 20 - 2);

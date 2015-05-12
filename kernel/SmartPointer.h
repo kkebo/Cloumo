@@ -1,8 +1,6 @@
 #ifndef _SMARTPOINTER_H_
 #define _SMARTPOINTER_H_
 
-// i686-elf-ld: section .text._ZN10unique_ptrI4FileED2Ev loaded at [0000000000007dfe,0000000000007e55] overlaps section .data loaded at [0000000000007dfd,000000000000ff70]
-
 class ReferenceCounter {
 private:
 	int count = 0;

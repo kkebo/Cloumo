@@ -23,7 +23,7 @@ bool Mouse::scroll_ = false;
 int Mouse::new_mx_ = -1;
 int Mouse::new_my_ = 0;
 Sheet *Mouse::sheet_ = nullptr;
-Queue *Mouse::queue_ = nullptr;
+Queue<int> *Mouse::queue_ = nullptr;
 MouseDecode Mouse::mdec_;
 Task *Mouse::browserTask = nullptr;
 

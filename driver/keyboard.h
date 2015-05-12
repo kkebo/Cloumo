@@ -21,9 +21,9 @@ private:
 	static int leds_;
 
 public:
-	static Queue *cmd_;
+	static Queue<int> *cmd_;
 	static int cmd_wait_;
-	static Queue *queue_;
+	static Queue<int> *queue_;
 
 public:
 	static void Main();

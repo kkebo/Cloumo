@@ -28,7 +28,7 @@ private:
 	static int scroll_x, scroll_y;
 
 public:
-	static Queue *queue_;
+	static Queue<int> *queue_;
 	static Task *browserTask;
 
 public:

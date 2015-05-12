@@ -25,7 +25,7 @@ public:
 	int selector_;
 	TaskFlag flags_;
 	int level_, priority_;
-	Queue *queue_;
+	Queue<int> *queue_;
 	TSS32 tss_;
 	int fpu[108 / 4];
 	int stack;
@@ -33,7 +33,7 @@ public:
 public:
 	Task() {}
 	Task(char *name, int level, int priority, void (*mainLoop)());
-	Task(char *name, int level, int priority, Queue *queue, void (*mainLoop)());
+	Task(char *name, int level, int priority, Queue<int> *queue, void (*mainLoop)());
 	~Task();
 	static void *operator new(size_t size);
 	static void operator delete(void *) {}

@@ -342,8 +342,6 @@ keystatus:
 		out		0xa1,al
 		sti
 		nop
-		cli
-
 		cli						; さらにCPUレベルでも割り込み禁止
 
 ; CPUから1MB以上のメモリにアクセスできるように、A20GATEを設定
