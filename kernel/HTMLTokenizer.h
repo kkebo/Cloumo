@@ -5,8 +5,9 @@ namespace HTML {
 	class Tokenizer {
 	private:
 		
+	
 	public:
-		tokenize(const char *inputStream, unsigned int size);
+		tokenize(const char *inputStream);
 	
 	private:
 		emitCharacterToken(const char *);

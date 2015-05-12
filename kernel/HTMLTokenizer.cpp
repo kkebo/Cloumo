@@ -2,7 +2,7 @@
 
 using namespace HTML;
 
-void Tokenizer::tokenize(const char *inputStream, unsigned int size) {
+void Tokenizer::tokenize(const char *inputStream) {
 	enum class State {
 		Data,
 		CharacterReferenceInData,
@@ -71,24 +71,18 @@ void Tokenizer::tokenize(const char *inputStream, unsigned int size) {
 		DOCTYPESystemIdentifierSingleQuoted,
 		AfterDOCTYPESystemIdentifier,
 		BogusDOCTYPE,
-		CDATASectionState
+		CDATASection
 	}
 	State state = State::Data; // Data state
 	StartTagToken *startTagToken = nullptr;
 	char buffer[256];
 	int bufferIndex = 0;
 
-	for (int i = 0; i <= size;) {
-		// 範囲外にアクセスできてしまうのでは？
+	for (;;) {
 		char nextInputCharacter = inputStream[i];
 		
 		switch (state) {
 			case Data: // Data state
-				if (i == size) { // EOF
-					// Emit the end-of-file token.
-					emitEOFToken();
-					break;
-				}
 				switch (nextInputCharacter) {
 					case '&':
 						// Switch to the character reference in data state.
@@ -100,11 +94,9 @@ void Tokenizer::tokenize(const char *inputStream, unsigned int size) {
 						state = State::TagOpen;
 						continue;
 
-					case 0: // NULL
-						// Parse Error.
-						parseError();
-						// Emit the current input character as a character token.
-						emitCharacterToken(buffer);
+					case 0: // EOF
+						// Emit the end-of-file token.
+						emitEOFToken();
 						break;
 
 					default:
@@ -172,15 +164,13 @@ void Tokenizer::tokenize(const char *inputStream, unsigned int size) {
 				break;
 
 			case EndTagOpen: // End tag open state
-				if (i == size) {
+				if (nextInputCharacter == 0) {
 					// Parse error. Emit a U+003C LESS-THAN SIGN character token and a U+002F SOLIDUS character token. Reconsume the EOF character in the data state.
 					parseError();
 					emitCharacterToken("<");
 					emitCharacterToken("/");
 					state = State::Data;
-					continue;
-				}
-				if (nextInputCharacter == '>') {
+				} else if (nextInputCharacter == '>') {
 					parseError();
 					state = State::Data;
 				} else {
@@ -252,12 +242,10 @@ void Tokenizer::tokenize(const char *inputStream, unsigned int size) {
 				break;
 
 			case SelfClosingStartTag: // Self-closing start tag state
-				if (i == size) {
+				if (nextInputCharacter == 0) {
 					parseError();
 					state = State::Data;
-					continue;
-				}
-				if (nextInputCharacter == '>') {
+				} else if (nextInputCharacter == '>') {
 					// Set the self-closing flag of the current tag token. Switch to the data state. Emit the current tag token.
 					tagToken->selfClosingFlag = true;
 					emitTagToken(tagToken);
@@ -373,6 +361,11 @@ void Tokenizer::tokenize(const char *inputStream, unsigned int size) {
 			default:
 				break;
 		}
+		
+		if (nextInputCharacter == 0) { // EOF
+			break;
+		}
+		
 		i++;
 	}
 }
