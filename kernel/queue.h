@@ -7,20 +7,17 @@
 
 const int FLAGS_OVERRUN = 0x0001;
 
-class Task;
-
 template <typename T>
 class Queue {
-private:
+protected:
 	T *buf_;
 	int head_, tail_, size_, free_, flags_;
+	
+	Queue() {}
 
 public:
-	Task *task_;
-
-public:
-	Queue(int size, Task *task = nullptr) : buf_(new T[size]), head_(0), tail_(0), size_(size), free_(size), flags_(0), task_(task) {}
-	~Queue() {
+	Queue(int size) : buf_(new T[size]), head_(0), tail_(0), size_(size), free_(size), flags_(0) {}
+	virtual ~Queue() {
 		delete buf_;
 	}
 	bool push(T data) {
@@ -34,9 +31,6 @@ public:
 			tail_ = 0;
 		}
 		free_--;
-		if (task_ && task_->flags_ != TaskFlag::Running) {
-			task_->run(-1, 0);
-		}
 		return true;
 	}
 	T pop() {

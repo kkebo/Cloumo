@@ -4,7 +4,6 @@ OBJS = \
 	kernel/descriptor.o \
 	kernel/memory.o \
 	kernel/browser.o \
-	kernel/queue.o \
 	kernel/multitask.o \
 	kernel/timer.o \
 	kernel/datetime.o \

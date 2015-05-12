@@ -3,7 +3,6 @@
 #include "kernel/bmp.h"
 #include "kernel/datetime.h"
 #include "kernel/descriptor.h"
-#include "kernel/queue.h"
 #include "kernel/graphic.h"
 #include "kernel/int.h"
 #include "kernel/jpeg.h"

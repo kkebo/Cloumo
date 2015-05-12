@@ -1,5 +1,25 @@
 #include "../headers.h"
 
+TaskQueue::TaskQueue(int size, Task *task) {
+	buf_ = new int[size];
+	head_ = 0;
+	tail_ = 0;
+	size_ = size;
+	free_ = size;
+	flags_ = 0;
+	task_ = task;
+}
+
+bool TaskQueue::push(int data) {
+	if (Queue::push(data)) {
+		if (task_ && task_->flags_ != TaskFlag::Running) {
+			task_->run(-1, 0);
+		}
+		return true;
+	}
+	return false;
+}
+
 Task::Task(char *name, int level, int priority, void (*mainLoop)()) : name_(name), queue_(nullptr) {
 	stack = (int)malloc4k(64 * 1024);
 	tss_.esp = stack + 64 * 1024 - 12;
@@ -13,8 +33,8 @@ Task::Task(char *name, int level, int priority, void (*mainLoop)()) : name_(name
 	run(level, priority);
 }
 
-Task::Task(char *name, int level, int priority, Queue<int> *queue, void (*mainLoop)()) : name_(name), queue_(queue) {
-	queue_->task_ = this;
+Task::Task(char *name, int level, int priority, int queueSize, void (*mainLoop)()) : name_(name) {
+	queue_ = new TaskQueue(queueSize, this);
 	stack = (int)malloc4k(64 * 1024);
 	tss_.esp = stack + 64 * 1024 - 12;
 	tss_.eip = mainLoop;

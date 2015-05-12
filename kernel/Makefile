@@ -4,7 +4,6 @@ OBJS = \
 	descriptor.o \
 	memory.o \
 	browser.o \
-	queue.o \
 	multitask.o \
 	timer.o \
 	datetime.o \

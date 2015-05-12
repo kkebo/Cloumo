@@ -19,11 +19,11 @@ extern "C" void _main() {
 	Sti();
 	
 	// タスクの起動
-	new Task((char *)kTimeTaskName, 2, 1, new Queue<int>(128), &DateTime::Main);
-	new Task((char *)kKeyboardTaskName, 2, 2, new Queue<int>(128), &KeyboardController::Main);
-	new Task((char *)kMouseTaskName, 1, 1, new Queue<int>(128), &Mouse::Main);
-	new Task((char *)kSysInfoTaskName, 2, 1, new Queue<int>(128), &SysinfoMain);
-	new Task((char *)kBrowserTaskName, 2, 2, new Queue<int>(128), []() {
+	new Task((char *)kTimeTaskName, 2, 1, 128, &DateTime::Main);
+	new Task((char *)kKeyboardTaskName, 2, 2, 128, &KeyboardController::Main);
+	new Task((char *)kMouseTaskName, 1, 1, 128, &Mouse::Main);
+	new Task((char *)kSysInfoTaskName, 2, 1, 128, &SysinfoMain);
+	new Task((char *)kBrowserTaskName, 2, 2, 128, []() {
 		Task *task = TaskController::getNowTask();
 		Browser *browser = new Browser("index.htm");
 		browser->Render();

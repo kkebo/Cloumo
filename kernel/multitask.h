@@ -5,6 +5,8 @@
 #ifndef _MULTITASK_H_
 #define _MULTITASK_H_
 
+#include "Queue.h"
+
 const int MAX_TASKS = 1000;
 const int kTaskGdt0 = 3;
 const int kMaxTasksLevel = 100;
@@ -19,13 +21,23 @@ struct TSS32 {
 
 enum class TaskFlag { Free, Sleeping, Running };
 
+class Task;
+
+class TaskQueue : public Queue<int> {
+public:
+	Task *task_;
+	
+	TaskQueue(int size, Task *task);
+	bool push(int data);
+};
+
 class Task {
 public:
 	char *name_;
 	int selector_;
 	TaskFlag flags_;
 	int level_, priority_;
-	Queue<int> *queue_;
+	TaskQueue *queue_;
 	TSS32 tss_;
 	int fpu[108 / 4];
 	int stack;
@@ -33,7 +45,7 @@ public:
 public:
 	Task() {}
 	Task(char *name, int level, int priority, void (*mainLoop)());
-	Task(char *name, int level, int priority, Queue<int> *queue, void (*mainLoop)());
+	Task(char *name, int level, int priority, int queueSize, void (*mainLoop)());
 	~Task();
 	static void *operator new(size_t size);
 	static void operator delete(void *) {}

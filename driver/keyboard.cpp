@@ -24,7 +24,7 @@ int KeyboardController::shift_ = 0;
 int KeyboardController::cmd_wait_ = -1;
 int KeyboardController::leds_ = 0;
 Queue<int> *KeyboardController::cmd_ = nullptr;
-Queue<int> *KeyboardController::queue_ = nullptr;
+TaskQueue *KeyboardController::queue_ = nullptr;
 
 void KeyboardController::Main() {
 	Task *task = TaskController::getNowTask();
