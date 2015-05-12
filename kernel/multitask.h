@@ -5,7 +5,7 @@
 #ifndef _MULTITASK_H_
 #define _MULTITASK_H_
 
-#include "Queue.h"
+#include <Queue.h>
 
 const int MAX_TASKS = 1000;
 const int kTaskGdt0 = 3;

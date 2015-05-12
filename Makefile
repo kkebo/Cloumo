@@ -24,7 +24,7 @@ QEMU_REMOTE =
 ifeq ($(OS),Windows_NT)
 # Windows
 	TOOLPATH = ../z_tools_win/
-	INCPATH  = $(TOOLPATH)include/
+	INCPATH  = stdinc/
 	MAKE     = $(TOOLPATH)make.exe -r
 	LD       =
 	EDIMG    = $(TOOLPATH)edimg.exe
@@ -34,7 +34,7 @@ ifeq ($(OS),Windows_NT)
 else
 # OS X
 	TOOLPATH = ../z_tools/
-	INCPATH  = $(TOOLPATH)include/
+	INCPATH  = stdinc/
 	MAKE     = make -r
 	LD       = ~/opt/cross/bin/i686-elf-ld
 	EDIMG    = $(TOOLPATH)edimg

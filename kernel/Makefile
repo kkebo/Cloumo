@@ -17,7 +17,7 @@ OBJS = \
 ifeq ($(OS),Windows_NT)
 # Windows
 	TOOLPATH = ../../z_tools_win/
-	INCPATH  = $(TOOLPATH)include/
+	INCPATH  = ../stdinc/
 	MAKE     = $(TOOLPATH)make.exe -r
 	CC       = $(TOOLPATH)gcc.exe
 	CFLAGS   = -I$(INCPATH) -Os -Wall -fno-exceptions -B$(TOOLPATH) -std=c11 -fno-stack-protector -ffunction-sections -fdata-sections
@@ -28,7 +28,7 @@ ifeq ($(OS),Windows_NT)
 else
 # OS X
 	TOOLPATH = ../../z_tools/
-	INCPATH  = $(TOOLPATH)include/
+	INCPATH  = ../stdinc/
 	MAKE     = make -r
 	CC       = ~/opt/cross/bin/i686-elf-gcc
 	CFLAGS   = -I$(INCPATH) -Os -Wall -fno-exceptions -B$(TOOLPATH) -std=c11 -fno-stack-protector -ffunction-sections -fdata-sections

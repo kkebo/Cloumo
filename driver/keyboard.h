@@ -5,7 +5,7 @@
 #ifndef _KEYBOARD_H_
 #define _KEYBOARD_H_
 
-#include "../kernel/Queue.h"
+#include <Queue.h>
 
 const int kPortKeyData = 0x0060;
 const int kPortKeyStatus = 0x0064;

@@ -1,4 +1,4 @@
-#include "SmartPointer.h"
+#include <SmartPointer.h>
 
 void ReferenceCounter::Add() {
 	count++;
