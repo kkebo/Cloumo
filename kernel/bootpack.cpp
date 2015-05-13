@@ -35,6 +35,7 @@ extern "C" void _main() {
 			for (int i = 0; !tokens->isempty(); i++) {
 				SheetCtl::drawString(SheetCtl::window_[0], 1, 1 + i * 16, 0, tokens->pop()->getData());
 			}
+			delete htmlFile;
 		}
 		
 		//bool refreshRequired = false;

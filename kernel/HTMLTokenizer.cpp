@@ -8,6 +8,9 @@ Tokenizer::Tokenizer() {
 }
 
 Tokenizer::~Tokenizer() {
+	while (!tokens->isempty()) {
+		delete tokens->pop();
+	}
 	delete tokens;
 }
 
