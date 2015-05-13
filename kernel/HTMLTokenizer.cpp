@@ -11,7 +11,7 @@ Tokenizer::~Tokenizer() {
 	delete tokens;
 }
 
-Queue<Token *> *Tokenizer::tokenize(const unsigned char *inputStream) {
+Queue<Token *> *Tokenizer::tokenize(const char *inputStream) {
 	State state = State::Data; // Data state
 	unique_ptr<Token> token;
 	

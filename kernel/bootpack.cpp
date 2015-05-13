@@ -29,7 +29,7 @@ extern "C" void _main() {
 		//browser->Render();
 		File *htmlFile;
 		if (htmlFile = FAT12::open("index.htm")) {
-			unsigned char *source = htmlFile->read();
+			char *source = htmlFile->read();
 			HTML::Tokenizer tokenizer;
 			Queue<HTML::Token *> *tokens = tokenizer.tokenize(source);
 			for (int i = 0; !tokens->isempty(); i++) {

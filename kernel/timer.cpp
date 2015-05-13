@@ -1,6 +1,6 @@
 #include "../headers.h"
 
-Timer::Timer(Queue<int> *queue) {
+Timer::Timer(TaskQueue *queue) {
 	queue_ = queue;
 	for (int i = 0; i < MAX_TIMER; i++) {
 		if (this == &TimerController::timers0_[i]) {
@@ -11,7 +11,7 @@ Timer::Timer(Queue<int> *queue) {
 	data_ = -1;
 }
 
-Timer::Timer(Queue<int> *queue, int data) {
+Timer::Timer(TaskQueue *queue, int data) {
 	queue_ = queue;
 	data_ = data;
 }

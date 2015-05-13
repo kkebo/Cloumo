@@ -89,7 +89,7 @@ namespace HTML {
 	public:
 		Tokenizer();
 		~Tokenizer();
-		Queue<Token *> *tokenize(const unsigned char *inputStream);
+		Queue<Token *> *tokenize(const char *inputStream);
 	};
 }
 
