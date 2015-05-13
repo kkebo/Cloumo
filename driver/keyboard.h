@@ -20,6 +20,7 @@ private:
 	static unsigned char ascii_table_[];
 	static unsigned char ascii_shift_table_[];
 	static int shift_;
+	static bool alt;
 	static int leds_;
 
 public:

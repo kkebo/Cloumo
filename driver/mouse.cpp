@@ -230,22 +230,22 @@ void Mouse::Main() {
 						if (SheetCtl::context_menu_->height > 0) {
 							SheetCtl::upDown(SheetCtl::context_menu_, -1);
 						} else if (2 <= mdec_.x_ && mdec_.x_ < SheetCtl::back_->bxsize) {
-							if (35 <= mdec_.y_ && mdec_.y_ < 33 + 16 + 8) {
-								SheetCtl::colorChange(*SheetCtl::back_, 2, 35, SheetCtl::back_->bxsize, 33 + 16 + 8, Rgb(127, 169, 255), Rgb(255, 255, 255));
-								SheetCtl::colorChange(*SheetCtl::back_, 2, 35, SheetCtl::back_->bxsize, 33 + 16 + 8, Rgb(0, 42, 127), 0);
-								SheetCtl::colorChange(*SheetCtl::back_, 2, 33 + 16 + 8 + 1, SheetCtl::back_->bxsize, 31 + 16 + 8 + 1 + 16 + 8, Rgb(255, 255, 255), Rgb(127, 169, 255));
-								SheetCtl::colorChange(*SheetCtl::back_, 2, 33 + 16 + 8 + 1, SheetCtl::back_->bxsize, 31 + 16 + 8 + 1 + 16 + 8, 0, Rgb(0, 42, 127));
-								SheetCtl::refresh(*SheetCtl::back_, 2, 35, SheetCtl::back_->bxsize, 31 + 16 + 8 + 1 + 16 + 8);
-								SheetCtl::upDown(SheetCtl::window_[1], -1);
-								SheetCtl::upDown(SheetCtl::window_[0], 1);
-							} else if (33 + 16 + 8 + 1 <= mdec_.y_ && mdec_.y_ < 31 + 16 + 8 + 1 + 16 + 8) {
-								SheetCtl::colorChange(*SheetCtl::back_, 2, 35, SheetCtl::back_->bxsize, 33 + 16 + 8, Rgb(255, 255, 255), Rgb(127, 169, 255));
-								SheetCtl::colorChange(*SheetCtl::back_, 2, 35, SheetCtl::back_->bxsize, 33 + 16 + 8, 0, Rgb(0, 42, 127));
-								SheetCtl::colorChange(*SheetCtl::back_, 2, 33 + 16 + 8 + 1, SheetCtl::back_->bxsize, 31 + 16 + 8 + 1 + 16 + 8, Rgb(127, 169, 255), Rgb(255, 255, 255));
-								SheetCtl::colorChange(*SheetCtl::back_, 2, 33 + 16 + 8 + 1, SheetCtl::back_->bxsize, 31 + 16 + 8 + 1 + 16 + 8, Rgb(0, 42, 127), 0);
-								SheetCtl::refresh(*SheetCtl::back_, 2, 35, SheetCtl::back_->bxsize, 31 + 16 + 8 + 1 + 16 + 8);
-								SheetCtl::upDown(SheetCtl::window_[0], -1);
-								SheetCtl::upDown(SheetCtl::window_[1], 1);
+							for (int i = 0; i < SheetCtl::numOfTab; i++) {
+								if (i != SheetCtl::activeTab && 35 + 23 * i <= mdec_.y_ && mdec_.y_ < 33 + 16 + 8 + 23 * i) {
+									// 選択したタブ
+									SheetCtl::colorChange(*SheetCtl::back_, 2, 35 + 23 * i, SheetCtl::back_->bxsize, 33 + 16 + 8 + 23 * i, kPassiveTabColor, kActiveTabColor);
+									SheetCtl::colorChange(*SheetCtl::back_, 2, 35 + 23 * i, SheetCtl::back_->bxsize, 33 + 16 + 8 + 23 * i, kPassiveTextColor, kActiveTextColor);
+									SheetCtl::refresh(*SheetCtl::back_, 2, 35 + 23 * i, SheetCtl::back_->bxsize, 33 + 16 + 8 + 23 * i);
+									// アクティブだったタブ
+									SheetCtl::colorChange(*SheetCtl::back_, 2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back_->bxsize, 33 + 16 + 8 + 23 * SheetCtl::activeTab, kActiveTabColor, kPassiveTabColor);
+									SheetCtl::colorChange(*SheetCtl::back_, 2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back_->bxsize, 33 + 16 + 8 + 23 * SheetCtl::activeTab, kActiveTextColor, kPassiveTextColor);
+									SheetCtl::refresh(*SheetCtl::back_, 2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back_->bxsize, 33 + 16 + 8 + 23 * SheetCtl::activeTab);
+									
+									SheetCtl::upDown(SheetCtl::window_[SheetCtl::activeTab], -1);
+									SheetCtl::upDown(SheetCtl::window_[i], 1);
+									
+									SheetCtl::activeTab = i;
+								}
 							}
 						}
 					} else if (mdec_.btn_ & 0x02) {	// On right click

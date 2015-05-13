@@ -12,6 +12,8 @@ unsigned char *SheetCtl::map_ = nullptr;
 Sheet *SheetCtl::back_    = nullptr;
 Sheet *SheetCtl::context_menu_ = nullptr;
 Sheet **SheetCtl::window_ = nullptr;
+int SheetCtl::numOfTab    = 0;
+int SheetCtl::activeTab   = 0;
 Sheet *SheetCtl::sheets0_ = nullptr;
 Sheet **SheetCtl::sheets_ = nullptr;
 int SheetCtl::color_      = 0;
@@ -29,6 +31,7 @@ void SheetCtl::init() {
 	sheets_  = new Sheet*[kMaxSheets];
 	sheets0_ = new Sheet[kMaxSheets];
 	window_  = new Sheet*[kMaxTabs];
+	numOfTab = 1;
 	for (int i = 0; i < kMaxSheets; i++) {
 		sheets0_[i].flags = 0; /* 未使用マーク */
 	}
@@ -40,31 +43,27 @@ void SheetCtl::init() {
 	/* サイドバー */
 	back_ = alloc(150, scrny_, false);
 	// 背景色
-	fillRect(back_, Rgb(0, 84, 255), 0, 0, back_->bxsize, back_->bysize);
+	fillRect(back_, kBackgroundColor, 0, 0, back_->bxsize, back_->bysize);
 	// 戻る・進むボタン枠
 	drawPicture(back_, 4, 4, "b_f.bmp", Rgb(255, 0, 255));
 	// 更新ボタン枠
 	drawPicture(back_, 59, 4, "btn_r.bmp", Rgb(255, 0, 255));
 	// タブ
-	drawString(back_, 6, 39, 0, "index.htm");
-	colorChange(*back_, 2, 35, back_->bxsize, 33 + 16 + 8, Rgb(0, 84, 255), Rgb(127, 169, 255));
-	drawString(back_, 6, 33 + 16 + 8 + 1 + 4, Rgb(0, 42, 127), "system info");
-	colorChange(*back_, 2, 33 + 16 + 8 + 1, back_->bxsize, 31 + 16 + 8 + 1 + 16 + 8, Rgb(0, 84, 255), Rgb(255, 255, 255));
+	drawString(back_, 6, 39, kActiveTextColor, "system info");
+	colorChange(*back_, 2, 35, back_->bxsize, 33 + 16 + 8, kBackgroundColor, kActiveTabColor);
 	// 検索窓
 	fillRect(back_, Rgb(255, 255, 255), 2, back_->bysize - 20 - 22, back_->bxsize - 2, back_->bysize - 20);
 	// 表示設定
 	upDown(back_, 0);
 
 	// tabs
-	for (int i = 0; i < 2; i++) {
-		window_[i] = alloc(scrnx_ - back_->bxsize, scrny_, false);
-		drawRect(window_[i], 0, 0, 0, window_[i]->bxsize, window_[i]->bysize);
-		fillRect(window_[i], Rgb(255, 255, 255), 1, 1, window_[i]->bxsize - 1, window_[i]->bysize - 1);
-		slide(window_[i], back_->bxsize, 0);
-	}
+	window_[0] = alloc(scrnx_ - back_->bxsize, scrny_, false);
+	drawRect(window_[0], 0, 0, 0, window_[0]->bxsize, window_[0]->bysize);
+	fillRect(window_[0], Rgb(255, 255, 255), 1, 1, window_[0]->bxsize - 1, window_[0]->bysize - 1);
+	slide(window_[0], back_->bxsize, 0);
 
 	// system info タブを全面へ
-	upDown(window_[1], 1);
+	upDown(window_[0], 1);
 
 	/* 右クリックメニュー */
 	context_menu_ = alloc(150, 150, true);

@@ -21,6 +21,7 @@ unsigned char KeyboardController::ascii_shift_table_[0x80] = {
 	0,   0,   0,   '_', 0,   0,   0,   0,   0,   0,   0,   0,   0,   '|', 0,   0
 };
 int KeyboardController::shift_ = 0;
+bool KeyboardController::alt = false;
 int KeyboardController::cmd_wait_ = -1;
 int KeyboardController::leds_ = 0;
 Queue<int> *KeyboardController::cmd_ = nullptr;
@@ -88,8 +89,66 @@ void KeyboardController::Decode(unsigned char code) {
 		SheetCtl::tbox_timer_->set(50);
 	}
 	switch (code) {
-		case 0x57:
-			SheetCtl::upDown(SheetCtl::sheets_[1], SheetCtl::top_ - 1);
+		case 0x38: // Alt pressed
+			alt = true;
+			break;
+		
+		case 0xe8: // Alt released
+			alt = false;
+			break;
+		
+		case 0x0f: // Tab pressed
+			if (alt) {
+				// タブ切り替え
+				int newActive = SheetCtl::activeTab + 1;
+				if (newActive >= SheetCtl::numOfTab) newActive = 0;
+				
+				// 次のタブ
+				SheetCtl::colorChange(*SheetCtl::back_, 2, 35 + 23 * newActive, SheetCtl::back_->bxsize, 33 + 16 + 8 + 23 * newActive, kPassiveTabColor, kActiveTabColor);
+				SheetCtl::colorChange(*SheetCtl::back_, 2, 35 + 23 * newActive, SheetCtl::back_->bxsize, 33 + 16 + 8 + 23 * newActive, kPassiveTextColor, kActiveTextColor);
+				SheetCtl::refresh(*SheetCtl::back_, 2, 35 + 23 * newActive, SheetCtl::back_->bxsize, 33 + 16 + 8 + 23 * newActive);
+				// アクティブだったタブ
+				SheetCtl::colorChange(*SheetCtl::back_, 2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back_->bxsize, 33 + 16 + 8 + 23 * SheetCtl::activeTab, kActiveTabColor, kPassiveTabColor);
+				SheetCtl::colorChange(*SheetCtl::back_, 2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back_->bxsize, 33 + 16 + 8 + 23 * SheetCtl::activeTab, kActiveTextColor, kPassiveTextColor);
+				SheetCtl::refresh(*SheetCtl::back_, 2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back_->bxsize, 33 + 16 + 8 + 23 * SheetCtl::activeTab);
+				
+				SheetCtl::upDown(SheetCtl::window_[SheetCtl::activeTab], -1);
+				SheetCtl::upDown(SheetCtl::window_[newActive], 1);
+				
+				SheetCtl::activeTab = newActive;
+			}
+			break;
+		
+		case 0x1c: // Enter pressed
+			File *htmlFile;
+			if (htmlFile = FAT12::open("index.htm")) {
+				// ファイルが存在した
+				// タブ表示
+				SheetCtl::drawString(SheetCtl::back_, 6, 39 + 23 * SheetCtl::numOfTab, kActiveTextColor, "index.htm");
+				SheetCtl::colorChange(*SheetCtl::back_, 2, 35 + 23 * SheetCtl::numOfTab, SheetCtl::back_->bxsize, 33 + 16 + 8 + 23 * SheetCtl::numOfTab, kBackgroundColor, kActiveTabColor);
+				SheetCtl::refresh(*SheetCtl::back_, 2, 35 + 23 * SheetCtl::numOfTab, SheetCtl::back_->bxsize, 33 + 16 + 8 + 23 * SheetCtl::numOfTab);
+				// アクティブだったタブ
+				SheetCtl::colorChange(*SheetCtl::back_, 2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back_->bxsize, 33 + 16 + 8 + 23 * SheetCtl::activeTab, kActiveTabColor, kPassiveTabColor);
+				SheetCtl::colorChange(*SheetCtl::back_, 2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back_->bxsize, 33 + 16 + 8 + 23 * SheetCtl::activeTab, kActiveTextColor, kPassiveTextColor);
+				SheetCtl::refresh(*SheetCtl::back_, 2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back_->bxsize, 33 + 16 + 8 + 23 * SheetCtl::activeTab);
+				// ページ表示
+				SheetCtl::window_[SheetCtl::numOfTab] = SheetCtl::alloc(SheetCtl::scrnx_ - SheetCtl::back_->bxsize, SheetCtl::scrny_, false);
+				SheetCtl::drawRect(SheetCtl::window_[SheetCtl::numOfTab], 0, 0, 0, SheetCtl::window_[SheetCtl::numOfTab]->bxsize, SheetCtl::window_[SheetCtl::numOfTab]->bysize);
+				SheetCtl::fillRect(SheetCtl::window_[SheetCtl::numOfTab], Rgb(255, 255, 255), 1, 1, SheetCtl::window_[SheetCtl::numOfTab]->bxsize - 1, SheetCtl::window_[SheetCtl::numOfTab]->bysize - 1);
+				SheetCtl::slide(SheetCtl::window_[SheetCtl::numOfTab], SheetCtl::back_->bxsize, 0);
+				// レンダリング
+				char *source = htmlFile->read();
+				HTML::Tokenizer tokenizer;
+				Queue<HTML::Token *> *tokens = tokenizer.tokenize(source);
+				for (int i = 0; !tokens->isempty(); i++) {
+					SheetCtl::drawString(SheetCtl::window_[SheetCtl::numOfTab], 1, 1 + i * 16, 0, tokens->pop()->getData());
+				}
+				SheetCtl::upDown(SheetCtl::window_[SheetCtl::activeTab], -1);
+				SheetCtl::upDown(SheetCtl::window_[SheetCtl::numOfTab], 1);
+				delete htmlFile;
+				SheetCtl::activeTab = SheetCtl::numOfTab;
+				SheetCtl::numOfTab++;
+			}
 			break;
 
 		case 0x3a: // Caps Lock

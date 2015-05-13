@@ -10,6 +10,12 @@ const int kMaxTabs = 20;
 const int kSheetUse = 1;
 const int kTransColor = 255 << 24;
 
+#define kBackgroundColor Rgb(0, 84, 255)
+#define kActiveTabColor  Rgb(255, 255, 255)
+#define kActiveTextColor 0
+#define kPassiveTabColor Rgb(127, 169, 255)
+#define kPassiveTextColor Rgb(0, 42, 127)
+
 enum class Encoding { SJIS, UTF8, EUCJP };
 
 struct Sheet {
@@ -38,6 +44,8 @@ public:
 	static int top_;
 	static Sheet *back_;
 	static Sheet **window_;
+	static int numOfTab;
+	static int activeTab;
 	static Sheet *context_menu_;
 	static int tbox_cpos_;
 	static unsigned int tbox_col_;

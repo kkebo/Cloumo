@@ -23,40 +23,30 @@ extern "C" void _main() {
 	new Task((char *)kKeyboardTaskName, 2, 2, 128, &KeyboardController::Main);
 	new Task((char *)kMouseTaskName, 1, 1, 128, &Mouse::Main);
 	new Task((char *)kSysInfoTaskName, 2, 1, 128, &SysinfoMain);
-	new Task((char *)kBrowserTaskName, 2, 2, 128, []() {
+	/*new Task((char *)kBrowserTaskName, 2, 2, 128, []() {
 		Task *task = TaskController::getNowTask();
-		//Browser *browser = new Browser("index.htm");
-		//browser->Render();
-		File *htmlFile;
-		if (htmlFile = FAT12::open("index.htm")) {
-			char *source = htmlFile->read();
-			HTML::Tokenizer tokenizer;
-			Queue<HTML::Token *> *tokens = tokenizer.tokenize(source);
-			for (int i = 0; !tokens->isempty(); i++) {
-				SheetCtl::drawString(SheetCtl::window_[0], 1, 1 + i * 16, 0, tokens->pop()->getData());
-			}
-			delete htmlFile;
-		}
+		Browser *browser = new Browser("index.htm");
+		browser->Render();
 		
-		//bool refreshRequired = false;
+		bool refreshRequired = false;
 		
 		for (;;) {
 			Cli();
 			if (task->queue_->isempty()) {
-				/*if (refreshRequired) {
+				if (refreshRequired) {
 					SheetCtl::refresh(*SheetCtl::window_[0], 1, 1, SheetCtl::window_[0]->bxsize - 2, SheetCtl::window_[0]->bysize - 1);
 					refreshRequired = false;
-				}*/
+				}
 				task->sleep();
 				Sti();
 			} else {
-				//int data = task->queue_->pop();
+				int data = task->queue_->pop();
 				Sti();
-				//browser->Scroll(data);
-				//refreshRequired = true;
+				browser->Scroll(data);
+				refreshRequired = true;
 			}
 		}
-	});
+	});*/
 
 	/* 起動音 */
 	/*Queue *btsoundQueue = new Queue(128);
