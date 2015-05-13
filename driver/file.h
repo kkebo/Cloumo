@@ -30,13 +30,13 @@ class FAT12 {
 private:
 	static int *fat_;
 
-	static void loadFile(int, int, char*, char*);
-	static unsigned char *loadFile2(int, int*);
-	static FileInfo *search(const char*, FileInfo*, int);
+	static void loadFile(int, int, char *, char *);
+	static unsigned char *loadFile2(int, int &);
+	static FileInfo *search(const char *, FileInfo *, int);
 
 public:
 	static void init();
-	static File *open(const char*);
+	static File *open(const char *);
 };
 
 #endif

@@ -2,8 +2,6 @@
 #include <setjmp.h>
 #include <string.h>
 
-#define NULL 0
-
 typedef unsigned int TekTPrb;
 
 static int TekDecode5(int siz, unsigned char *p, unsigned char *q);
@@ -92,8 +90,8 @@ static int TekLzRestoreTek5(int srcsiz, unsigned char *src, int outsiz, unsigned
 		pb = wrksiz;
 	}
 	wrksiz = 0x180 * sizeof(unsigned int) + (0x840 + (0x300 << (lc + lp))) * sizeof(TekTPrb); /* 最低15KB, lc+lp=3なら、36KB */
-	work = (int*) malloc4k(wrksiz);
-	if (work == NULL) {
+	work = (int *)malloc4k(wrksiz);
+	if (work == nullptr) {
 		return -1;
 	}
 	flags = TekDecMain5(work, src, outsiz, outbuf, lc, pb, lp, flags);

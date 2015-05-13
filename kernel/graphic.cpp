@@ -1,4 +1,5 @@
 #include "../headers.h"
+#include <SmartPointer.h>
 
 int SheetCtl::top_        = -1;
 int SheetCtl::tbox_cpos_  = 2;
@@ -209,13 +210,12 @@ void SheetCtl::refreshSub(int vx0, int vy0, int vx1, int vy1, int h1) {
 	unsigned char sid;
 	Sheet *sht;
 	unsigned int rgb;
-	unsigned int *backrgb;
 
 	if (vx0 < 0) vx0 = 0;
 	if (vy0 < 0) vy0 = 0;
 	if (vx1 > scrnx_) vx1 = scrnx_;
 	if (vy1 > scrny_) vy1 = scrny_;
-	backrgb = new unsigned int[(vx1 - vx0) * (vy1 - vy0)];
+	unique_ptr<unsigned int> backrgb(new unsigned int[(vx1 - vx0) * (vy1 - vy0)]);
 
 	for (int h = 0; h <= h1; h++) {
 		sht = sheets_[h];
@@ -288,7 +288,6 @@ void SheetCtl::refreshSub(int vx0, int vy0, int vx1, int vy1, int h1) {
 			}
 		}
 	}
-	delete backrgb;
 }
 
 // シートを移動
@@ -697,7 +696,7 @@ void SheetCtl::drawPicture(Sheet *sht, int x, int y, const char *fname, long col
 	unsigned int col;
 	int i;
 	DLL_STRPICENV env;
-	File *imagefile = FAT12::open(fname);
+	unique_ptr<File> imagefile(FAT12::open(fname));
 
 	if (imagefile) {
 		unsigned char *filebuf = imagefile->read();
@@ -707,12 +706,12 @@ void SheetCtl::drawPicture(Sheet *sht, int x, int y, const char *fname, long col
 			return;
 		}
 
-		RGB* picbuf = new RGB[info[2] * info[3]];
+		unique_ptr<RGB> picbuf(new RGB[info[2] * info[3]]);
 		if (picbuf) {
 			if (info[0] == 1) {
-				i = _decode0_BMP(&env, fsize, filebuf, 4, (unsigned char*)picbuf, 0);
+				i = _decode0_BMP(&env, fsize, filebuf, 4, (unsigned char*)picbuf.get(), 0);
 			} else {
-				i = _decode0_JPEG(&env, fsize, filebuf, 4, (unsigned char*)picbuf, 0);
+				i = _decode0_JPEG(&env, fsize, filebuf, 4, (unsigned char*)picbuf.get(), 0);
 			}
 			if (!i && info[2] <= scrnx_ && info[3] <= scrny_) {
 				for (int yy = 0; yy < info[3]; yy++) {
@@ -725,8 +724,6 @@ void SheetCtl::drawPicture(Sheet *sht, int x, int y, const char *fname, long col
 				}
 			}
 		}
-		delete picbuf;
-		delete imagefile;
 	}
 }
 

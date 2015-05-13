@@ -15,7 +15,7 @@ int File::size() {
 int *FAT12::fat_ = nullptr;
 
 void FAT12::init() {
-	unsigned char *img = (unsigned char*)(ADDRESS_DISK_IMAGE + 0x000200);
+	unsigned char *img = (unsigned char *)(ADDRESS_DISK_IMAGE + 0x000200);
 
 	fat_ = new int[2880];
 	for (int i = 0, j = 0; i < 2880; i += 2, j += 3) {
@@ -26,10 +26,10 @@ void FAT12::init() {
 
 File *FAT12::open(const char *name) {
 	File *file = new File;
-	file->info_ = FAT12::search(name, (FileInfo*)(ADDRESS_DISK_IMAGE + 0x002600), 224);
-	if (!file->info_) return 0;
+	file->info_ = FAT12::search(name, (FileInfo *)(ADDRESS_DISK_IMAGE + 0x002600), 224);
+	if (!file->info_) return nullptr;
 	file->size_ = file->info_->size;
-	file->buf_ = (unsigned char*)FAT12::loadFile2(file->info_->clustno, &file->size_);
+	file->buf_ = (unsigned char *)FAT12::loadFile2(file->info_->clustno, file->size_);
 	return file;
 }
 
@@ -52,41 +52,40 @@ void FAT12::loadFile(int clustno, int size, char *buf, char *img) {
 	}
 }
 
-unsigned char *FAT12::loadFile2(int clustno, int *psize) {
-	int size = *psize, size2;
-	unsigned char *buf = new unsigned char[size];
-	unsigned char *buf2;
-	FAT12::loadFile(clustno, size, (char*)buf, (char*)(ADDRESS_DISK_IMAGE + 0x003e00));
-	if (size >= 17) {
-		size2 = TekGetSize(buf);
-		if (size2 > 0) {
-			buf2 = new unsigned char[size2];
-			TekDecomp(buf, buf2, size2);
+unsigned char *FAT12::loadFile2(int clustno, int &psize) {
+	unsigned char *buf = new unsigned char[psize];
+	FAT12::loadFile(clustno, psize, (char *)buf, (char *)(ADDRESS_DISK_IMAGE + 0x003e00));
+	if (psize >= 17) {
+		int tekSize = TekGetSize(buf);
+		if (tekSize > 0) {
+			unsigned char *buf2 = new unsigned char[tekSize];
+			TekDecomp(buf, buf2, tekSize);
 			delete buf;
-			buf = buf2;
-			*psize = size2;
+			psize = tekSize;
+			return buf2;
 		}
 	}
 	return buf;
 }
 
 FileInfo *FAT12::search(const char *name, FileInfo *finfo, int max) {
-	char s[12];
-	for (int i = 0; i < 12; i++) {
-		s[i] = ' ';
-	}
+	char s[11];
+	int j = 0;
 
-	if (finfo->name[0] == 0x00) return 0;
-
-	for (int i = 0, j = 0; name[i]; i++) {
-		if (j >= 11) return 0;
+	for (int i = 0; name[i]; i++) {
+		if (j >= 11) return nullptr;
 		if (name[i] == '.' && j <= 8) {
-			j = 8;
+			while (j < 8) {
+				s[j++] = ' ';
+			}
 		} else {
 			s[j] = name[i];
 			if ('a' <= s[j] && s[j] <= 'z') s[j] -= 0x20;
 			j++;
 		}
+	}
+	while (j < 11) {
+		s[j++] = ' ';
 	}
 
 	for (int i = 0; i < max; i++) {
@@ -95,5 +94,5 @@ FileInfo *FAT12::search(const char *name, FileInfo *finfo, int max) {
 		}
 	}
 
-	return 0;
+	return nullptr;
 }
