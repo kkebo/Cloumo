@@ -15,21 +15,21 @@ template <typename T>
 class unique_ptr {
 private:
 	T *pointer;
-	ReferenceCounter *reference;
+	//ReferenceCounter *reference;
 
 private:
 	void operator = (const unique_ptr<T> &) {}
 
 public:
 	unique_ptr(T *p = nullptr) : pointer(p) {
-		reference = new ReferenceCounter();
-		reference->Add();
+		//reference = new ReferenceCounter();
+		//reference->Add();
 	}
 	virtual ~unique_ptr() {
-		if (reference && reference->Release() == 0) {
+		//if (reference && reference->Release() == 0) {
 			delete pointer;
-			delete reference;
-		}
+			//delete reference;
+		//}
 	}
 	
 	T *get() {
@@ -37,22 +37,22 @@ public:
 	}
 	void reset(T *p) {
 		delete pointer;
-		delete reference;
+		//delete reference;
 		
 		pointer = p;
-		reference = new ReferenceCounter();
-		reference->Add();
+		//reference = new ReferenceCounter();
+		//reference->Add();
 	}
 	T *release() {
 		T *p = pointer;
 		pointer = nullptr;
-		delete reference;
-		reference = nullptr;
+		//delete reference;
+		//reference = nullptr;
 		return p;
 	}
-	ReferenceCounter &getRC() {
+	/*ReferenceCounter &getRC() {
 		return reference;
-	}
+	}*/
 	
 	T *operator -> () const {
 		return pointer;
