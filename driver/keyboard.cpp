@@ -121,6 +121,8 @@ void KeyboardController::Decode(unsigned char code) {
 			break;
 		
 		case 0x1c: { // Enter pressed
+			if (SheetCtl::tbox_str_->length() == 0) break;
+			
 			string filename = *SheetCtl::tbox_str_;
 			
 			// file:/// の削除
@@ -181,6 +183,11 @@ void KeyboardController::Decode(unsigned char code) {
 				SheetCtl::activeTab = SheetCtl::numOfTab;
 				SheetCtl::numOfTab++;
 			}
+			
+			*SheetCtl::tbox_str_ = "";
+			SheetCtl::tbox_cpos_ = 2;
+			SheetCtl::fillRect(SheetCtl::back_, Rgb(255, 255, 255), 2, SheetCtl::back_->bysize - 20 - 22, SheetCtl::back_->bxsize - 2, SheetCtl::back_->bysize - 20);
+			SheetCtl::refresh(*SheetCtl::back_, 2, SheetCtl::back_->bysize - 20 - 22, SheetCtl::back_->bxsize - 2, SheetCtl::back_->bysize - 20);
 			break;
 		}
 

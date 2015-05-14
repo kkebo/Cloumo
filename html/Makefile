@@ -10,7 +10,7 @@ endif
 
 # Default
 
-all: index.htm
+all: index.htm kitai.htm
 
 # 一般生成規則
 

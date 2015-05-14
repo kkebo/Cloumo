@@ -71,6 +71,7 @@ cloumo.img: kernel/ipl.bin os.sys images/b_f.bmp images/btn_r.bmp \
 		copy from:os.sys to:@: \
 		copy from:fonts/japanese.fnt to:@: \
 		copy from:html/index.htm to:@: \
+		copy from:html/kitai.htm to:@: \
 		copy from:images/b_f.bmp to:@: \
 		copy from:images/btn_r.bmp to:@: \
 		copy from:images/copy.bmp to:@: \
