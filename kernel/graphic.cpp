@@ -738,24 +738,3 @@ void SheetCtl::colorChange(Sheet &sht, int x0, int y0, int x1, int y1, unsigned 
 		}
 	}
 }
-
-// 赤緑青をあわせてunsigned intで出力
-unsigned int Rgb(unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
-	return ((a << 24) | (r << 16) | (g << 8) | b);
-}
-
-// 透明化処理
-unsigned int MixRgb(unsigned int rgb1, unsigned int rgb2) {
-	return (((unsigned char) (rgb1 >> 24) << 24)
-	        | (((unsigned char) (rgb2 >> 16) - (unsigned char) (rgb1 >> 16)) * (unsigned char) (rgb1 >> 24) / 255 + (unsigned char) (rgb1 >> 16)) << 16
-	        | (((unsigned char) (rgb2 >> 8) - (unsigned char) (rgb1 >> 8)) * (unsigned char) (rgb1 >> 24) / 255 + (unsigned char) (rgb1 >> 8)) << 8
-	        | (((unsigned char) rgb2 - (unsigned char) rgb1) * (unsigned char) (rgb1 >> 24) / 255 + (unsigned char) rgb1));
-}
-
-// グラデーション色を出力
-unsigned int GetGrad(int p0, int p1, int p, unsigned int c0, unsigned int c1) {
-	return (((unsigned char) (c0 >> 24) << 24)
-	        | (((unsigned char) (c0 >> 16) + ((unsigned char) (c1 >> 16) - (unsigned char) (c0 >> 16)) * (p - p0) / (p1 - p0)) << 16)
-	        | (((unsigned char) (c0 >> 8) + ((unsigned char) (c1 >> 8) - (unsigned char) (c0 >> 8)) * (p - p0) / (p1 - p0)) << 8)
-	        | ((unsigned char) c0 + ((unsigned char) c1 - (unsigned char) c0) * (p - p0) / (p1 - p0)));
-}

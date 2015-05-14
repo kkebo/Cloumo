@@ -15,21 +15,14 @@ template <typename T>
 class unique_ptr {
 private:
 	T *pointer;
-	//ReferenceCounter *reference;
 
 private:
 	void operator = (const unique_ptr<T> &) {}
 
 public:
-	unique_ptr(T *p = nullptr) : pointer(p) {
-		//reference = new ReferenceCounter();
-		//reference->Add();
-	}
+	unique_ptr(T *p = nullptr) : pointer(p) {}
 	virtual ~unique_ptr() {
-		//if (reference && reference->Release() == 0) {
-			delete pointer;
-			//delete reference;
-		//}
+		delete pointer;
 	}
 	
 	T *get() {
@@ -37,22 +30,14 @@ public:
 	}
 	void reset(T *p) {
 		delete pointer;
-		//delete reference;
 		
 		pointer = p;
-		//reference = new ReferenceCounter();
-		//reference->Add();
 	}
 	T *release() {
 		T *p = pointer;
 		pointer = nullptr;
-		//delete reference;
-		//reference = nullptr;
 		return p;
 	}
-	/*ReferenceCounter &getRC() {
-		return reference;
-	}*/
 	
 	T *operator -> () const {
 		return pointer;
@@ -80,9 +65,9 @@ public:
 		reference->Add();
 	}
 	shared_ptr(const shared_ptr<T> &p) {
-		if (p.getRC()) {
-			pointer = p.get();
-			reference = p.getRC();
+		if (p.reference) {
+			pointer = p.pointer;
+			reference = p.reference;
 			reference->Add();
 		}
 	}
@@ -106,7 +91,7 @@ public:
 		reference = new ReferenceCounter();
 		reference->Add();
 	}
-	ReferenceCounter &getRC() {
+	ReferenceCounter *getRC() {
 		return reference;
 	}
 	int use_count() {
@@ -114,14 +99,14 @@ public:
 	}
 	
 	shared_ptr<T> &operator = (const shared_ptr<T> &p) {
-		if (this != &p && p.getRC()) {
+		if (this != &p) {
 			if (reference && reference->Release() == 0) {
 				delete pointer;
 				delete reference;
 			}
 			
-			pointer = p.get();
-			reference = p.getRC();
+			pointer = p.pointer;
+			reference = p.reference;
 			reference->Add();
 		}
 	}

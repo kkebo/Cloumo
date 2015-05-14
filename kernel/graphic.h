@@ -10,13 +10,7 @@
 const int kMaxSheets = 256;
 const int kMaxTabs = 20;
 const int kSheetUse = 1;
-const int kTransColor = 255 << 24;
-
-#define kBackgroundColor Rgb(0, 84, 255)
-#define kActiveTabColor  Rgb(255, 255, 255)
-#define kActiveTextColor 0
-#define kPassiveTabColor Rgb(127, 169, 255)
-#define kPassiveTextColor Rgb(0, 42, 127)
+constexpr const int kTransColor = 255 << 24;
 
 enum class Encoding { SJIS, UTF8, EUCJP };
 
@@ -78,8 +72,31 @@ public:
 	static void colorChange(Sheet &, int, int, int, int, unsigned int, unsigned int);
 };
 
-unsigned int Rgb(unsigned char, unsigned char, unsigned char, unsigned char = 0);
-unsigned int MixRgb(unsigned int, unsigned int);
-unsigned int GetGrad(int, int, int, unsigned int, unsigned int);
+// 赤緑青をあわせてunsigned intで出力
+constexpr unsigned int Rgb(unsigned char r, unsigned char g, unsigned char b, unsigned char a = 0) {
+	return ((a << 24) | (r << 16) | (g << 8) | b);
+}
+
+// 透明化処理
+constexpr unsigned int MixRgb(unsigned int rgb1, unsigned int rgb2) {
+	return (((unsigned char) (rgb1 >> 24) << 24)
+	        | (((unsigned char) (rgb2 >> 16) - (unsigned char) (rgb1 >> 16)) * (unsigned char) (rgb1 >> 24) / 255 + (unsigned char) (rgb1 >> 16)) << 16
+	        | (((unsigned char) (rgb2 >> 8) - (unsigned char) (rgb1 >> 8)) * (unsigned char) (rgb1 >> 24) / 255 + (unsigned char) (rgb1 >> 8)) << 8
+	        | (((unsigned char) rgb2 - (unsigned char) rgb1) * (unsigned char) (rgb1 >> 24) / 255 + (unsigned char) rgb1));
+}
+
+// グラデーション色を出力
+constexpr unsigned int GetGrad(int p0, int p1, int p, unsigned int c0, unsigned int c1) {
+	return (((unsigned char) (c0 >> 24) << 24)
+	        | (((unsigned char) (c0 >> 16) + ((unsigned char) (c1 >> 16) - (unsigned char) (c0 >> 16)) * (p - p0) / (p1 - p0)) << 16)
+	        | (((unsigned char) (c0 >> 8) + ((unsigned char) (c1 >> 8) - (unsigned char) (c0 >> 8)) * (p - p0) / (p1 - p0)) << 8)
+	        | ((unsigned char) c0 + ((unsigned char) c1 - (unsigned char) c0) * (p - p0) / (p1 - p0)));
+}
+
+constexpr const auto kBackgroundColor = Rgb(0, 84, 255);
+constexpr const auto kActiveTabColor  = Rgb(255, 255, 255);
+const auto kActiveTextColor = 0;
+constexpr const auto kPassiveTabColor = Rgb(127, 169, 255);
+constexpr const auto kPassiveTextColor = Rgb(0, 42, 127);
 
 #endif

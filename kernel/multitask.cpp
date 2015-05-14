@@ -20,7 +20,7 @@ bool TaskQueue::push(int data) {
 	return false;
 }
 
-Task::Task(char *name, int level, int priority, void (*mainLoop)()) : name_(name), queue_(nullptr) {
+Task::Task(char *name, int level, int priority, void (*mainLoop)()) : name_(name) {
 	stack = (int)malloc4k(64 * 1024);
 	tss_.esp = stack + 64 * 1024 - 12;
 	tss_.eip = mainLoop;
@@ -33,18 +33,8 @@ Task::Task(char *name, int level, int priority, void (*mainLoop)()) : name_(name
 	run(level, priority);
 }
 
-Task::Task(char *name, int level, int priority, int queueSize, void (*mainLoop)()) : name_(name) {
+Task::Task(char *name, int level, int priority, int queueSize, void (*mainLoop)()) : Task(name, level, priority, mainLoop) {
 	queue_ = new TaskQueue(queueSize, this);
-	stack = (int)malloc4k(64 * 1024);
-	tss_.esp = stack + 64 * 1024 - 12;
-	tss_.eip = mainLoop;
-	tss_.es = 1 * 8;
-	tss_.cs = 2 * 8;
-	tss_.ss = 1 * 8;
-	tss_.ds = 1 * 8;
-	tss_.fs = 1 * 8;
-	tss_.gs = 1 * 8;
-	run(level, priority);
 }
 
 Task::~Task() {

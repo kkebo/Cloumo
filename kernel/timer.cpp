@@ -8,7 +8,6 @@ Timer::Timer(TaskQueue *queue) {
 			return;
 		}
 	}
-	data_ = -1;
 }
 
 Timer::Timer(TaskQueue *queue, int data) {

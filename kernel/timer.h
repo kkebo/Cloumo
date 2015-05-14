@@ -13,7 +13,7 @@ enum class TimerFlag { Free, Reserved, Running };
 
 class Timer {
 private:
-	int data_;
+	int data_ = -1;
 
 public:
 	Timer *next_;

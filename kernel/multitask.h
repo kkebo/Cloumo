@@ -37,7 +37,7 @@ public:
 	int selector_;
 	TaskFlag flags_;
 	int level_, priority_;
-	TaskQueue *queue_;
+	TaskQueue *queue_ = nullptr;
 	TSS32 tss_;
 	int fpu[108 / 4];
 	int stack;

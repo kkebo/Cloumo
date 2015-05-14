@@ -46,7 +46,7 @@ public:
 		free_++;
 		return data;
 	}
-	bool isempty() {
+	bool isempty() const {
 		return size_ == free_;
 	}
 };
