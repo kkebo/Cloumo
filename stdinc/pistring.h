@@ -314,92 +314,13 @@ struct string{
 		string& operator<<(const string& str) {
 			return *this += str;
 		}
-		string& operator<<(unsigned char n) {
-			string tmp;
-			while (n > 0) {
-				tmp += char(n % 10 + '0');
-				n /= 10;
-			}
-			size_t i = tmp.datalen;
-			while (i > 0) {
-				*this += tmp[--i];
-			};
-			return *this;
-		}
-		string& operator<<(short n) {
+		template <typename T>
+		string& operator<<(T n) {
 			string tmp;
 			if (n < 0) {
 				*this += '-';
 				n = -n;
 			}
-			while (n > 0) {
-				tmp += char(n % 10 + '0');
-				n /= 10;
-			}
-			size_t i = tmp.datalen;
-			while (i > 0) {
-				*this += tmp[--i];
-			};
-			return *this;
-		}
-		string& operator<<(unsigned short n) {
-			string tmp;
-			while (n > 0) {
-				tmp += char(n % 10 + '0');
-				n /= 10;
-			}
-			size_t i = tmp.datalen;
-			while (i > 0) {
-				*this += tmp[--i];
-			};
-			return *this;
-		}
-		string& operator<<(int n) {
-			string tmp;
-			if (n < 0) {
-				*this += '-';
-				n = -n;
-			}
-			while (n > 0) {
-				tmp += char(n % 10 + '0');
-				n /= 10;
-			}
-			size_t i = tmp.datalen;
-			while (i > 0) {
-				*this += tmp[--i];
-			};
-			return *this;
-		}
-		string& operator<<(unsigned int n) {
-			string tmp;
-			while (n > 0) {
-				tmp += char(n % 10 + '0');
-				n /= 10;
-			}
-			size_t i = tmp.datalen;
-			while (i > 0) {
-				*this += tmp[--i];
-			};
-			return *this;
-		}
-		string& operator<<(long n) {
-			string tmp;
-			if (n < 0) {
-				*this += '-';
-				n = -n;
-			}
-			while (n > 0) {
-				tmp += char(n % 10 + '0');
-				n /= 10;
-			}
-			size_t i = tmp.datalen;
-			while (i > 0) {
-				*this += tmp[--i];
-			};
-			return *this;
-		}
-		string& operator<<(unsigned long n) {
-			string tmp;
 			while (n > 0) {
 				tmp += char(n % 10 + '0');
 				n /= 10;

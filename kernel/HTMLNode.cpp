@@ -3,6 +3,7 @@
 
 using namespace HTML;
 
-void Node::appendChild(Node &node) {
+Node &Node::appendChild(Node &node) {
 	children.append(node);
+	return node;
 }

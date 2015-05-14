@@ -11,6 +11,10 @@ string &Token::getData() {
 	return data;
 }
 
+Token::Type Token::getType() {
+	return type;
+}
+
 void Token::setSelfClosingFlag() {
 	selfClosingFlag = true;
 }

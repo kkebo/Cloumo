@@ -31,6 +31,7 @@ namespace HTML {
 		Token(Type tokenType) : type(tokenType) {}
 		void setData(string &str);
 		string &getData();
+		Type getType();
 		
 		// for StartTag and EndTag
 		void setSelfClosingFlag();

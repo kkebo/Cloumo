@@ -9,7 +9,7 @@ namespace HTML {
 		List<Node> children;
 	
 	public:
-		void appendChild(Node &node);
+		Node &appendChild(Node &node);
 	};
 }
 
