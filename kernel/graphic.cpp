@@ -5,6 +5,7 @@ int SheetCtl::top_        = -1;
 int SheetCtl::tbox_cpos_  = 2;
 unsigned int SheetCtl::tbox_col_ = 0;
 Timer *SheetCtl::tbox_timer_ = nullptr;
+string *SheetCtl::tbox_str_ = nullptr;
 unsigned char *SheetCtl::vram_ = nullptr;
 int SheetCtl::scrnx_      = 0;
 int SheetCtl::scrny_      = 0;
@@ -31,6 +32,7 @@ void SheetCtl::init() {
 	sheets_  = new Sheet*[kMaxSheets];
 	sheets0_ = new Sheet[kMaxSheets];
 	window_  = new Sheet*[kMaxTabs];
+	tbox_str_ = new string();
 	numOfTab = 1;
 	for (int i = 0; i < kMaxSheets; i++) {
 		sheets0_[i].flags = 0; /* 未使用マーク */

@@ -25,6 +25,23 @@ namespace strexternalfuncs{
 		return x;}};
 
 //global operators
+//add
+string operator + (const char c, const string &str) {
+	return string(c) += str;
+}
+string operator + (const string &str, const char c) {
+	return string(str) += c;
+}
+string operator + (const char *str1, const string &str2) {
+	return string(str1) += str2;
+}
+string operator + (const string &str1, const char *str2) {
+	return string(str1) += str2;
+}
+string operator + (const string &str1, const string &str2) {
+	return string(str1) += str2;
+}
+
 //equal
 bool operator==(const string& str1,const string& str2){
 	return strexternalfuncs::isequal(str1.data,str2.data,str1.datalen,str2.datalen);}

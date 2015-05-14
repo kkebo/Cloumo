@@ -27,7 +27,7 @@ VRAM	equ		0x0ff8			; グラフィックバッファの開始番地
 		jb		_loop
 
 ; テスト用
-;		jmp		scrn1024_32
+		jmp		scrn1024_32
 
 ; 1600x1200 32bit
 		mov		cx,0x11F

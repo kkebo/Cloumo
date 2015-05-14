@@ -67,6 +67,7 @@ Global Operators:
 #define _PISTRING_H_
 
 #include <stddef.h>
+#include <string.h>
 
 #ifndef NULL
 #define NULL 0
@@ -447,6 +448,19 @@ struct string{
 			memmove(data+start,data+end,datalen-end+1);
 			datalen-=end-start;
 			return datalen;}
+		//compare
+		int compare(const char *str) {
+			return strcmp(this->c_str(), str);
+		}
+		int compare(const string &str) {
+			return strcmp(this->c_str(), str.c_str());
+		}
+		int compare(unsigned index, size_t len, const char *str) {
+			return strncmp(this->c_str() + index, str, len);
+		}
+		int compare(unsigned index, size_t len, const string &str) {
+			return strncmp(this->c_str() + index, str.c_str(), len);
+		}
 		//find
 		unsigned find(const char c,unsigned n=0,unsigned start=0) const{
 			return findstr(&c,1,start,n);}
@@ -500,6 +514,13 @@ namespace strexternalfuncs{
 	unsigned strlen(const char* str);};
 
 //global operators
+//add
+string operator + (const char c, const string &str);
+string operator + (const string &str, const char c);
+string operator + (const char *str1, const string &str2);
+string operator + (const string &str1, const char *str2);
+string operator + (const string &str1, const string &str2);
+
 //equal
 bool operator==(const string& str1,const string& str2);
 bool operator==(const string& str1,const char* str2);

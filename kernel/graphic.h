@@ -5,6 +5,8 @@
 #ifndef _GRAPHIC_H_
 #define _GRAPHIC_H_
 
+#include <pistring.h>
+
 const int kMaxSheets = 256;
 const int kMaxTabs = 20;
 const int kSheetUse = 1;
@@ -50,6 +52,7 @@ public:
 	static int tbox_cpos_;
 	static unsigned int tbox_col_;
 	static Timer *tbox_timer_;
+	static string *tbox_str_;
 
 public:
 	static void init();

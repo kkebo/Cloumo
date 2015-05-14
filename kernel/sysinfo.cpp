@@ -30,13 +30,12 @@ void showSysInfo(int benchScore) {
 	// Task List
 	SheetCtl::drawString(SheetCtl::window_[0], 2 + 1, 2 + 16 * 4 + 1, 0, "level priority flag task name");
 	int j = 0;
-	char str2[20];
+	str.reserve(20);
 	for (int i = 0; i < MAX_TASKS; i++) {
 		Task *task = &TaskController::tasks0_[i];
 		if (task->flags_ != TaskFlag::Free) {
-			sprintf(str2, "%5d %8d %4s ", task->level_, task->priority_, (task->flags_ == TaskFlag::Running) ? "(oo)" : "(__)");
-			str = str2;
-			str << task->name_;
+			sprintf(str.c_str(), "%5d %8d %4s ", task->level_, task->priority_, (task->flags_ == TaskFlag::Running) ? "(oo)" : "(__)");
+			str += task->name_;
 			SheetCtl::drawString(SheetCtl::window_[0], 2 + 1, 2 + 16 * 5 + j * 16 + 2, 0, str);
 			j++;
 		}

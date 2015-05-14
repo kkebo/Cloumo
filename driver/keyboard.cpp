@@ -87,6 +87,7 @@ void KeyboardController::Decode(unsigned char code) {
 		SheetCtl::refresh(*SheetCtl::back_, SheetCtl::tbox_cpos_ - 8 + 2, SheetCtl::back_->bysize - 20 - 22 + 2, SheetCtl::tbox_cpos_ - 8 + 2 + 8 + 1, SheetCtl::back_->bysize - 20 - 2);
 		SheetCtl::tbox_timer_->cancel();
 		SheetCtl::tbox_timer_->set(50);
+		*SheetCtl::tbox_str_ += s[0];
 	}
 	switch (code) {
 		case 0x38: // Alt pressed
@@ -119,12 +120,20 @@ void KeyboardController::Decode(unsigned char code) {
 			}
 			break;
 		
-		case 0x1c: // Enter pressed
+		case 0x1c: { // Enter pressed
+			string filename = *SheetCtl::tbox_str_;
+			
+			// file:/// の削除
+			if (filename.compare(0, 8, "file:///") == 0) {
+				filename.erase(0, 8);
+			}
+			
 			File *htmlFile;
-			if (htmlFile = FAT12::open("index.htm")) {
+			if (htmlFile = FAT12::open(filename.c_str())) {
 				// ファイルが存在した
+				filename = "file:///" + filename;
 				// タブ表示
-				SheetCtl::drawString(SheetCtl::back_, 6, 39 + 23 * SheetCtl::numOfTab, kActiveTextColor, "index.htm");
+				SheetCtl::drawString(SheetCtl::back_, 6, 39 + 23 * SheetCtl::numOfTab, kActiveTextColor, filename.c_str());
 				SheetCtl::colorChange(*SheetCtl::back_, 2, 35 + 23 * SheetCtl::numOfTab, SheetCtl::back_->bxsize, 33 + 16 + 8 + 23 * SheetCtl::numOfTab, kBackgroundColor, kActiveTabColor);
 				SheetCtl::refresh(*SheetCtl::back_, 2, 35 + 23 * SheetCtl::numOfTab, SheetCtl::back_->bxsize, 33 + 16 + 8 + 23 * SheetCtl::numOfTab);
 				// アクティブだったタブ
@@ -148,8 +157,32 @@ void KeyboardController::Decode(unsigned char code) {
 				delete htmlFile;
 				SheetCtl::activeTab = SheetCtl::numOfTab;
 				SheetCtl::numOfTab++;
+			} else {
+				// 一致するファイルなし
+				filename = "file:///" + filename;
+				// タブ表示
+				SheetCtl::drawString(SheetCtl::back_, 6, 39 + 23 * SheetCtl::numOfTab, kActiveTextColor, filename.c_str());
+				SheetCtl::colorChange(*SheetCtl::back_, 2, 35 + 23 * SheetCtl::numOfTab, SheetCtl::back_->bxsize, 33 + 16 + 8 + 23 * SheetCtl::numOfTab, kBackgroundColor, kActiveTabColor);
+				SheetCtl::refresh(*SheetCtl::back_, 2, 35 + 23 * SheetCtl::numOfTab, SheetCtl::back_->bxsize, 33 + 16 + 8 + 23 * SheetCtl::numOfTab);
+				// アクティブだったタブ
+				SheetCtl::colorChange(*SheetCtl::back_, 2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back_->bxsize, 33 + 16 + 8 + 23 * SheetCtl::activeTab, kActiveTabColor, kPassiveTabColor);
+				SheetCtl::colorChange(*SheetCtl::back_, 2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back_->bxsize, 33 + 16 + 8 + 23 * SheetCtl::activeTab, kActiveTextColor, kPassiveTextColor);
+				SheetCtl::refresh(*SheetCtl::back_, 2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back_->bxsize, 33 + 16 + 8 + 23 * SheetCtl::activeTab);
+				// ページ表示
+				SheetCtl::window_[SheetCtl::numOfTab] = SheetCtl::alloc(SheetCtl::scrnx_ - SheetCtl::back_->bxsize, SheetCtl::scrny_, false);
+				SheetCtl::drawRect(SheetCtl::window_[SheetCtl::numOfTab], 0, 0, 0, SheetCtl::window_[SheetCtl::numOfTab]->bxsize, SheetCtl::window_[SheetCtl::numOfTab]->bysize);
+				SheetCtl::fillRect(SheetCtl::window_[SheetCtl::numOfTab], Rgb(255, 255, 255), 1, 1, SheetCtl::window_[SheetCtl::numOfTab]->bxsize - 1, SheetCtl::window_[SheetCtl::numOfTab]->bysize - 1);
+				SheetCtl::slide(SheetCtl::window_[SheetCtl::numOfTab], SheetCtl::back_->bxsize, 0);
+				// レンダリング
+				SheetCtl::drawString(SheetCtl::window_[SheetCtl::numOfTab], 1, 1, 0, "File not found");
+				SheetCtl::drawString(SheetCtl::window_[SheetCtl::numOfTab], 1, 1 + 16, 0,  "Can't find the file at '" + filename + "'");
+				SheetCtl::upDown(SheetCtl::window_[SheetCtl::activeTab], -1);
+				SheetCtl::upDown(SheetCtl::window_[SheetCtl::numOfTab], 1);
+				SheetCtl::activeTab = SheetCtl::numOfTab;
+				SheetCtl::numOfTab++;
 			}
 			break;
+		}
 
 		case 0x3a: // Caps Lock
 			leds_ ^= 4;
@@ -203,6 +236,7 @@ void KeyboardController::Decode(unsigned char code) {
 				SheetCtl::refresh(*SheetCtl::back_, SheetCtl::tbox_cpos_ + 2, SheetCtl::back_->bysize - 20 - 22 + 2, SheetCtl::tbox_cpos_ + 2 + 8 + 1, SheetCtl::back_->bysize - 20 - 2);
 				SheetCtl::tbox_timer_->cancel();
 				SheetCtl::tbox_timer_->set(50);
+				SheetCtl::tbox_str_->erase(SheetCtl::tbox_str_->length() - 1, SheetCtl::tbox_str_->length());
 			}
 			break;
 	}
