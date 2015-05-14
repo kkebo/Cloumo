@@ -34,7 +34,8 @@ void showSysInfo(int benchScore) {
 	for (int i = 0; i < MAX_TASKS; i++) {
 		Task *task = &TaskController::tasks0_[i];
 		if (task->flags_ != TaskFlag::Free) {
-			sprintf(str.c_str(), "%5d %8d %4s ", task->level_, task->priority_, (task->flags_ == TaskFlag::Running) ? "(oo)" : "(__)");
+			sprintf(str, "%5d %8d %4s ", task->level_, task->priority_, (task->flags_ == TaskFlag::Running) ? "(oo)" : "(__)");
+			str = str.c_str();
 			str += task->name_;
 			SheetCtl::drawString(SheetCtl::window_[0], 2 + 1, 2 + 16 * 5 + j * 16 + 2, 0, str);
 			j++;

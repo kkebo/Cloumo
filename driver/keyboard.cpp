@@ -148,9 +148,9 @@ void KeyboardController::Decode(unsigned char code) {
 				SheetCtl::fillRect(SheetCtl::window_[SheetCtl::numOfTab], Rgb(255, 255, 255), 1, 1, SheetCtl::window_[SheetCtl::numOfTab]->bxsize - 1, SheetCtl::window_[SheetCtl::numOfTab]->bysize - 1);
 				SheetCtl::slide(SheetCtl::window_[SheetCtl::numOfTab], SheetCtl::back_->bxsize, 0);
 				// レンダリング
-				char *source = htmlFile->read();
+				string source(htmlFile->read(), htmlFile->size());
 				HTML::Tokenizer tokenizer;
-				Queue<HTML::Token *> *tokens = tokenizer.tokenize(source);
+				Queue<HTML::Token *> *tokens = tokenizer.tokenize(source.c_str());
 				for (int i = 0; !tokens->isempty(); i++) {
 					SheetCtl::drawString(SheetCtl::window_[SheetCtl::numOfTab], 1, 1 + i * 16, 0, tokens->pop()->getData());
 				}

@@ -239,6 +239,12 @@ struct string{
 			memcpy(data,str,s+1);
 			datasize=s+minbuffsize;
 			datalen=s;}
+		string(const char *str, size_t len) {
+			data = new char[len + minbuffsize];
+			memcpy(data, str, len + 1);
+			datasize = len + minbuffsize;
+			datalen = len;
+		}
 		string(const string& str){
 			data=new char[str.datasize];
 			memcpy(data,str.data,str.datalen+1);
@@ -248,7 +254,8 @@ struct string{
 			delete[] data;}
 		inline operator const char*() const{
 			return data;}
-		inline const char* c_str() const{
+		inline const char* c_str() {
+			if (data[datalen] != 0) data[datalen++] = 0;
 			return data;}
 		inline char& operator[](const unsigned x){
 			if(x>datalen){

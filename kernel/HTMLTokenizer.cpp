@@ -555,7 +555,6 @@ Queue<Token *> *Tokenizer::tokenize(const char *inputStream) {
 					continue;
 				} else {
 					buffer += nextInputCharacter;
-					continue;
 				}
 				break;
 			
@@ -760,6 +759,414 @@ Queue<Token *> *Tokenizer::tokenize(const char *inputStream) {
 							state = State::BogusDOCTYPE;
 						}
 						break;
+				}
+				break;
+			
+			case State::AfterDOCTYPEPublicKeyword:
+				switch (nextInputCharacter) {
+					case 0x09:
+					case 0x0a:
+					case 0x0c:
+					case ' ':
+						state = State::BeforeDOCTYPEPublicIdentifier;
+						break;
+					
+					case '"':
+						parseError();
+						// Set the DOCTYPE token's public identifier to the empty string (not missing),
+						// then switch to the DOCTYPE public identifier (double-quoted) state.
+						state = State::DOCTYPEPublicIdentifierDoubleQuoted;
+						break;
+					
+					case '\'':
+						parseError();
+						// Set the DOCTYPE token's public identifier to the empty string (not missing),
+						// then switch to the DOCTYPE public identifier (single-quoted) state.
+						state = State::DOCTYPEPublicIdentifierSingleQuoted;
+						break;
+					
+					case '>':
+						parseError();
+						// force-quirks flag to on
+						state = State::Data;
+						emitToken(token.release());
+						break;
+					
+					case 0: // EOF
+						parseError();
+						// force-quirks flag to on
+						emitToken(token.release());
+						state = State::Data;
+						continue;
+					
+					default:
+						parseError();
+						// force-quirks flag to on
+						state = State::BogusDOCTYPE;
+						break;
+				}
+				break;
+			
+			case State::BeforeDOCTYPEPublicIdentifier:
+				switch (nextInputCharacter) {
+					case 0x09:
+					case 0x0a:
+					case 0x0c:
+					case ' ':
+						// ignore
+						break;
+					
+					case '"':
+						parseError();
+						// Set the DOCTYPE token's public identifier to the empty string (not missing),
+						// then switch to the DOCTYPE public identifier (double-quoted) state.
+						state = State::DOCTYPEPublicIdentifierDoubleQuoted;
+						break;
+					
+					case '\'':
+						parseError();
+						// Set the DOCTYPE token's public identifier to the empty string (not missing),
+						// then switch to the DOCTYPE public identifier (single-quoted) state.
+						state = State::DOCTYPEPublicIdentifierSingleQuoted;
+						break;
+					
+					case '>':
+						parseError();
+						// force-quirks flag to on
+						state = State::Data;
+						emitToken(token.release());
+						break;
+					
+					case 0: // EOF
+						parseError();
+						// force-quirks flag to on
+						emitToken(token.release());
+						state = State::Data;
+						continue;
+					
+					default:
+						parseError();
+						// force-quirks flag to on
+						state = State::BogusDOCTYPE;
+						break;
+				}
+				break;
+			
+			case State::DOCTYPEPublicIdentifierDoubleQuoted:
+				switch (nextInputCharacter) {
+					case '"':
+						state = State::AfterDOCTYPEPublicIdentifier;
+						break;
+					
+					case '>':
+						parseError();
+						// force-quirks flag to on
+						state = State::Data;
+						emitToken(token.release());
+						break;
+					
+					case 0: // EOF
+						parseError();
+						// force-quirks flag to on
+						emitToken(token.release());
+						state = State::Data;
+						continue;
+					
+					default:
+						// Append the current input character to the current DOCTYPE token's public identifier.
+						break;
+				}
+				break;
+			
+			case State::DOCTYPEPublicIdentifierSingleQuoted:
+				switch (nextInputCharacter) {
+					case '\'':
+						state = State::AfterDOCTYPEPublicIdentifier;
+						break;
+					
+					case '>':
+						parseError();
+						// force-quirks flag to on
+						state = State::Data;
+						emitToken(token.release());
+						break;
+					
+					case 0: // EOF
+						parseError();
+						// force-quirks flag to on
+						emitToken(token.release());
+						state = State::Data;
+						continue;
+					
+					default:
+						// Append the current input character to the current DOCTYPE token's public identifier.
+						break;
+				}
+				break;
+			
+			case State::AfterDOCTYPEPublicIdentifier:
+				switch (nextInputCharacter) {
+					case 0x09:
+					case 0x0a:
+					case 0x0c:
+					case ' ':
+						state = State::BetweenDOCTYPEPublicAndSystemIdentifiers;
+						break;
+					
+					case '"':
+						parseError();
+						// Set the DOCTYPE token's system identifier to the empty string (not missing),
+						// then switch to the DOCTYPE system identifier (double-quoted) state.
+						state = State::DOCTYPESystemIdentifierDoubleQuoted;
+						break;
+					
+					case '\'':
+						parseError();
+						// Set the DOCTYPE token's system identifier to the empty string (not missing),
+						// then switch to the DOCTYPE system identifier (single-quoted) state.
+						state = State::DOCTYPESystemIdentifierSingleQuoted;
+						break;
+					
+					case '>':
+						state = State::Data;
+						emitToken(token.release());
+						break;
+					
+					case 0: // EOF
+						parseError();
+						// force-quirks flag to on
+						emitToken(token.release());
+						state = State::Data;
+						continue;
+					
+					default:
+						parseError();
+						// force-quirks flag to on
+						state = State::BogusDOCTYPE;
+						break;
+				}
+				break;
+			
+			case State::BetweenDOCTYPEPublicAndSystemIdentifiers:
+				switch (nextInputCharacter) {
+					case 0x09:
+					case 0x0a:
+					case 0x0c:
+					case ' ':
+						// ignore
+						break;
+					
+					case '"':
+						parseError();
+						// Set the DOCTYPE token's system identifier to the empty string (not missing),
+						// then switch to the DOCTYPE system identifier (double-quoted) state.
+						state = State::DOCTYPESystemIdentifierDoubleQuoted;
+						break;
+					
+					case '\'':
+						parseError();
+						// Set the DOCTYPE token's system identifier to the empty string (not missing),
+						// then switch to the DOCTYPE system identifier (single-quoted) state.
+						state = State::DOCTYPESystemIdentifierSingleQuoted;
+						break;
+					
+					case '>':
+						state = State::Data;
+						emitToken(token.release());
+						break;
+					
+					case 0: // EOF
+						parseError();
+						// force-quirks flag to on
+						emitToken(token.release());
+						state = State::Data;
+						continue;
+					
+					default:
+						parseError();
+						// force-quirks flag to on
+						state = State::BogusDOCTYPE;
+						break;
+				}
+				break;
+			
+			case State::AfterDOCTYPESystemKeyword:
+				switch (nextInputCharacter) {
+					case 0x09:
+					case 0x0a:
+					case 0x0c:
+					case ' ':
+						state = State::BeforeDOCTYPESystemIdentifier;
+						break;
+					
+					case '"':
+						parseError();
+						// Set the DOCTYPE token's system identifier to the empty string (not missing),
+						// then switch to the DOCTYPE system identifier (double-quoted) state.
+						state = State::DOCTYPESystemIdentifierDoubleQuoted;
+						break;
+					
+					case '\'':
+						parseError();
+						// Set the DOCTYPE token's system identifier to the empty string (not missing),
+						// then switch to the DOCTYPE system identifier (single-quoted) state.
+						state = State::DOCTYPESystemIdentifierSingleQuoted;
+						break;
+					
+					case '>':
+						state = State::Data;
+						emitToken(token.release());
+						break;
+					
+					case 0: // EOF
+						parseError();
+						// force-quirks flag to on
+						emitToken(token.release());
+						state = State::Data;
+						continue;
+					
+					default:
+						parseError();
+						// force-quirks flag to on
+						state = State::BogusDOCTYPE;
+						break;
+				}
+				break;
+			
+			case State::BeforeDOCTYPESystemIdentifier:
+				switch (nextInputCharacter) {
+					case 0x09:
+					case 0x0a:
+					case 0x0c:
+					case ' ':
+						// ignore
+						break;
+					
+					case '"':
+						parseError();
+						// Set the DOCTYPE token's system identifier to the empty string (not missing),
+						// then switch to the DOCTYPE system identifier (double-quoted) state.
+						state = State::DOCTYPESystemIdentifierDoubleQuoted;
+						break;
+					
+					case '\'':
+						parseError();
+						// Set the DOCTYPE token's system identifier to the empty string (not missing),
+						// then switch to the DOCTYPE system identifier (single-quoted) state.
+						state = State::DOCTYPESystemIdentifierSingleQuoted;
+						break;
+					
+					case '>':
+						state = State::Data;
+						emitToken(token.release());
+						break;
+					
+					case 0: // EOF
+						parseError();
+						// force-quirks flag to on
+						emitToken(token.release());
+						state = State::Data;
+						continue;
+					
+					default:
+						parseError();
+						// force-quirks flag to on
+						state = State::BogusDOCTYPE;
+						break;
+				}
+				break;
+			
+			case State::DOCTYPESystemIdentifierDoubleQuoted:
+				switch (nextInputCharacter) {
+					case '"':
+						state = State::AfterDOCTYPESystemIdentifier;
+						break;
+					
+					case '>':
+						parseError();
+						// force-quirks flag to on
+						state = State::Data;
+						emitToken(token.release());
+						break;
+					
+					case 0: // EOF
+						parseError();
+						// force-quirks flag to on
+						emitToken(token.release());
+						state = State::Data;
+						continue;
+					
+					default:
+						// Append the current input character to the current DOCTYPE token's system identifier.
+						break;
+				}
+				break;
+			
+			case State::DOCTYPESystemIdentifierSingleQuoted:
+				switch (nextInputCharacter) {
+					case '\'':
+						state = State::AfterDOCTYPESystemIdentifier;
+						break;
+					
+					case '>':
+						parseError();
+						// force-quirks flag to on
+						state = State::Data;
+						emitToken(token.release());
+						break;
+					
+					case 0: // EOF
+						parseError();
+						// force-quirks flag to on
+						emitToken(token.release());
+						state = State::Data;
+						continue;
+					
+					default:
+						// Append the current input character to the current DOCTYPE token's system identifier.
+						break;
+				}
+				break;
+			
+			case State::AfterDOCTYPESystemIdentifier:
+				switch (nextInputCharacter) {
+					case 0x09:
+					case 0x0a:
+					case 0x0c:
+					case ' ':
+						// ignore
+						break;
+					
+					case '>':
+						state = State::Data;
+						emitToken(token.release());
+						break;
+					
+					case 0: // EOF
+						parseError();
+						// force-quirks flag to on
+						emitToken(token.release());
+						state = State::Data;
+						continue;
+					
+					default:
+						parseError();
+						state = State::BogusDOCTYPE;
+						// This does not set the DOCTYPE token's force-quirks flag to on.
+						break;
+				}
+				break;
+			
+			case State::BogusDOCTYPE:
+				if (nextInputCharacter == '>') {
+					state = State::Data;
+					emitToken(token.release());
+				} else if (nextInputCharacter == 0) { // EOF
+					emitToken(token.release());
+					state = State::Data;
+					continue;
+				} else {
+					// ignore
 				}
 				break;
 
