@@ -8,7 +8,7 @@ void DateTime::Main() {
 	Task *task = TaskController::getNowTask();
 	int i;
 	bool timechk = false;
-	char s[20];
+	char s[9];
 	
 	// 現在時刻取得
 	static unsigned char adr[7] = { 0x00, 0x02, 0x04, 0x07, 0x08, 0x09, 0x32 };

@@ -14,7 +14,8 @@ OBJS = \
 	asmfunc.o \
 	SmartPointer.o \
 	HTMLToken.o \
-	HTMLTokenizer.o
+	HTMLTokenizer.o \
+	pistring.o
 
 ifeq ($(OS),Windows_NT)
 # Windows

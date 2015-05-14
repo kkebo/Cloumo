@@ -2,6 +2,7 @@
 #define _HTMLTOKEN_H_
 
 #include <List.h>
+#include <pistring.h>
 
 namespace HTML {
 	class Token {
@@ -12,25 +13,29 @@ namespace HTML {
 
 	private:
 		Type type;
-		char data[100];
+		string data;
 		
 		// for StartTag and EndTag
 		struct Attribute {
-			char name[50];
-			char value[128];
+		public:
+			string name;
+			string value;
+			
+			Attribute() = default;
+			Attribute(string &_name, string _value) : name(_name), value(_value) {}
 		};
 		bool selfClosingFlag = false;
 		List<Attribute> attributes;
 	
 	public:
 		Token(Type tokenType) : type(tokenType) {}
-		void setData(const char *str);
-		char *getData();
+		void setData(string &str);
+		string &getData();
 		
 		// for StartTag and EndTag
 		void setSelfClosingFlag();
-		void addAttribute(const char *name);
-		void setAttributeValue(const char *value);
+		void addAttribute(string &name);
+		void setAttributeValue(string &value);
 	};
 }
 

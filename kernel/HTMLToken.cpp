@@ -1,13 +1,13 @@
 #include "../headers.h"
-#include <string.h>
 
 using namespace HTML;
 
-void Token::setData(const char *str) {
-	strcpy(data, str);
+void Token::setData(string &str) {
+	data = str;
+	str = "";
 }
 
-char *Token::getData() {
+string &Token::getData() {
 	return data;
 }
 
@@ -15,15 +15,14 @@ void Token::setSelfClosingFlag() {
 	selfClosingFlag = true;
 }
 
-void Token::addAttribute(const char *name) {
-	Attribute attr;
-	strcpy(attr.name, name);
-	attr.value[0] = 0;
-	attributes.append(attr);
+void Token::addAttribute(string &name) {
+	attributes.append(Attribute(name, ""));
+	name = "";
 }
 
-void Token::setAttributeValue(const char *value) {
+void Token::setAttributeValue(string &value) {
 	if (!attributes.isEmpty()) {
-		strcpy(attributes.getLast().value, value);
+		attributes.getLast().value = value;
 	}
+	value = "";
 }

@@ -2,6 +2,7 @@
 #define _HTMLTOKENIZER_H_
 
 #include <Queue.h>
+#include <pistring.h>
 
 namespace HTML {
 	class Tokenizer {
@@ -77,14 +78,12 @@ namespace HTML {
 			CDATASection
 		};
 		Queue<Token *> *tokens;
-		char buffer[256];
-		int bufferIndex;
+		string buffer;
 		
-		void emitCharacterToken();
+		void emitCharacterToken(string &str);
 		void emitEOFToken();
 		void emitToken(Token *token);
 		void parseError();
-		void finalizeBuffer();
 	
 	public:
 		Tokenizer();

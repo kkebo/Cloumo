@@ -15,6 +15,7 @@ OBJS = \
 	kernel/SmartPointer.o \
 	kernel/HTMLToken.o \
 	kernel/HTMLTokenizer.o \
+	kernel/pistring.o \
 	driver/file.o \
 	driver/keyboard.o \
 	driver/mouse.o \
