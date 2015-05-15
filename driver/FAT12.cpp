@@ -1,17 +1,5 @@
 #include "../headers.h"
 
-File::~File() {
-	delete buf_;
-}
-
-unsigned char *File::read() {
-	return buf_;
-}
-
-int File::size() {
-	return size_;
-}
-
 int *FAT12::fat_ = nullptr;
 
 void FAT12::init() {

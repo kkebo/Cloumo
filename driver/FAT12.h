@@ -2,8 +2,10 @@
  * ファイル
  */
 
-#ifndef _FILE_H_
-#define _FILE_H_
+#ifndef _FAT12_H_
+#define _FAT12_H_
+
+class File;
 
 struct FileInfo {
 	char name[8];
@@ -12,18 +14,6 @@ struct FileInfo {
 	char reserve[10];
 	unsigned short time, date, clustno;
 	unsigned int size;
-};
-
-class File {
-public: // private にしたい
-	unsigned char *buf_;
-	FileInfo *info_;
-	int size_;
-
-public:
-	~File();
-	unsigned char *read();
-	int size();
 };
 
 class FAT12 {

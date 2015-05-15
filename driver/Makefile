@@ -2,7 +2,7 @@ OBJS = \
 	mouse.o \
 	keyboard.o \
 	sound.o \
-	file.o
+	FAT12.o
 DEPS = $(OBJS:%.o=%.d)
 
 ifeq ($(OS),Windows_NT)

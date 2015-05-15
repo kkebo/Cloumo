@@ -1,4 +1,4 @@
-sound.o: sound.cpp ../headers.h ../kernel/asmfunc.h ../kernel/asmhead.h \
+FAT12.o: FAT12.cpp ../headers.h ../kernel/asmfunc.h ../kernel/asmhead.h \
  ../kernel/bmp.h ../kernel/datetime.h ../kernel/descriptor.h \
  ../kernel/graphic.h ../stdinc/pistring.h ../stdinc/stddef.h \
  ../stdinc/string.h ../kernel/int.h ../kernel/jpeg.h ../kernel/language.h \

@@ -16,7 +16,8 @@ OBJS = \
 	kernel/HTMLToken.o \
 	kernel/HTMLTokenizer.o \
 	kernel/pistring.o \
-	driver/file.o \
+	kernel/File.o \
+	driver/FAT12.o \
 	driver/keyboard.o \
 	driver/mouse.o \
 	driver/sound.o

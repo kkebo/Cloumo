@@ -4,10 +4,10 @@ HTMLTokenizer.o: HTMLTokenizer.cpp ../headers.h ../kernel/asmfunc.h \
  ../stdinc/stddef.h ../stdinc/string.h ../kernel/int.h ../kernel/jpeg.h \
  ../kernel/language.h ../kernel/memory.h ../kernel/multitask.h \
  ../stdinc/Queue.h ../kernel/sysinfo.h ../kernel/tek.h ../kernel/timer.h \
- ../kernel/utf82kt.h ../driver/file.h ../driver/keyboard.h \
- ../driver/mouse.h ../driver/sound.h ../kernel/browser.h \
- ../kernel/HTMLToken.h ../stdinc/List.h ../kernel/HTMLTokenizer.h \
- ../stdinc/SmartPointer.h
+ ../kernel/utf82kt.h ../driver/FAT12.h ../kernel/File.h \
+ ../driver/keyboard.h ../driver/mouse.h ../driver/sound.h \
+ ../kernel/browser.h ../kernel/HTMLToken.h ../stdinc/List.h \
+ ../kernel/HTMLTokenizer.h ../stdinc/SmartPointer.h
 
 ../headers.h:
 
@@ -49,7 +49,9 @@ HTMLTokenizer.o: HTMLTokenizer.cpp ../headers.h ../kernel/asmfunc.h \
 
 ../kernel/utf82kt.h:
 
-../driver/file.h:
+../driver/FAT12.h:
+
+../kernel/File.h:
 
 ../driver/keyboard.h:
 

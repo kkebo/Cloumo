@@ -255,7 +255,7 @@ struct string{
 		inline operator const char*() const{
 			return data;}
 		inline const char* c_str() {
-			if (data[datalen] != 0) data[datalen++] = 0;
+			if (data[datalen] != 0) *this += '\0';
 			return data;}
 		inline char& operator[](const unsigned x){
 			if(x>datalen){

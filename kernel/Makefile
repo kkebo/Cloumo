@@ -15,7 +15,8 @@ OBJS = \
 	SmartPointer.o \
 	HTMLToken.o \
 	HTMLTokenizer.o \
-	pistring.o
+	pistring.o \
+	File.o
 DEPS = $(OBJS:%.o=%.d)
 
 ifeq ($(OS),Windows_NT)
