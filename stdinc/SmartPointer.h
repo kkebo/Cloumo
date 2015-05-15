@@ -17,7 +17,7 @@ private:
 	T *pointer;
 
 private:
-	void operator = (const unique_ptr<T> &) {}
+	void operator = (const unique_ptr<T> &) = delete;
 
 public:
 	unique_ptr(T *p = nullptr) : pointer(p) {}

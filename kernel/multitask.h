@@ -24,9 +24,10 @@ enum class TaskFlag { Free, Sleeping, Running };
 class Task;
 
 class TaskQueue : public Queue<int> {
-public:
+private:
 	Task *task_;
-	
+
+public:
 	TaskQueue(int size, Task *task);
 	bool push(int data);
 };
