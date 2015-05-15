@@ -248,11 +248,9 @@ void Mouse::Main() {
 								}
 							}
 						}
-					} else if (mdec_.btn_ & 0x02) {	// On right click
+					} else if (mdec_.btn_ & 0x02 && SheetCtl::context_menu_->height < 0) {	// On right click
 						SheetCtl::slide(SheetCtl::context_menu_, mdec_.x_ - SheetCtl::context_menu_->bxsize / 2, mdec_.y_ - SheetCtl::context_menu_->bysize / 2);
-						if (SheetCtl::context_menu_->height < 0) {
-							SheetCtl::upDown(SheetCtl::context_menu_, SheetCtl::top_);
-						}
+						SheetCtl::upDown(SheetCtl::context_menu_, SheetCtl::top_);
 					}
 					break;
 				case 4:
