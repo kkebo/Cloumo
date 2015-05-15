@@ -1,6 +1,7 @@
 #include "../headers.h"
 #include <SmartPointer.h>
 
+Task *SheetCtl::refreshTask = nullptr;
 int SheetCtl::top_        = -1;
 int SheetCtl::tbox_cpos_  = 2;
 unsigned int SheetCtl::tbox_col_ = 0;
@@ -37,6 +38,23 @@ void SheetCtl::init() {
 	for (int i = 0; i < kMaxSheets; i++) {
 		sheets0_[i].flags = 0; /* 未使用マーク */
 	}
+	refreshTask = new Task("VRAM Refresh Task", 2, 2, 256, []() {
+		Task *task = TaskController::getNowTask();
+		
+		for (;;) {
+			Cli();
+			if (task->queue_->isempty()) {
+				task->sleep();
+				Sti();
+			} else {
+				int level = task->queue_->pop();
+				Sti();
+				task->run(level, 2);
+			}
+			SheetCtl::refreshMap(0, 0, SheetCtl::scrnx_ - 1, SheetCtl::scrny_ - 1, SheetCtl::top_);
+			SheetCtl::refreshSub(0, 0, SheetCtl::scrnx_ - 1, SheetCtl::scrny_ - 1, SheetCtl::top_);
+		}
+	});
 
 	/* フォント読み込み */
 	File *fontFile = FAT12::open("japanese.fnt");
@@ -149,11 +167,12 @@ void SheetCtl::upDown(Sheet *sht, int height) {
 }
 
 // 指定シート内の指定範囲をリフレッシュ
-void SheetCtl::refresh(Sheet &sht, int bx0, int by0, int bx1, int by1) {
-	if (sht.height >= 0) {	// 非表示シートはリフレッシュしない
+void SheetCtl::refresh(const Sheet &sht, int bx0, int by0, int bx1, int by1) {
+	/*if (sht.height >= 0) {	// 非表示シートはリフレッシュしない
 		refreshMap(sht.vx0 + bx0, sht.vy0 + by0, sht.vx0 + bx1, sht.vy0 + by1, sht.height);
 		refreshSub(sht.vx0 + bx0, sht.vy0 + by0, sht.vx0 + bx1, sht.vy0 + by1, sht.height);
-	}
+	}*/
+	refreshTask->queue_->push(TaskController::getNowTask()->level_);
 }
 
 // 指定範囲の変更をmapに適用

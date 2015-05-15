@@ -25,6 +25,8 @@ struct Sheet {
 	bool trans;
 };
 
+class Task;
+
 class SheetCtl {
 private:
 	static unsigned char *vram_;
@@ -33,6 +35,7 @@ private:
 	static int adrfont_;
 
 public:
+	static Task *refreshTask;
 	static Sheet **sheets_;
 	static int scrnx_;
 	static int scrny_;
@@ -52,7 +55,7 @@ public:
 	static void init();
 	static Sheet *alloc(int, int, bool);
 	static void upDown(Sheet *, int);
-	static void refresh(Sheet &, int, int, int, int);
+	static void refresh(const Sheet &, int, int, int, int);
 	static void refreshMap(int, int, int, int, int);
 	static void refreshSub(int, int, int, int, int);
 	static void slide(Sheet *, int, int);
