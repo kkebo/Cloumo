@@ -149,7 +149,7 @@ void SheetCtl::upDown(Sheet *sht, int height) {
 }
 
 // 指定シート内の指定範囲をリフレッシュ
-void SheetCtl::refresh(Sheet &sht, int bx0, int by0, int bx1, int by1) {
+void SheetCtl::refresh(const Sheet &sht, int bx0, int by0, int bx1, int by1) {
 	if (sht.height >= 0) {	// 非表示シートはリフレッシュしない
 		refreshMap(sht.vx0 + bx0, sht.vy0 + by0, sht.vx0 + bx1, sht.vy0 + by1, sht.height);
 		refreshSub(sht.vx0 + bx0, sht.vy0 + by0, sht.vx0 + bx1, sht.vy0 + by1, sht.height);
@@ -208,7 +208,6 @@ void SheetCtl::refreshMap(int vx0, int vy0, int vx1, int vy1, int h0) {
 // 指定範囲の変更をvramに適用
 void SheetCtl::refreshSub(int vx0, int vy0, int vx1, int vy1, int h1) {
 	int bx0, by0, bx1, by1;
-	unsigned char sid;
 	Sheet *sht;
 	unsigned int rgb;
 
@@ -218,9 +217,8 @@ void SheetCtl::refreshSub(int vx0, int vy0, int vx1, int vy1, int h1) {
 	if (vy1 > scrny_) vy1 = scrny_;
 	unique_ptr<unsigned int> backrgb(new unsigned int[(vx1 - vx0) * (vy1 - vy0)]);
 
-	for (int h = 0; h <= h1; h++) {
-		sht = sheets_[h];
-		sid = h;//sht - sheets0_; // hと同じ？
+	for (int sid = 0; sid <= h1; sid++) {
+		sht = sheets_[sid];
 		/* vx0～vy1を使って、bx0～by1を逆算する */
 		bx0 = (vx0 - sht->vx0 < 0)? 0 : vx0 - sht->vx0;
 		by0 = (vy0 - sht->vy0 < 0)? 0 : vy0 - sht->vy0;
@@ -229,16 +227,14 @@ void SheetCtl::refreshSub(int vx0, int vy0, int vx1, int vy1, int h1) {
 		if (color_ == 32) {
 			for (int by = by0; by < by1; by++) {
 				for (int bx = bx0; bx < bx1; bx++) {
+					rgb = sht->buf[by * sht->bxsize + bx];
 					if (map_[(sht->vy0 + by) * scrnx_ + sht->vx0 + bx] == sid) {
-						rgb = sht->buf[by * sht->bxsize + bx];
 						((unsigned int *)vram_)[((sht->vy0 + by) * scrnx_ + (sht->vx0 + bx))]
-							= (h <= 1) ? rgb
+							= (sid <= 1) ? rgb
 							           : MixRgb(rgb, backrgb[(sht->vy0 + by - vy0) * (vx1 - vx0) + (sht->vx0 + bx - vx0)]);
-					} else {
-						rgb = sht->buf[by * sht->bxsize + bx];
-						if ((unsigned char)(rgb >> 24) == 255) continue;
+					} else if ((unsigned char)(rgb >> 24) != 255) {
 						backrgb[(sht->vy0 + by - vy0) * (vx1 - vx0) + (sht->vx0 + bx - vx0)]
-							= (h <= 1) ? rgb
+							= (sid <= 1) ? rgb
 							           : MixRgb(rgb, backrgb[(sht->vy0 + by - vy0) * (vx1 - vx0) + (sht->vx0 + bx - vx0)]);
 					}
 				}
@@ -246,20 +242,18 @@ void SheetCtl::refreshSub(int vx0, int vy0, int vx1, int vy1, int h1) {
 		} else if (color_ == 24) {
 			for (int by = by0; by < by1; by++) {
 				for (int bx = bx0; bx < bx1; bx++) {
+					rgb = sht->buf[by * sht->bxsize + bx];
 					if (map_[(sht->vy0 + by) * scrnx_ + sht->vx0 + bx] == sid) {
-						rgb = sht->buf[by * sht->bxsize + bx];
 						unsigned char *vram24 = (unsigned char *)(vram_ + ((sht->vy0 + by) * scrnx_ + (sht->vx0 + bx)) * 3);
-						if (h > 1) {
+						if (sid > 1) {
 							rgb = MixRgb(rgb, backrgb[(sht->vy0 + by - vy0) * (vx1 - vx0) + (sht->vx0 + bx - vx0)]);
 						}
 						vram24[0] = (unsigned char)rgb;
 						vram24[1] = (unsigned char)(rgb >> 8);
 						vram24[2] = (unsigned char)(rgb >> 16);
-					} else {
-						rgb = sht->buf[by * sht->bxsize + bx];
-						if ((unsigned char)(rgb >> 24) == 255) continue;
+					} else if ((unsigned char)(rgb >> 24) != 255) {
 						backrgb[(sht->vy0 + by - vy0) * (vx1 - vx0) + (sht->vx0 + bx - vx0)]
-						= (h <= 1) ? rgb
+						= (sid <= 1) ? rgb
 						: MixRgb(rgb, backrgb[(sht->vy0 + by - vy0) * (vx1 - vx0) + (sht->vx0 + bx - vx0)]);
 					}
 				}
@@ -267,21 +261,19 @@ void SheetCtl::refreshSub(int vx0, int vy0, int vx1, int vy1, int h1) {
 		} else if (color_ == 16) {
 			for (int by = by0; by < by1; by++) {
 				for (int bx = bx0; bx < bx1; bx++) {
+					rgb = sht->buf[by * sht->bxsize + bx];
 					if (map_[(sht->vy0 + by) * scrnx_ + sht->vx0 + bx] == sid) {
-						rgb = sht->buf[by * sht->bxsize + bx];
 						((unsigned short *)vram_)[(sht->vy0 + by) * scrnx_ + (sht->vx0 + bx)]
-						              = (h <= 1) ?
+						              = (sid <= 1) ?
 						            		  ((((unsigned char) (rgb >> 16) << 8) & 0xf800)
 								                 | (((unsigned char) (rgb >> 8) << 3) & 0x07e0)
 								                 | ((unsigned char) rgb >> 3)) :
 						                	  ((((((unsigned char) (backrgb[(sht->vy0 + by - vy0) * (vx1 - vx0) + (sht->vx0 + bx - vx0)] >> 16) - (unsigned char) (rgb >> 16)) * (unsigned char) (rgb >> 24) / 255 + (unsigned char) (rgb >> 16)) << 8) & 0xf800)
 								                 | (((((unsigned char) (backrgb[(sht->vy0 + by - vy0) * (vx1 - vx0) + (sht->vx0 + bx - vx0)] >> 8) - (unsigned char) (rgb >> 8)) * (unsigned char) (rgb >> 24) / 255 + (unsigned char) (rgb >> 8)) << 3) & 0x07e0)
 								                 | (((unsigned char) backrgb[(sht->vy0 + by - vy0) * (vx1 - vx0) + (sht->vx0 + bx - vx0)] - (unsigned char) rgb) * (unsigned char) (rgb >> 24) / 255 + (unsigned char) rgb) >> 3);
-					} else {
-						rgb = sht->buf[by * sht->bxsize + bx];
-						if ((unsigned char) (rgb >> 24) == 255) continue;
+					} else if ((unsigned char) (rgb >> 24) != 255) {
 						backrgb[(sht->vy0 + by - vy0) * (vx1 - vx0) + (sht->vx0 + bx - vx0)]
-						        = (h <= 1) ?
+						        = (sid <= 1) ?
 						        		rgb :
 						        		MixRgb(rgb, backrgb[(sht->vy0 + by - vy0) * (vx1 - vx0) + (sht->vx0 + bx - vx0)]);
 					}

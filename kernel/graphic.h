@@ -52,7 +52,7 @@ public:
 	static void init();
 	static Sheet *alloc(int, int, bool);
 	static void upDown(Sheet *, int);
-	static void refresh(Sheet &, int, int, int, int);
+	static void refresh(const Sheet &, int, int, int, int);
 	static void refreshMap(int, int, int, int, int);
 	static void refreshSub(int, int, int, int, int);
 	static void slide(Sheet *, int, int);
