@@ -3,18 +3,15 @@
 
 using namespace HTML;
 
-Tokenizer::Tokenizer() {
-	tokens = new Queue<Token *>(128);
-}
+Tokenizer::Tokenizer() : tokens(128) {}
 
 Tokenizer::~Tokenizer() {
-	while (!tokens->isempty()) {
-		delete tokens->pop();
+	while (!tokens.isempty()) {
+		delete tokens.pop();
 	}
-	delete tokens;
 }
 
-Queue<Token *> *Tokenizer::tokenize(const char *inputStream) {
+Queue<Token *> &Tokenizer::tokenize(const char *inputStream) {
 	State state = State::Data; // Data state
 	unique_ptr<Token> token;
 	string buffer;
@@ -122,8 +119,9 @@ Queue<Token *> *Tokenizer::tokenize(const char *inputStream) {
 					if ('a' <= nextInputCharacter && nextInputCharacter <= 'z') {
 						// Create a new end tag token, set its tag name to the current input character, then switch to the tag name state. (Don't emit the token yet; further details will be filled in before it is emitted.)
 						token.reset(new Token(Token::Type::EndTag));
+						token->data = nextInputCharacter;
 						state = State::TagName;
-						continue;
+						break;
 					} else {
 						parseError();
 						state = State::BogusComment;
@@ -137,20 +135,17 @@ Queue<Token *> *Tokenizer::tokenize(const char *inputStream) {
 					case 0x000a: // LF
 					case 0x000c: // FF
 					case ' ':
-						token->setData(buffer);
 						// Switch to the before attribute name state.
 						state = State::BeforeAttributeName;
 						break;
 
 					case '/':
-						token->setData(buffer);
 						// Switch to the self-closing start tag state.
 						state = State::SelfClosingStartTag;
 						break;
 
 					case '>':
 						// Emit the current tag token.
-						token->setData(buffer);
 						emitToken(token.release());
 						state = State::Data;
 						break;
@@ -159,8 +154,7 @@ Queue<Token *> *Tokenizer::tokenize(const char *inputStream) {
 						// Parse error.
 						parseError();
 						// Append a U+FFFD REPLACEMENT CHARACTER character to the current tag token's tag name.
-						buffer += "\ufffd";
-						token->setData(buffer);
+						token->data += "\ufffd";
 						emitToken(token.release());
 						break;
 
@@ -168,7 +162,7 @@ Queue<Token *> *Tokenizer::tokenize(const char *inputStream) {
 						if ('A' <= nextInputCharacter && nextInputCharacter <= 'Z')
 							nextInputCharacter += 0x0020;
 						// Append the current input character to the current tag token's tag name.
-						buffer += nextInputCharacter;
+						token->data += nextInputCharacter;
 						break;
 				}
 				break;
@@ -203,13 +197,14 @@ Queue<Token *> *Tokenizer::tokenize(const char *inputStream) {
 					case '=':
 						parseError();
 					default:
-						/*if ('A' <= nextInputCharacter && nextInputCharacter <= 'Z')
-							nextInputCharacter += 0x0020;*/
+						if ('A' <= nextInputCharacter && nextInputCharacter <= 'Z')
+							nextInputCharacter += 0x0020;
 						// Start a new attribute in the current tag token.
 						// Set that attribute's name to the current input character, and its value to the empty string.
+						token->attributes.append(Token::Attribute(string(nextInputCharacter), string()));
 						// Switch to the attribute name state.
 						state = State::AttributeName;
-						continue;
+						break;
 				}
 				break;
 			
@@ -219,23 +214,19 @@ Queue<Token *> *Tokenizer::tokenize(const char *inputStream) {
 					case 0x0a:
 					case 0x0c:
 					case ' ':
-						token->addAttribute(buffer);
 						state = State::AfterAttributeName;
 						break;
 					
 					case '/':
-						token->addAttribute(buffer);
 						state = State::SelfClosingStartTag;
 						break;
 					
 					case '=':
-						token->addAttribute(buffer);
 						state = State::BeforeAttributeValue;
 						break;
 					
 					case '>':
 						state = State::Data;
-						token->addAttribute(buffer);
 						emitToken(token.release());
 						break;
 					
@@ -251,7 +242,7 @@ Queue<Token *> *Tokenizer::tokenize(const char *inputStream) {
 					default:
 						if ('A' <= nextInputCharacter && nextInputCharacter <= 'Z')
 							nextInputCharacter += 0x0020;
-						buffer += nextInputCharacter;
+						token->attributes.getLast().name += nextInputCharacter;
 						break;
 				}
 				break;
@@ -288,13 +279,14 @@ Queue<Token *> *Tokenizer::tokenize(const char *inputStream) {
 					case '<':
 						parseError();
 					default:
-						/*if ('A' <= nextInputCharacter && nextInputCharacter <= 'Z')
-							nextInputCharacter += 0x0020;*/
+						if ('A' <= nextInputCharacter && nextInputCharacter <= 'Z')
+							nextInputCharacter += 0x0020;
 						// Start a new attribute in the current tag token.
 						// Set that attribute's name to the current input character, and its value to the empty string.
+						token->attributes.append(Token::Attribute(string(nextInputCharacter), string()));
 						// Switch to the attribute name state.
 						state = State::AttributeName;
-						continue;
+						break;
 				}
 				break;
 			
@@ -343,7 +335,6 @@ Queue<Token *> *Tokenizer::tokenize(const char *inputStream) {
 			case State::AttributeValueDoubleQuoted:
 				switch (nextInputCharacter) {
 					case '"':
-						token->setAttributeValue(buffer);
 						state = State::AfterAttributeValueQuoted;
 						break;
 					
@@ -358,7 +349,7 @@ Queue<Token *> *Tokenizer::tokenize(const char *inputStream) {
 						continue;
 					
 					default:
-						buffer += nextInputCharacter;
+						token->attributes.getLast().value += nextInputCharacter;
 						break;
 				}
 				break;
@@ -366,7 +357,6 @@ Queue<Token *> *Tokenizer::tokenize(const char *inputStream) {
 			case State::AttributeValueSingleQuoted:
 				switch (nextInputCharacter) {
 					case '\'':
-						token->setAttributeValue(buffer);
 						state = State::AfterAttributeValueQuoted;
 						break;
 					
@@ -381,7 +371,7 @@ Queue<Token *> *Tokenizer::tokenize(const char *inputStream) {
 						continue;
 					
 					default:
-						buffer += nextInputCharacter;
+						token->attributes.getLast().value += nextInputCharacter;
 						break;
 				}
 				break;
@@ -392,7 +382,6 @@ Queue<Token *> *Tokenizer::tokenize(const char *inputStream) {
 					case 0x0a:
 					case 0x0c:
 					case ' ':
-						token->setAttributeValue(buffer);
 						state = State::BeforeAttributeName;
 						break;
 					
@@ -403,7 +392,6 @@ Queue<Token *> *Tokenizer::tokenize(const char *inputStream) {
 					
 					case '>':
 						state = State::Data;
-						token->setAttributeValue(buffer);
 						emitToken(token.release());
 						break;
 					
@@ -419,7 +407,7 @@ Queue<Token *> *Tokenizer::tokenize(const char *inputStream) {
 					case '`':
 						parseError();
 					default:
-						buffer += nextInputCharacter;
+						token->attributes.getLast().value += nextInputCharacter;
 						break;
 				}
 				break;
@@ -538,7 +526,7 @@ Queue<Token *> *Tokenizer::tokenize(const char *inputStream) {
 						continue;
 					
 					default:
-						buffer += '-';
+						token->data += '-';
 						state = State::Comment;
 						continue;
 				}
@@ -549,12 +537,11 @@ Queue<Token *> *Tokenizer::tokenize(const char *inputStream) {
 					state = State::CommentEndDash;
 				} else if (nextInputCharacter == 0) { // EOF
 					parseError();
-					token->setData(buffer);
 					emitToken(token.release());
 					state = State::Data;
 					continue;
 				} else {
-					buffer += nextInputCharacter;
+					token->data += nextInputCharacter;
 				}
 				break;
 			
@@ -563,12 +550,11 @@ Queue<Token *> *Tokenizer::tokenize(const char *inputStream) {
 					state = State::CommentEnd;
 				} else if (nextInputCharacter == 0) { // EOF
 					parseError();
-					token->setData(buffer);
 					emitToken(token.release());
 					state = State::Data;
 					continue;
 				} else {
-					buffer += '-';
+					token->data += '-';
 					state = State::Comment;
 					continue;
 				}
@@ -578,7 +564,6 @@ Queue<Token *> *Tokenizer::tokenize(const char *inputStream) {
 				switch (nextInputCharacter) {
 					case '>':
 						state = State::Data;
-						token->setData(buffer);
 						emitToken(token.release());
 						break;
 					
@@ -589,12 +574,11 @@ Queue<Token *> *Tokenizer::tokenize(const char *inputStream) {
 					
 					case '-':
 						parseError();
-						buffer += '-';
+						token->data += '-';
 						break;
 					
 					case 0: // EOF
 						parseError();
-						token->setData(buffer);
 						emitToken(token.release());
 						state = State::Data;
 						continue;
@@ -609,25 +593,23 @@ Queue<Token *> *Tokenizer::tokenize(const char *inputStream) {
 			case State::CommentEndBang:
 				switch (nextInputCharacter) {
 					case '-':
-						buffer += "-!";
+						token->data += "-!";
 						state = State::CommentEndDash;
 						break;
 					
 					case '>':
 						state = State::Data;
-						token->setData(buffer);
 						emitToken(token.release());
 						break;
 					
 					case 0: // EOF
 						parseError();
-						token->setData(buffer);
 						emitToken(token.release());
 						state = State::Data;
 						continue;
 					
 					default:
-						buffer += "-!";
+						token->data += "-!";
 						state = State::Comment;
 						continue;
 				}
@@ -669,7 +651,7 @@ Queue<Token *> *Tokenizer::tokenize(const char *inputStream) {
 					case 0:
 						// Parse error. Set the token's name to a U+FFFD REPLACEMENT CHARACTER character. Switch to the DOCTYPE name state.
 						parseError();
-						buffer += "\ufffd";
+						token->data += "\ufffd";
 						state = State::DOCTYPEName;
 						continue;
 					
@@ -682,8 +664,9 @@ Queue<Token *> *Tokenizer::tokenize(const char *inputStream) {
 							nextInputCharacter += 0x0020;
 						// create a new DOCTYPE token
 						token.reset(new Token(Token::Type::DOCTYPE));
+						token->data += nextInputCharacter;
 						state = State::DOCTYPEName;
-						continue;
+						break;
 				}
 				break;
 			
@@ -699,13 +682,11 @@ Queue<Token *> *Tokenizer::tokenize(const char *inputStream) {
 					case '>':
 						state = State::Data;
 						// emit the current DOCTYPE token
-						token->setData(buffer);
 						emitToken(token.release());
 						break;
 					
 					case 0: // EOF
 						// Set the DOCTYPE token's force-quirks flag to on. Emit that DOCTYPE token. Reconsume the EOF character in the data state.
-						token->setData(buffer);
 						// force-quirks flag to on.
 						emitToken(token.release());
 						state = State::Data;
@@ -714,7 +695,7 @@ Queue<Token *> *Tokenizer::tokenize(const char *inputStream) {
 					default:
 						if ('A' <= nextInputCharacter && nextInputCharacter <= 'Z')
 							nextInputCharacter += 0x0020;
-						buffer += nextInputCharacter;
+						token->data += nextInputCharacter;
 						break;
 				}
 				break;
@@ -730,14 +711,12 @@ Queue<Token *> *Tokenizer::tokenize(const char *inputStream) {
 					
 					case '>':
 						state = State::Data;
-						token->setData(buffer);
 						emitToken(token.release());
 						break;
 					
 					case 0: // EOF
 						parseError();
 						// force-quirks flag to on
-						token->setData(buffer);
 						emitToken(token.release());
 						state = State::Data;
 						continue;
@@ -1187,17 +1166,18 @@ Queue<Token *> *Tokenizer::tokenize(const char *inputStream) {
 void Tokenizer::emitCharacterToken(string &str) {
 	if (str.length() > 0) {
 		Token *token = new Token(Token::Type::Character);
-		token->setData(str);
-		tokens->push(token);
+		token->data = str;
+		tokens.push(token);
+		str = "";
 	}
 }
 
 void Tokenizer::emitEOFToken() {
-	tokens->push(new Token(Token::Type::EndOfFile));
+	tokens.push(new Token(Token::Type::EndOfFile));
 }
 
 void Tokenizer::emitToken(Token *token) {
-	tokens->push(token);
+	tokens.push(token);
 }
 
 void Tokenizer::parseError() {}

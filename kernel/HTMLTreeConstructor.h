@@ -9,7 +9,8 @@ namespace HTML {
 		Document document;
 	
 	public:
-		TreeConstructor(Queue<Token *> *tokens);
+		TreeConstructor();
+		Document &construct(Queue<Token *> &tokens);
 	};
 }
 

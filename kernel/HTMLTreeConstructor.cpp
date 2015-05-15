@@ -2,11 +2,14 @@
 
 using namespace HTML;
 
-TreeConstructor::TreeConstructor(Queue<Token *> *tokens) {
+TreeConstructor::TreeConstructor() {
+}
+
+Document &TreeConstructor::construct(Queue<Token *> &tokens) {
 	Element *nowElem, *child;
 	
 	while (!tokens->isempty()) {
-		unique_ptr<Token> token(tokens->pop());
+		unique_ptr<Token> token(tokens.pop());
 		
 		switch (token->getType()) {
 			case Token::Type::Character:

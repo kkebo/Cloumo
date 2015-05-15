@@ -77,7 +77,7 @@ namespace HTML {
 			BogusDOCTYPE,
 			CDATASection
 		};
-		Queue<Token *> *tokens;
+		Queue<Token *> tokens;
 		string buffer;
 		
 		void emitCharacterToken(string &str);
@@ -88,7 +88,7 @@ namespace HTML {
 	public:
 		Tokenizer();
 		~Tokenizer();
-		Queue<Token *> *tokenize(const char *inputStream);
+		Queue<Token *> &tokenize(const char *inputStream);
 	};
 }
 

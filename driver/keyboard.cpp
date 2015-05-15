@@ -150,10 +150,10 @@ void KeyboardController::Decode(unsigned char code) {
 				// レンダリング
 				string source(htmlFile->read(), htmlFile->size());
 				HTML::Tokenizer tokenizer;
-				Queue<HTML::Token *> *tokens = tokenizer.tokenize(source.c_str());
-				for (int i = 0; !tokens->isempty(); i++) {
+				Queue<HTML::Token *> &tokens = tokenizer.tokenize(source.c_str());
+				for (int i = 0; !tokens.isempty(); i++) {
 					string str;
-					HTML::Token *token = tokens->pop();
+					HTML::Token *token = tokens.pop();
 					switch (token->getType()) {
 						case HTML::Token::Type::Character:
 							str = "Character Token";
@@ -179,9 +179,8 @@ void KeyboardController::Decode(unsigned char code) {
 							str = "EndOfFile Token";
 							break;
 					}
-					str << " (data='" << token->getData() << "')";
+					str << " (data='" << token->data << "')";
 					SheetCtl::drawString(SheetCtl::window_[SheetCtl::numOfTab], 1, 1 + i * 16, 0, str.c_str());
-					delete token;
 				}
 				SheetCtl::upDown(SheetCtl::window_[SheetCtl::activeTab], -1);
 				SheetCtl::upDown(SheetCtl::window_[SheetCtl::numOfTab], 1);

@@ -6,13 +6,16 @@
 
 namespace HTML {
 	class Token {
+	private:
+		// for StartTag and EndTag
+		bool selfClosingFlag = false;
+	
 	public:
 		enum class Type {
 			Character, StartTag, EndTag, DOCTYPE, Comment, EndOfFile
 		};
-
-	private:
-		Type type;
+		
+		const Type type;
 		string data;
 		
 		// for StartTag and EndTag
@@ -22,15 +25,11 @@ namespace HTML {
 			string value;
 			
 			Attribute() = default;
-			Attribute(string &_name, string _value) : name(_name), value(_value) {}
+			Attribute(string _name, string _value) : name(_name), value(_value) {}
 		};
-		bool selfClosingFlag = false;
 		List<Attribute> attributes;
-	
-	public:
+		
 		Token(Type tokenType) : type(tokenType) {}
-		void setData(string &str);
-		string &getData();
 		Type getType();
 		
 		// for StartTag and EndTag

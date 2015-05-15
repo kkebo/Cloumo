@@ -2,15 +2,6 @@
 
 using namespace HTML;
 
-void Token::setData(string &str) {
-	data = str;
-	str = "";
-}
-
-string &Token::getData() {
-	return data;
-}
-
 Token::Type Token::getType() {
 	return type;
 }
