@@ -24,7 +24,7 @@ namespace HTML {
 			InCell,
 			InSelect,
 			InSelectInTable,
-			InForeignContent,
+			InTemplate,
 			AfterBody,
 			InFrameset,
 			AfterFrameset,

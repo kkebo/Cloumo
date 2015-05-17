@@ -3,6 +3,7 @@
 
 #include <Queue.h>
 #include <pistring.h>
+#include <SmartPointer.h>
 
 namespace HTML {
 	class Tokenizer {
@@ -77,18 +78,17 @@ namespace HTML {
 			BogusDOCTYPE,
 			CDATASection
 		};
-		Queue<Token *> tokens;
+		Queue<shared_ptr<Token>> tokens;
 		string buffer;
 		
 		void emitCharacterToken(char c);
 		void emitEOFToken();
-		void emitToken(Token *token);
+		void emitToken(const unique_ptr<Token> &token);
 		void parseError();
 	
 	public:
 		Tokenizer();
-		~Tokenizer();
-		Queue<Token *> &tokenize(const char *inputStream);
+		Queue<shared_ptr<Token>> &tokenize(const char *inputStream);
 	};
 }
 

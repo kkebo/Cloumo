@@ -8,8 +8,8 @@ namespace HTML {
 		string id;
 		string className;
 		
-		Element() {}
-		Element(const string &name, const List<Token::Attribute> &attr);
+		//Element() {}
+		Element(const string &name);
 	};
 }
 

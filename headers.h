@@ -26,4 +26,3 @@
 #include "kernel/HTMLElement.h"
 #include "kernel/HTMLTextNode.h"
 #include "kernel/HTMLDocument.h"
-#include "kernel/HTMLTreeConstructor.h"

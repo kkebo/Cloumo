@@ -3,40 +3,40 @@
 
 #include <List.h>
 #include <pistring.h>
+#include <SmartPointer.h>
 
 namespace HTML {
 	class Token {
 	private:
-		// for StartTag and EndTag
-		bool selfClosingFlag = false;
-	
-	public:
-		enum class Type {
-			Character, StartTag, EndTag, DOCTYPE, Comment, EndOfFile
-		};
-		
-		const Type type;
-		string data;
-		
 		// for StartTag and EndTag
 		struct Attribute {
 		public:
 			string name;
 			string value;
 			
-			Attribute() = default;
-			Attribute(string _name, string _value) : name(_name), value(_value) {}
+			Attribute(string _name, string _value);
 		};
-		List<Attribute> attributes;
+		bool selfClosingFlag = false;
+		List<shared_ptr<Attribute>> attributes;
+	
+	public:
+		// for all types
+		enum class Type {
+			Character, StartTag, EndTag, DOCTYPE, Comment, EndOfFile
+		};
+		const Type type;
+		string data;
 		
-		Token(Type tokenType) : type(tokenType) {}
+		// for all types
+		Token(Type tokenType);
 		Type getType();
 		
 		// for StartTag and EndTag
 		void setSelfClosingFlag();
-		bool isSelfClosingFlag();
-		void addAttribute(string &name);
-		void setAttributeValue(string &value);
+		bool isSelfClosing();
+		void appendAttribute(char c);
+		void appendAttributeName(char c);
+		void appendAttributeValue(char c);
 	};
 }
 

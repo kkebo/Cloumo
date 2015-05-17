@@ -2,16 +2,17 @@
 #define _HTMLNODE_H_
 
 #include <List.h>
+#include <SmartPointer.h>
 
 namespace HTML {
 	class Node {
 	protected:
-		List<Node> children;
+		List<shared_ptr<Node>> children;
 	
 	public:
 		Node *parent = nullptr;
 		
-		virtual Node &appendChild(Node &node);
+		virtual void appendChild(const shared_ptr<Node> &node);
 	};
 }
 

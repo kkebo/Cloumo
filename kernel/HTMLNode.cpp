@@ -3,8 +3,7 @@
 
 using namespace HTML;
 
-Node &Node::appendChild(Node &node) {
-	node.parent = this;
+void Node::appendChild(const shared_ptr<Node> &node) {
+	node->parent = this;
 	children.append(node);
-	return node;
 }

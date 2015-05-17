@@ -15,7 +15,6 @@ OBJS = \
 	SmartPointer.o \
 	HTMLToken.o \
 	HTMLTokenizer.o \
-	HTMLTreeConstructor.o \
 	HTMLNode.o \
 	HTMLElement.o \
 	HTMLTextNode.o \

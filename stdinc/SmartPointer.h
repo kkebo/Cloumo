@@ -51,6 +51,9 @@ public:
 	operator T* () const { // cast
 		return pointer;
 	}
+	operator bool() const {
+		return pointer != nullptr;
+	}
 };
 
 template <typename T>

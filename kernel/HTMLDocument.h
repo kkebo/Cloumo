@@ -2,12 +2,10 @@
 #define _HTMLDOCUMENT_H_
 
 namespace HTML {
-	class Document {
+	class Document : public Node {
 	public:
-		DocumentType doctype;
-		Element documentElement;
-		
-		Document() : doctype("") {}
+		//DocumentType doctype;
+		//Element documentElement;
 	};
 }
 

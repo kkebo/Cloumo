@@ -15,7 +15,6 @@ OBJS = \
 	kernel/SmartPointer.o \
 	kernel/HTMLToken.o \
 	kernel/HTMLTokenizer.o \
-	kernel/HTMLTreeConstructor.o \
 	kernel/HTMLNode.o \
 	kernel/HTMLElement.o \
 	kernel/HTMLTextNode.o \
