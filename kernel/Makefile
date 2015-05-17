@@ -15,10 +15,6 @@ OBJS = \
 	SmartPointer.o \
 	HTMLToken.o \
 	HTMLTokenizer.o \
-	HTMLNode.o \
-	HTMLElement.o \
-	HTMLTextNode.o \
-	HTMLDocument.o \
 	pistring.o \
 	File.o
 DEPS = $(OBJS:%.o=%.d)

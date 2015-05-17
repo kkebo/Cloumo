@@ -15,10 +15,6 @@ OBJS = \
 	kernel/SmartPointer.o \
 	kernel/HTMLToken.o \
 	kernel/HTMLTokenizer.o \
-	kernel/HTMLNode.o \
-	kernel/HTMLElement.o \
-	kernel/HTMLTextNode.o \
-	kernel/HTMLDocument.o \
 	kernel/pistring.o \
 	kernel/File.o \
 	driver/FAT12.o \
