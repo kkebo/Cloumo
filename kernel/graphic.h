@@ -9,30 +9,38 @@
 
 const int kMaxSheets = 256;
 const int kMaxTabs = 20;
-const int kSheetUse = 1;
 constexpr const int kTransColor = 255 << 24;
 
 enum class Encoding { SJIS, UTF8, EUCJP };
 
-struct Sheet {
+class Sheet {
+public:
 	unsigned int *buf;
 	int bxsize;
 	int bysize;
 	int vx0;
 	int vy0;
 	int height;
-	int flags;
+	bool flags; // 使用中
 	bool trans;
+	
+	Sheet() {}
+	Sheet(int x, int y, bool inv);
+	virtual ~Sheet();
+	static void *operator new(size_t size);
+	void upDown(int height);
+	void refresh(int bx0, int by0, int bx1, int by1);
+	void slide(int vx0, int vy0);
 };
 
 class SheetCtl {
 private:
 	static unsigned char *vram_;
 	static unsigned char *map_;
-	static Sheet *sheets0_;
-	static int adrfont_;
+	static unsigned char *adrfont_;
 
 public:
+	static Sheet *sheets0_;
 	static Sheet **sheets_;
 	static int scrnx_;
 	static int scrny_;
@@ -50,13 +58,10 @@ public:
 
 public:
 	static void init();
-	static Sheet *alloc(int, int, bool);
-	static void upDown(Sheet *, int);
-	static void refresh(const Sheet &, int, int, int, int);
+	
 	static void refreshMap(int, int, int, int, int);
 	static void refreshSub(int, int, int, int, int);
-	static void slide(Sheet *, int, int);
-	static void freeSheet(Sheet *);
+	
 	static void drawLine(Sheet *, unsigned int, int, int, int, int);
 	static void gradLine(Sheet *, unsigned int, unsigned int, int, int, int, int, int);
 	static void drawRect(Sheet *, unsigned int, int, int, int, int);

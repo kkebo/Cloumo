@@ -1,6 +1,95 @@
 #include "../headers.h"
 #include <SmartPointer.h>
 
+Sheet::Sheet(int x, int y, bool inv) : buf(new unsigned int[x * y]), bxsize(x), bysize(y), trans(inv) {}
+
+Sheet::~Sheet() {
+	if (height >= 0) upDown(-1);
+	flags = false;
+	delete[] buf;
+}
+
+void *Sheet::operator new(size_t size) {
+	for (int i = 0; i < kMaxSheets; i++) {
+		if (!SheetCtl::sheets0_[i].flags) {
+			Sheet *sht = &SheetCtl::sheets0_[i];
+			sht->flags = true;
+			sht->height = -1;
+			return sht;
+		}
+	}
+	return nullptr;
+}
+
+// シートの高さを変更
+void Sheet::upDown(int height) {
+	int old = this->height;
+
+	if (height > SheetCtl::top_ + 1) height = SheetCtl::top_ + 1;
+	if (height < -1) height = -1;
+	this->height = height;
+
+	if (old > height) {	// 前より低くなった
+		if (height >= 0) {	// 表示
+			for (int h = old; h > height; h--) {
+				SheetCtl::sheets_[h] = SheetCtl::sheets_[h - 1];
+				SheetCtl::sheets_[h]->height = h;
+			}
+			SheetCtl::sheets_[height] = this;
+			SheetCtl::refreshMap(vx0, vy0, vx0 + bxsize, vy0 + bysize, height + 1);
+			SheetCtl::refreshSub(vx0, vy0, vx0 + bxsize, vy0 + bysize, SheetCtl::top_);
+		} else {	// 非表示
+			if (SheetCtl::top_ > old) {
+				for (int h = old; h < SheetCtl::top_; h++) {
+					SheetCtl::sheets_[h] = SheetCtl::sheets_[h + 1];
+					SheetCtl::sheets_[h]->height = h;
+				}
+			}
+			SheetCtl::top_--;
+			SheetCtl::refreshMap(vx0, vy0, vx0 + bxsize, vy0 + bysize, 0);
+			SheetCtl::refreshSub(vx0, vy0, vx0 + bxsize, vy0 + bysize, SheetCtl::top_);
+		}
+	} else if (old < height) {	// 以前より高くなった
+		if (old >= 0) {	// より高く
+			for (int h = old; h < height; h++) {
+				SheetCtl::sheets_[h] = SheetCtl::sheets_[h + 1];
+				SheetCtl::sheets_[h]->height = h;
+			}
+			SheetCtl::sheets_[height] = this;
+		} else {	// 非表示から表示へ
+			for (int h = SheetCtl::top_; h >= height; h--) {
+				SheetCtl::sheets_[h + 1] = SheetCtl::sheets_[h];
+				SheetCtl::sheets_[h + 1]->height = h + 1;
+			}
+			SheetCtl::sheets_[height] = this;
+			SheetCtl::top_++;
+		}
+		SheetCtl::refreshMap(vx0, vy0, vx0 + bxsize, vy0 + bysize, height);
+		SheetCtl::refreshSub(vx0, vy0, vx0 + bxsize, vy0 + bysize, SheetCtl::top_); // 変更 height→top_
+	}
+}
+
+// シートのリフレッシュ
+void Sheet::refresh(int bx0, int by0, int bx1, int by1) {
+	if (height >= 0) {	// 非表示シートはリフレッシュしない
+		SheetCtl::refreshMap(vx0 + bx0, vy0 + by0, vx0 + bx1, vy0 + by1, height);
+		SheetCtl::refreshSub(vx0 + bx0, vy0 + by0, vx0 + bx1, vy0 + by1, height);
+	}
+}
+
+// シートを移動
+void Sheet::slide(int vx0, int vy0) {
+	int old_vx0 = this->vx0, old_vy0 = this->vy0;
+	this->vx0 = vx0;
+	this->vy0 = vy0;
+	if (height >= 0) {	// 非表示シートはリフレッシュしない
+		SheetCtl::refreshMap(old_vx0, old_vy0, old_vx0 + bxsize, old_vy0 + bysize, 0);
+		SheetCtl::refreshMap(vx0, vy0, vx0 + bxsize, vy0 + bysize, height);
+		SheetCtl::refreshSub(old_vx0, old_vy0, old_vx0 + bxsize, old_vy0 + bysize, height - 1);
+		SheetCtl::refreshSub(vx0, vy0, vx0 + bxsize, vy0 + bysize, height);
+	}
+}
+
 int SheetCtl::top_        = -1;
 int SheetCtl::tbox_cpos_  = 2;
 unsigned int SheetCtl::tbox_col_ = 0;
@@ -18,7 +107,7 @@ int SheetCtl::activeTab   = 0;
 Sheet *SheetCtl::sheets0_ = nullptr;
 Sheet **SheetCtl::sheets_ = nullptr;
 int SheetCtl::color_      = 0;
-int SheetCtl::adrfont_    = 0;
+unsigned char *SheetCtl::adrfont_ = nullptr;
 
 // シートコントロールを初期化
 void SheetCtl::init() {
@@ -30,20 +119,19 @@ void SheetCtl::init() {
 	color_   = binfo->vmode;
 	map_     = new unsigned char[scrnx_ * scrny_];
 	sheets_  = new Sheet*[kMaxSheets];
-	sheets0_ = new Sheet[kMaxSheets];
+	sheets0_ = ::new Sheet[kMaxSheets];
 	window_  = new Sheet*[kMaxTabs];
 	tbox_str_ = new string();
 	numOfTab = 1;
 	for (int i = 0; i < kMaxSheets; i++) {
-		sheets0_[i].flags = 0; /* 未使用マーク */
+		sheets0_[i].flags = false; /* 未使用マーク */
 	}
 
 	/* フォント読み込み */
-	File *fontFile = FAT12::open("japanese.fnt");
-	adrfont_ = (int)fontFile->read();
+	adrfont_ = FAT12::open("japanese.fnt")->read();
 
 	/* サイドバー */
-	back_ = alloc(150, scrny_, false);
+	back_ = new Sheet(150, scrny_, false);
 	// 背景色
 	fillRect(back_, kBackgroundColor, 0, 0, back_->bxsize, back_->bysize);
 	// 戻る・進むボタン枠
@@ -56,19 +144,19 @@ void SheetCtl::init() {
 	// 検索窓
 	fillRect(back_, Rgb(255, 255, 255), 2, back_->bysize - 20 - 22, back_->bxsize - 2, back_->bysize - 20);
 	// 表示設定
-	upDown(back_, 0);
+	back_->upDown(0);
 
 	// tabs
-	window_[0] = alloc(scrnx_ - back_->bxsize, scrny_, false);
+	window_[0] = new Sheet(scrnx_ - back_->bxsize, scrny_, false);
 	drawRect(window_[0], 0, 0, 0, window_[0]->bxsize, window_[0]->bysize);
 	fillRect(window_[0], Rgb(255, 255, 255), 1, 1, window_[0]->bxsize - 1, window_[0]->bysize - 1);
-	slide(window_[0], back_->bxsize, 0);
+	window_[0]->slide(back_->bxsize, 0);
 
 	// system info タブを全面へ
-	upDown(window_[0], 1);
+	window_[0]->upDown(1);
 
 	/* 右クリックメニュー */
-	context_menu_ = alloc(150, 150, true);
+	context_menu_ = new Sheet(150, 150, true);
 	fillRect(context_menu_, kTransColor, 0, 0, context_menu_->bxsize, context_menu_->bysize);
 	//gradCircle(context_menu_, Rgb(200, 230, 255, 50), Rgb(100, 150, 255), 0, 0, 150);
 	fillCircle(context_menu_, 0x19e0e0e0, 0, 0, 150);
@@ -79,81 +167,6 @@ void SheetCtl::init() {
 	drawPicture(context_menu_, context_menu_->bxsize / 2 + 38, context_menu_->bysize / 2 - 16, "source.bmp", Rgb(255, 0, 255));
 	drawPicture(context_menu_, context_menu_->bxsize / 2 - 16, context_menu_->bysize - 32 - 3, "search.bmp", Rgb(255, 0, 255));
 	drawPicture(context_menu_, context_menu_->bxsize / 2 - 38 - 32, context_menu_->bysize / 2 - 16, "refresh.bmp", Rgb(255, 0, 255));
-	upDown(context_menu_, -1);
-}
-
-// シートを確保
-Sheet *SheetCtl::alloc(int xsize, int ysize, bool inv) {
-	for (int i = 0; i < kMaxSheets; i++) {
-		if (!sheets0_[i].flags) {
-			Sheet *sht = &sheets0_[i];
-			sht->flags = kSheetUse;
-			sht->height = -1;
-
-			sht->buf = new unsigned int[xsize * ysize];
-			sht->bxsize = xsize;
-			sht->bysize = ysize;
-			sht->trans = (inv) ? true : false;
-			return sht;
-		}
-	}
-	return nullptr;
-}
-
-// シートの高さを変更
-void SheetCtl::upDown(Sheet *sht, int height) {
-	int old = sht->height;
-
-	if (height > top_ + 1) height = top_ + 1;
-	if (height < -1) height = -1;
-	sht->height = height;
-
-	if (old > height) {	// 前より低くなった
-		if (height >= 0) {	// 表示
-			for (int h = old; h > height; h--) {
-				sheets_[h] = sheets_[h - 1];
-				sheets_[h]->height = h;
-			}
-			sheets_[height] = sht;
-			refreshMap(sht->vx0, sht->vy0, sht->vx0 + sht->bxsize, sht->vy0 + sht->bysize, height + 1);
-			refreshSub(sht->vx0, sht->vy0, sht->vx0 + sht->bxsize, sht->vy0 + sht->bysize, top_);
-		} else {	// 非表示
-			if (top_ > old) {
-				for (int h = old; h < top_; h++) {
-					sheets_[h] = sheets_[h + 1];
-					sheets_[h]->height = h;
-				}
-			}
-			top_--;
-			refreshMap(sht->vx0, sht->vy0, sht->vx0 + sht->bxsize, sht->vy0 + sht->bysize, 0);
-			refreshSub(sht->vx0, sht->vy0, sht->vx0 + sht->bxsize, sht->vy0 + sht->bysize, top_);
-		}
-	} else if (old < height) {	// 以前より高くなった
-		if (old >= 0) {	// より高く
-			for (int h = old; h < height; h++) {
-				sheets_[h] = sheets_[h + 1];
-				sheets_[h]->height = h;
-			}
-			sheets_[height] = sht;
-		} else {	// 非表示から表示へ
-			for (int h = top_; h >= height; h--) {
-				sheets_[h + 1] = sheets_[h];
-				sheets_[h + 1]->height = h + 1;
-			}
-			sheets_[height] = sht;
-			top_++;
-		}
-		refreshMap(sht->vx0, sht->vy0, sht->vx0 + sht->bxsize, sht->vy0 + sht->bysize, height);
-		refreshSub(sht->vx0, sht->vy0, sht->vx0 + sht->bxsize, sht->vy0 + sht->bysize, top_); // 変更 height→top_
-	}
-}
-
-// 指定シート内の指定範囲をリフレッシュ
-void SheetCtl::refresh(const Sheet &sht, int bx0, int by0, int bx1, int by1) {
-	if (sht.height >= 0) {	// 非表示シートはリフレッシュしない
-		refreshMap(sht.vx0 + bx0, sht.vy0 + by0, sht.vx0 + bx1, sht.vy0 + by1, sht.height);
-		refreshSub(sht.vx0 + bx0, sht.vy0 + by0, sht.vx0 + bx1, sht.vy0 + by1, sht.height);
-	}
 }
 
 // 指定範囲の変更をmapに適用
@@ -281,26 +294,6 @@ void SheetCtl::refreshSub(int vx0, int vy0, int vx1, int vy1, int h1) {
 			}
 		}
 	}
-}
-
-// シートを移動
-void SheetCtl::slide(Sheet *sht, int vx0, int vy0) {
-	int old_vx0 = sht->vx0, old_vy0 = sht->vy0;
-	sht->vx0 = vx0;
-	sht->vy0 = vy0;
-	if (sht->height >= 0) {	// 非表示シートはリフレッシュしない
-		refreshMap(old_vx0, old_vy0, old_vx0 + sht->bxsize, old_vy0 + sht->bysize, 0);
-		refreshMap(vx0, vy0, vx0 + sht->bxsize, vy0 + sht->bysize, sht->height);
-		refreshSub(old_vx0, old_vy0, old_vx0 + sht->bxsize, old_vy0 + sht->bysize, sht->height - 1);
-		refreshSub(vx0, vy0, vx0 + sht->bxsize, vy0 + sht->bysize, sht->height);
-	}
-}
-
-// シートを解放
-void SheetCtl::freeSheet(Sheet *sht) {
-	if (sht->height >= 0) upDown(sht, -1);
-	sht->flags = 0;
-	delete sht->buf;
 }
 
 // 単色直線を描画
@@ -584,7 +577,7 @@ void SheetCtl::drawChar(Sheet *sht, int x, int y, unsigned int c, unsigned char 
 
 // 単色文字列を描画
 void SheetCtl::drawString(Sheet *sht, int x, int y, unsigned int c, const char *str, Encoding encode) {
-	unsigned char *fontdat = (unsigned char *)adrfont_;
+	unsigned char *fontdat = adrfont_;
 	unsigned char *font;
 	unsigned char *s = (unsigned char *)str;
 	int k, t;

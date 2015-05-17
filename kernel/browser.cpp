@@ -1,24 +1,19 @@
 #include "../headers.h"
 #include <string.h>
 
-Browser::Browser(const char *url) {
+Browser::Browser(const char *url) : htmlFile(FAT12::open(url)) {
 	// ファイル読み込み
-	if (htmlFile = FAT12::open(url)) {
+	if (htmlFile) {
 		source = htmlFile->read();
 		size = htmlFile->size();
 		
 		// 内部シート作成
-		sheet = SheetCtl::alloc(SheetCtl::scrnx_ - SheetCtl::back_->bxsize - 1, SheetCtl::scrny_ * 3, false);
+		sheet.reset(new Sheet(SheetCtl::scrnx_ - SheetCtl::back_->bxsize - 1, SheetCtl::scrny_ * 3, false));
 		SheetCtl::fillRect(sheet, Rgb(255, 255, 255), 0, 0, sheet->bxsize - 1, sheet->bysize - 1);
 		
 		// マウスに登録
 		Mouse::browserTask = TaskController::getNowTask();
 	}
-}
-
-Browser::~Browser() {
-	delete htmlFile;
-	SheetCtl::freeSheet(sheet);
 }
 
 // HTMLファイルを表示

@@ -42,7 +42,7 @@ void DateTime::Main() {
 		sprintf(s, "AM %02d:%02d", t_[2], t_[1]);
 	}
 	SheetCtl::drawString(SheetCtl::back_, 2, SheetCtl::back_->bysize - 18, Rgb(255, 255, 255), s);
-	SheetCtl::refresh(*SheetCtl::back_, 2, SheetCtl::back_->bysize - 18, 2 + 8 * 8, SheetCtl::back_->bysize - 2);
+	SheetCtl::back_->refresh(2, SheetCtl::back_->bysize - 18, 2 + 8 * 8, SheetCtl::back_->bysize - 2);
 	
 	for (;;) {
 		Cli();
@@ -56,7 +56,7 @@ void DateTime::Main() {
 				}
 				SheetCtl::fillRect(SheetCtl::back_, Rgb(0, 84, 255), 2, SheetCtl::back_->bysize - 18, 2 + 8 * 8, SheetCtl::back_->bysize - 2);
 				SheetCtl::drawString(SheetCtl::back_, 2, SheetCtl::back_->bysize - 18, Rgb(255, 255, 255), s);
-				SheetCtl::refresh(*SheetCtl::back_, 2, SheetCtl::back_->bysize - 18, 2 + 8 * 8, SheetCtl::back_->bysize - 2);
+				SheetCtl::back_->refresh(2, SheetCtl::back_->bysize - 18, 2 + 8 * 8, SheetCtl::back_->bysize - 2);
 				timechk = false;
 			} else {
 				task->sleep();

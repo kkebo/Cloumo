@@ -3,10 +3,10 @@
 
 using namespace HTML;
 
-Document &TreeConstructor::construct(Queue<Token *> &tokens) {
+Document &TreeConstructor::construct(Queue<shared_ptr<Token>> &tokens) {
 	Mode mode = Mode::Initial;
 	unique_ptr<Token> token;
-	Stack<Element *> openTags; // stack of open elements
+	Stack<unique_ptr<Element>> openTags; // stack of open elements
 	bool scripting = false; // scripting flag
 	
 	if (tokens.isempty()) return;
