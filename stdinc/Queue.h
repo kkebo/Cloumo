@@ -16,7 +16,7 @@ protected:
 public:
 	Queue(int size) : buf_(new T[size + 1]), size_(size) {}
 	virtual ~Queue() {
-		delete buf_;
+		delete[] buf_;
 	}
 	bool push(const T &data) {
 		if ((tail_ + 1) % size_ == head_) { // queue is full
@@ -26,7 +26,7 @@ public:
 		tail_ = (tail_ + 1) % size_;
 		return true;
 	}
-	T pop() {
+	T &pop() {
 		T data = buf_[head_];
 		head_ = (head_ + 1) % size_;
 		return data;

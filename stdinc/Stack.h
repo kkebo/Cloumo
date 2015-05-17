@@ -16,7 +16,7 @@ protected:
 public:
 	Queue(int size) : buf_(new T[size]), size_(size) {}
 	virtual ~Queue() {
-		delete buf_;
+		delete[] buf_;
 	}
 	bool push(const T &data) {
 		if (tail_ == size_) { // stack is full
@@ -25,7 +25,7 @@ public:
 		buf_[tail_++] = data;
 		return true;
 	}
-	T pop() {
+	T &pop() {
 		return buf_[--tail_];
 	}
 	bool isempty() const {
