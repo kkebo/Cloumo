@@ -12,18 +12,15 @@ OBJS = \
 	kernel/utf82kt.o \
 	kernel/sysinfo.o \
 	kernel/asmfunc.o \
-	kernel/SmartPointer.o \
 	kernel/HTMLToken.o \
 	kernel/HTMLTokenizer.o \
-	kernel/pistring.o \
 	kernel/File.o \
 	driver/FAT12.o \
 	driver/keyboard.o \
 	driver/mouse.o \
 	driver/sound.o
 
-GOLIBC = golibc/golibc.a
-QEMU_REMOTE =
+LIBS = golibc/golibc.a mylibcpp/mylibcpp.a
 
 ifeq ($(OS),Windows_NT)
 # Windows
@@ -58,8 +55,8 @@ all:
 
 # 特別生成規則
 
-kernel.bin: $(OBJS) kernel/jpeg.obj kernel/bmp.obj $(GOLIBC)
-	$(LD) --gc-sections -nostdlib -m elf_i386 -Map kernel.map -T main.ls -s -o $@ $(OBJS) kernel/jpeg.obj kernel/bmp.obj $(GOLIBC)
+kernel.bin: $(OBJS) kernel/jpeg.obj kernel/bmp.obj $(LIBS)
+	$(LD) --gc-sections -nostdlib -m elf_i386 -Map kernel.map -T main.ls -s -o $@ $(OBJS) kernel/jpeg.obj kernel/bmp.obj $(LIBS)
 
 os.sys: kernel/asmhead.bin kernel.bin
 	$(os.sys)
@@ -83,8 +80,9 @@ cloumo.img: kernel/ipl.bin os.sys images/b_f.bmp images/btn_r.bmp \
 
 # Libraries
 
-$(GOLIBC):
+$(LIBS):
 	$(MAKE) -C golibc
+	$(MAKE) -C mylibcpp
 
 # Options
 
@@ -111,3 +109,4 @@ clean:
 	$(MAKE) -C kernel clean
 	$(MAKE) -C driver clean
 	$(MAKE) -C golibc clean
+	$(MAKE) -C mylibcpp clean

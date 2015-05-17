@@ -1,21 +1,6 @@
-OBJS = \
-	main.o \
-	int.o \
-	descriptor.o \
-	memory.o \
-	browser.o \
-	multitask.o \
-	timer.o \
-	datetime.o \
-	graphic.o \
-	tek.o \
-	utf82kt.o \
-	sysinfo.o \
-	asmfunc.o \
-	HTMLToken.o \
-	HTMLTokenizer.o \
-	File.o
-DEPS = $(OBJS:%.o=%.d)
+TARGET     = mylibcpp
+OBJS       = SmartPointer.o pistring.o
+DEPS       = $(OBJS:%.o=%.d)
 
 ifeq ($(OS),Windows_NT)
 # Windows
@@ -26,6 +11,7 @@ ifeq ($(OS),Windows_NT)
 	CFLAGS   = -I$(INCPATH) -Os -MD -MP -Wall -fno-exceptions -B$(TOOLPATH) -std=c11 -fno-stack-protector -ffunction-sections -fdata-sections
 	CXX      = $(TOOLPATH)g++.exe
 	CXXFLAGS = -I$(INCPATH) -Os -MD -MP -Wall -fno-exceptions -fno-rtti -B$(TOOLPATH) -std=c++14 -fpermissive -fno-stack-protector -ffunction-sections -fdata-sections
+	AR       =
 	NASM     =
 	DEL      = -del
 else
@@ -37,29 +23,19 @@ else
 	CFLAGS   = -I$(INCPATH) -Os -MD -MP -Wall -fno-exceptions -B$(TOOLPATH) -std=c11 -fno-stack-protector -ffunction-sections -fdata-sections
 	CXX      = ~/opt/cross/bin/i686-elf-g++
 	CXXFLAGS = -I$(INCPATH) -Os -MD -MP -Wall -fno-exceptions -fno-rtti -B$(TOOLPATH) -std=c++14 -fpermissive -fno-stack-protector -ffunction-sections -fdata-sections
+	AR       = ~/opt/cross/bin/i686-elf-ar
 	NASM     = /usr/local/bin/nasm
 	DEL      = rm -f
 endif
 
-# Default
-all: $(OBJS) ipl.bin asmhead.bin
-
-# 一般生成規則
--include $(DEPS)
-
-%.o: %.asm
-	$(NASM) -felf32 -o $@ $<
+all: $(TARGET).a
 
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $<
 
-%.o: %.c
-	$(CC) $(CFLAGS) -c $<
+$(TARGET).a: $(OBJS)
+	$(AR) r $@ $^
 
-%.bin: %.asm
-	$(NASM) -fbin -o $@ $<
-
-# Options
 clean:
-	$(DEL) *.bin
-	$(DEL) $(OBJS)
+	$(DEL) *.o
+	$(DEL) $(TARGET).a

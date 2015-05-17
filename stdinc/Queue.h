@@ -11,22 +11,20 @@ template <typename T>
 class Queue {
 protected:
 	T *buf_;
-	int head_, tail_, size_, free_, flags_;
+	int head_, tail_, size_, free_;
 	
 	Queue() {}
 
 public:
-	Queue(int size) : buf_(new T[size]), head_(0), tail_(0), size_(size), free_(size), flags_(0) {}
+	Queue(int size) : buf_(new T[size]), head_(0), tail_(0), size_(size), free_(size) {}
 	virtual ~Queue() {
 		delete buf_;
 	}
-	bool push(T data) {
+	bool push(const T &data) {
 		if (!free_) { // queue is full
-			flags_ |= FLAGS_OVERRUN;
 			return false;
 		}
-		buf_[tail_] = data;
-		tail_++;
+		buf_[tail_++] = data;
 		if (tail_ == size_) {
 			tail_ = 0;
 		}
@@ -34,12 +32,7 @@ public:
 		return true;
 	}
 	T pop() {
-		T data;
-		if (isempty()) { // queue is empty
-			//return -1;
-		}
-		data = buf_[head_];
-		head_++;
+		T data = buf_[head_++];
 		if (head_ == size_) {
 			head_ = 0;
 		}

@@ -6,7 +6,6 @@ TaskQueue::TaskQueue(int size, Task *task) {
 	tail_ = 0;
 	size_ = size;
 	free_ = size;
-	flags_ = 0;
 	task_ = task;
 }
 
