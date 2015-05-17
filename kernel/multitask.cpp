@@ -1,11 +1,6 @@
 #include "../headers.h"
 
-TaskQueue::TaskQueue(int size, Task *task) {
-	buf_ = new int[size];
-	head_ = 0;
-	tail_ = 0;
-	size_ = size;
-	free_ = size;
+TaskQueue::TaskQueue(int size, Task *task) : Queue<int>(size) {
 	task_ = task;
 }
 
