@@ -80,7 +80,7 @@ namespace HTML {
 		Queue<Token *> tokens;
 		string buffer;
 		
-		void emitCharacterToken(string &str);
+		void emitCharacterToken(char c);
 		void emitEOFToken();
 		void emitToken(Token *token);
 		void parseError();

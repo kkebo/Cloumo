@@ -5,11 +5,13 @@
 
 namespace HTML {
 	class Node {
-	private:
+	protected:
 		List<Node> children;
 	
 	public:
-		Node &appendChild(Node &node);
+		Node *parent = nullptr;
+		
+		virtual Node &appendChild(Node &node);
 	};
 }
 

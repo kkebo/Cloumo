@@ -7,7 +7,10 @@ tek.o: tek.cpp ../headers.h ../kernel/asmfunc.h ../kernel/asmhead.h \
  ../kernel/utf82kt.h ../driver/FAT12.h ../kernel/File.h \
  ../driver/keyboard.h ../driver/mouse.h ../driver/sound.h \
  ../kernel/browser.h ../kernel/HTMLToken.h ../stdinc/List.h \
- ../kernel/HTMLTokenizer.h ../stdinc/setjmp.h
+ ../kernel/HTMLTokenizer.h ../kernel/HTMLNode.h \
+ ../kernel/HTMLDocumentType.h ../kernel/HTMLElement.h \
+ ../kernel/HTMLTextNode.h ../kernel/HTMLDocument.h \
+ ../kernel/HTMLTreeConstructor.h ../stdinc/setjmp.h
 
 ../headers.h:
 
@@ -66,5 +69,17 @@ tek.o: tek.cpp ../headers.h ../kernel/asmfunc.h ../kernel/asmhead.h \
 ../stdinc/List.h:
 
 ../kernel/HTMLTokenizer.h:
+
+../kernel/HTMLNode.h:
+
+../kernel/HTMLDocumentType.h:
+
+../kernel/HTMLElement.h:
+
+../kernel/HTMLTextNode.h:
+
+../kernel/HTMLDocument.h:
+
+../kernel/HTMLTreeConstructor.h:
 
 ../stdinc/setjmp.h:

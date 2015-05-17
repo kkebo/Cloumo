@@ -1,5 +1,5 @@
 OBJS = \
-	bootpack.o \
+	main.o \
 	int.o \
 	descriptor.o \
 	memory.o \
@@ -15,6 +15,11 @@ OBJS = \
 	SmartPointer.o \
 	HTMLToken.o \
 	HTMLTokenizer.o \
+	HTMLTreeConstructor.o \
+	HTMLNode.o \
+	HTMLElement.o \
+	HTMLTextNode.o \
+	HTMLDocument.o \
 	pistring.o \
 	File.o
 DEPS = $(OBJS:%.o=%.d)
@@ -27,7 +32,7 @@ ifeq ($(OS),Windows_NT)
 	CC       = $(TOOLPATH)gcc.exe
 	CFLAGS   = -I$(INCPATH) -Os -MD -MP -Wall -fno-exceptions -B$(TOOLPATH) -std=c11 -fno-stack-protector -ffunction-sections -fdata-sections
 	CXX      = $(TOOLPATH)g++.exe
-	CXXFLAGS = -I$(INCPATH) -Os -MD -MP Wall -fno-exceptions -fno-rtti -B$(TOOLPATH) -std=c++14 -fpermissive -fno-stack-protector -ffunction-sections -fdata-sections
+	CXXFLAGS = -I$(INCPATH) -Os -MD -MP -Wall -fno-exceptions -fno-rtti -B$(TOOLPATH) -std=c++14 -fpermissive -fno-stack-protector -ffunction-sections -fdata-sections
 	NASM     =
 	DEL      = -del
 else

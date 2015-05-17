@@ -3,6 +3,13 @@
 
 namespace HTML {
 	class Element : public Node {
+	public:
+		string tagName;
+		string id;
+		string className;
+		
+		Element() {}
+		Element(const string &name, const List<Token::Attribute> &attr);
 	};
 }
 

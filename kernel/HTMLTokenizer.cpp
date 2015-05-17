@@ -14,7 +14,6 @@ Tokenizer::~Tokenizer() {
 Queue<Token *> &Tokenizer::tokenize(const char *inputStream) {
 	State state = State::Data; // Data state
 	unique_ptr<Token> token;
-	string buffer;
 
 	for (int i = 0;;) {
 		char nextInputCharacter = inputStream[i];
@@ -23,26 +22,23 @@ Queue<Token *> &Tokenizer::tokenize(const char *inputStream) {
 			case State::Data: // Data state
 				switch (nextInputCharacter) {
 					case '&':
-						emitCharacterToken(buffer);
 						// Switch to the character reference in data state.
 						state = State::CharacterReferenceInData;
 						break;
 
 					case '<':
-						emitCharacterToken(buffer);
 						// Switch to the tag open state.
 						state = State::TagOpen;
 						break;
 
 					case 0: // EOF
-						emitCharacterToken(buffer);
 						// Emit the end-of-file token.
 						emitEOFToken();
 						break;
 
 					default:
 						// Emit the current input character as a character token.
-						buffer += nextInputCharacter;
+						emitCharacterToken(nextInputCharacter);
 						break;
 				}
 				break;
@@ -1163,13 +1159,10 @@ Queue<Token *> &Tokenizer::tokenize(const char *inputStream) {
 	return tokens;
 }
 
-void Tokenizer::emitCharacterToken(string &str) {
-	if (str.length() > 0) {
-		Token *token = new Token(Token::Type::Character);
-		token->data = str;
-		tokens.push(token);
-		str = "";
-	}
+void Tokenizer::emitCharacterToken(char c) {
+	Token *token = new Token(Token::Type::Character);
+	token->data = string(c);
+	tokens.push(token);
 }
 
 void Tokenizer::emitEOFToken() {

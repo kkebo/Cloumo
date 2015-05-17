@@ -34,6 +34,7 @@ namespace HTML {
 		
 		// for StartTag and EndTag
 		void setSelfClosingFlag();
+		bool isSelfClosingFlag();
 		void addAttribute(string &name);
 		void setAttributeValue(string &value);
 	};

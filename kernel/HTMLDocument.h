@@ -3,8 +3,11 @@
 
 namespace HTML {
 	class Document {
-	private:
-		Element rootElement;
+	public:
+		DocumentType doctype;
+		Element documentElement;
+		
+		Document() : doctype("") {}
 	};
 }
 

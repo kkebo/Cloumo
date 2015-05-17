@@ -1,5 +1,5 @@
 OBJS = \
-	kernel/bootpack.o \
+	kernel/main.o \
 	kernel/int.o \
 	kernel/descriptor.o \
 	kernel/memory.o \
@@ -15,6 +15,11 @@ OBJS = \
 	kernel/SmartPointer.o \
 	kernel/HTMLToken.o \
 	kernel/HTMLTokenizer.o \
+	kernel/HTMLTreeConstructor.o \
+	kernel/HTMLNode.o \
+	kernel/HTMLElement.o \
+	kernel/HTMLTextNode.o \
+	kernel/HTMLDocument.o \
 	kernel/pistring.o \
 	kernel/File.o \
 	driver/FAT12.o \
@@ -34,7 +39,7 @@ ifeq ($(OS),Windows_NT)
 	EDIMG    = $(TOOLPATH)edimg.exe
 	QEMU     = $(TOOLPATH)qemu/qemu.exe -std-vga
 	DEL      = -del
-	os.sys   = copy /B kernel/asmhead.bin+bootpack.bin os.sys
+	os.sys   = copy /B kernel/asmhead.bin+kernel.bin os.sys
 else
 # OS X
 	TOOLPATH = ../z_tools/
@@ -44,7 +49,7 @@ else
 	EDIMG    = $(TOOLPATH)edimg
 	QEMU     = /usr/local/bin/qemu-system-x86_64 -vga std
 	DEL      = rm -f
-	os.sys   = cat kernel/asmhead.bin bootpack.bin > os.sys
+	os.sys   = cat kernel/asmhead.bin kernel.bin > os.sys
 endif
 
 # Default
@@ -58,10 +63,10 @@ all:
 
 # 特別生成規則
 
-bootpack.bin: $(OBJS) kernel/jpeg.obj kernel/bmp.obj $(GOLIBC)
-	$(LD) --gc-sections -nostdlib -m elf_i386 -Map bootpack.map -T main.ls -s -o $@ $(OBJS) kernel/jpeg.obj kernel/bmp.obj $(GOLIBC)
+kernel.bin: $(OBJS) kernel/jpeg.obj kernel/bmp.obj $(GOLIBC)
+	$(LD) --gc-sections -nostdlib -m elf_i386 -Map kernel.map -T main.ls -s -o $@ $(OBJS) kernel/jpeg.obj kernel/bmp.obj $(GOLIBC)
 
-os.sys: kernel/asmhead.bin bootpack.bin
+os.sys: kernel/asmhead.bin kernel.bin
 	$(os.sys)
 
 cloumo.img: kernel/ipl.bin os.sys images/b_f.bmp images/btn_r.bmp \
@@ -105,7 +110,7 @@ refresh:
 	$(MAKE) clean
 
 clean:
-	$(DEL) bootpack.map
+	$(DEL) kernel.map
 	$(DEL) os.sys
 	$(DEL) cloumo.img
 	$(MAKE) -C kernel clean

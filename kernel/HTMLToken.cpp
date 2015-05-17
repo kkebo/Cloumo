@@ -10,6 +10,10 @@ void Token::setSelfClosingFlag() {
 	selfClosingFlag = true;
 }
 
+bool Token::isSelfClosingFlag() {
+	return selfClosingFlag;
+}
+
 void Token::addAttribute(string &name) {
 	attributes.append(Attribute(name, ""));
 	name = "";
