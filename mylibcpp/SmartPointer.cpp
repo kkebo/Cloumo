@@ -1,7 +1,7 @@
 #include <SmartPointer.h>
 
 void ReferenceCounter::Add() {
-	count++;
+	++count;
 }
 
 int ReferenceCounter::Release() {

@@ -22,15 +22,14 @@ File *FAT12::open(const char *name) {
 }
 
 void FAT12::loadFile(int clustno, int size, char *buf, char *img) {
-	int i;
 	for (;;) {
 		if (size <= 512) {
-			for (i = 0; i < size; i++) {
+			for (int i = 0; i < size; ++i) {
 				buf[i] = img[clustno  *512 + i];
 			}
 			break;
 		}
-		for (i = 0; i < 512; i++) {
+		for (int i = 0; i < 512; ++i) {
 			buf[i] = img[clustno  *512 + i];
 		}
 
@@ -60,7 +59,7 @@ FileInfo *FAT12::search(const char *name, FileInfo *finfo, int max) {
 	char s[11];
 	int j = 0;
 
-	for (int i = 0; name[i]; i++) {
+	for (int i = 0; name[i]; ++i) {
 		if (j >= 11) return nullptr;
 		if (name[i] == '.' && j <= 8) {
 			while (j < 8) {
@@ -69,14 +68,14 @@ FileInfo *FAT12::search(const char *name, FileInfo *finfo, int max) {
 		} else {
 			s[j] = name[i];
 			if ('a' <= s[j] && s[j] <= 'z') s[j] -= 0x20;
-			j++;
+			++j;
 		}
 	}
 	while (j < 11) {
 		s[j++] = ' ';
 	}
 
-	for (int i = 0; i < max; i++) {
+	for (int i = 0; i < max; ++i) {
 		if (!(finfo[i].type & 0x18) && !strncmp(finfo[i].name, s, 11)) {
 			return finfo + i;
 		}

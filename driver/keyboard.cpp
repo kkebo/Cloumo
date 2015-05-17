@@ -130,8 +130,7 @@ void KeyboardController::Decode(unsigned char code) {
 				filename.erase(0, 8);
 			}
 			
-			File *htmlFile;
-			if (htmlFile = FAT12::open(filename.c_str())) {
+			if (unique_ptr<File> htmlFile = FAT12::open(filename.c_str())) {
 				// ファイルが存在した
 				filename = "file:///" + filename;
 				// タブ表示
@@ -151,7 +150,7 @@ void KeyboardController::Decode(unsigned char code) {
 				string source(htmlFile->read(), htmlFile->size());
 				HTML::Tokenizer tokenizer;
 				Queue<shared_ptr<HTML::Token>> &tokens = tokenizer.tokenize(source.c_str());
-				for (int i = 0; !tokens.isempty(); i++) {
+				for (int i = 0; !tokens.isempty(); ++i) {
 					string str;
 					shared_ptr<HTML::Token> token(tokens.pop());
 					switch (token->type) {
@@ -184,9 +183,8 @@ void KeyboardController::Decode(unsigned char code) {
 				}
 				SheetCtl::window_[SheetCtl::activeTab]->upDown(-1);
 				SheetCtl::window_[SheetCtl::numOfTab]->upDown(1);
-				delete htmlFile;
 				SheetCtl::activeTab = SheetCtl::numOfTab;
-				SheetCtl::numOfTab++;
+				++SheetCtl::numOfTab;
 			} else {
 				// 一致するファイルなし
 				filename = "file:///" + filename;
@@ -209,7 +207,7 @@ void KeyboardController::Decode(unsigned char code) {
 				SheetCtl::window_[SheetCtl::activeTab]->upDown(-1);
 				SheetCtl::window_[SheetCtl::numOfTab]->upDown(1);
 				SheetCtl::activeTab = SheetCtl::numOfTab;
-				SheetCtl::numOfTab++;
+				++SheetCtl::numOfTab;
 			}
 			
 			*SheetCtl::tbox_str_ = "";

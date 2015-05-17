@@ -16,8 +16,8 @@ int memcmp (const void *d, const void *s, size_t sz)
 	while (sz--) {
 		if (*dp != *sp)
 			return *dp - *sp;
-		dp++;
-		sp++;
+		++dp;
+		++sp;
 	}
 
 	return 0;

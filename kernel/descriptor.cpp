@@ -6,7 +6,7 @@ void DescriptorInit() {
 	GateDescriptor    *idt = (GateDescriptor *)    kAdrIdt;
 
 	/* GDT初期化 */
-	for (int i = 0; i <= kLimitGdt / 8; i++) {
+	for (int i = 0; i <= kLimitGdt / 8; ++i) {
 		SetSegmentDescriptor(gdt + i, 0, 0, 0);
 	}
 	SetSegmentDescriptor(gdt + 1, 0xffffffff, 0x00000000, kArData32Rw);
@@ -14,7 +14,7 @@ void DescriptorInit() {
 	LoadGdtr(kLimitGdt, kAdrGdt);
 
 	/* IDT初期化 */
-	for (int i = 0; i <= kLimitIdt / 8; i++) {
+	for (int i = 0; i <= kLimitIdt / 8; ++i) {
 		SetGateDescriptor(idt + i, 0, 0, 0);
 	}
 	LoadIdtr(kLimitIdt, kAdrIdt);

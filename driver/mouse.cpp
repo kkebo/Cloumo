@@ -41,8 +41,8 @@ void Mouse::Main() {
 	
 	// マウスポインタ描画
 	Mouse::sheet_ = new Sheet(16, 16, true);
-	for (int y = 0; y < 16; y++) {
-		for (int x = 0; x < 16; x++) {
+	for (int y = 0; y < 16; ++y) {
+		for (int x = 0; x < 16; ++x) {
 			switch (Mouse::cursor_[x][y]) {
 				case 'O':
 					Mouse::sheet_->buf[y * 16 + x] = Rgb(255, 255, 255, 100);
@@ -156,11 +156,11 @@ void Mouse::Main() {
 			}
 			
 			if (data != 0xfe) {
-				i++;
+				++i;
 				send = false;
 			} else {
 				// 再送要求
-				errors++;
+				++errors;
 			}
 		}
 	}
@@ -186,23 +186,23 @@ void Mouse::Main() {
 			Sti();
 			switch (mdec_.phase_) {
 				case 0:
-					if (code == 0xfa) mdec_.phase_++;
+					if (code == 0xfa) ++mdec_.phase_;
 					break;
 				case 1:
 					if ((code & 0xc8) == 0x08) {
 						mdec_.buf_[0] = code;
-						mdec_.phase_++;
+						++mdec_.phase_;
 					}
 					break;
 				case 2:
 					mdec_.buf_[1] = code;
-					mdec_.phase_++;
+					++mdec_.phase_;
 					break;
 				case 3:
 					mdec_.buf_[2] = code;
 					
 					if (scroll_) {
-						mdec_.phase_++;
+						++mdec_.phase_;
 					} else {
 						mdec_.phase_ = 1;
 					}
@@ -230,7 +230,7 @@ void Mouse::Main() {
 						if (SheetCtl::context_menu_->height > 0) {
 							SheetCtl::context_menu_->upDown(-1);
 						} else if (2 <= mdec_.x_ && mdec_.x_ < SheetCtl::back_->bxsize) {
-							for (int i = 0; i < SheetCtl::numOfTab; i++) {
+							for (int i = 0; i < SheetCtl::numOfTab; ++i) {
 								if (i != SheetCtl::activeTab && 35 + 23 * i <= mdec_.y_ && mdec_.y_ < 33 + 16 + 8 + 23 * i) {
 									// 選択したタブ
 									SheetCtl::colorChange(*SheetCtl::back_, 2, 35 + 23 * i, SheetCtl::back_->bxsize, 33 + 16 + 8 + 23 * i, kPassiveTabColor, kActiveTabColor);

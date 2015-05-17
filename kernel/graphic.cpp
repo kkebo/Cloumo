@@ -10,7 +10,7 @@ Sheet::~Sheet() {
 }
 
 void *Sheet::operator new(size_t size) {
-	for (int i = 0; i < kMaxSheets; i++) {
+	for (int i = 0; i < kMaxSheets; ++i) {
 		if (!SheetCtl::sheets0_[i].flags) {
 			Sheet *sht = &SheetCtl::sheets0_[i];
 			sht->flags = true;
@@ -31,7 +31,7 @@ void Sheet::upDown(int height) {
 
 	if (old > height) {	// 前より低くなった
 		if (height >= 0) {	// 表示
-			for (int h = old; h > height; h--) {
+			for (int h = old; h > height; --h) {
 				SheetCtl::sheets_[h] = SheetCtl::sheets_[h - 1];
 				SheetCtl::sheets_[h]->height = h;
 			}
@@ -40,29 +40,29 @@ void Sheet::upDown(int height) {
 			SheetCtl::refreshSub(vx0, vy0, vx0 + bxsize, vy0 + bysize, SheetCtl::top_);
 		} else {	// 非表示
 			if (SheetCtl::top_ > old) {
-				for (int h = old; h < SheetCtl::top_; h++) {
+				for (int h = old; h < SheetCtl::top_; ++h) {
 					SheetCtl::sheets_[h] = SheetCtl::sheets_[h + 1];
 					SheetCtl::sheets_[h]->height = h;
 				}
 			}
-			SheetCtl::top_--;
+			--SheetCtl::top_;
 			SheetCtl::refreshMap(vx0, vy0, vx0 + bxsize, vy0 + bysize, 0);
 			SheetCtl::refreshSub(vx0, vy0, vx0 + bxsize, vy0 + bysize, SheetCtl::top_);
 		}
 	} else if (old < height) {	// 以前より高くなった
 		if (old >= 0) {	// より高く
-			for (int h = old; h < height; h++) {
+			for (int h = old; h < height; ++h) {
 				SheetCtl::sheets_[h] = SheetCtl::sheets_[h + 1];
 				SheetCtl::sheets_[h]->height = h;
 			}
 			SheetCtl::sheets_[height] = this;
 		} else {	// 非表示から表示へ
-			for (int h = SheetCtl::top_; h >= height; h--) {
+			for (int h = SheetCtl::top_; h >= height; --h) {
 				SheetCtl::sheets_[h + 1] = SheetCtl::sheets_[h];
 				SheetCtl::sheets_[h + 1]->height = h + 1;
 			}
 			SheetCtl::sheets_[height] = this;
-			SheetCtl::top_++;
+			++SheetCtl::top_;
 		}
 		SheetCtl::refreshMap(vx0, vy0, vx0 + bxsize, vy0 + bysize, height);
 		SheetCtl::refreshSub(vx0, vy0, vx0 + bxsize, vy0 + bysize, SheetCtl::top_); // 変更 height→top_
@@ -123,7 +123,7 @@ void SheetCtl::init() {
 	window_  = new Sheet*[kMaxTabs];
 	tbox_str_ = new string();
 	numOfTab = 1;
-	for (int i = 0; i < kMaxSheets; i++) {
+	for (int i = 0; i < kMaxSheets; ++i) {
 		sheets0_[i].flags = false; /* 未使用マーク */
 	}
 
@@ -177,7 +177,7 @@ void SheetCtl::refreshMap(int vx0, int vy0, int vx1, int vy1, int h0) {
 	if (vy0 < 0) vy0 = 0;
 	if (vx1 > scrnx_) vx1 = scrnx_;
 	if (vy1 > scrny_) vy1 = scrny_;
-	for (int sid = h0; sid <= top_; sid++) {
+	for (int sid = h0; sid <= top_; ++sid) {
 		sht = sheets_[sid];
 		bx0 = vx0 - sht->vx0;
 		by0 = vy0 - sht->vy0;
@@ -192,23 +192,23 @@ void SheetCtl::refreshMap(int vx0, int vy0, int vx1, int vy1, int h0) {
 				/* 透明色なし専用の高速版（4バイト型） */
 				bx1 = (bx1 - bx0) / 4;
 				sid4 = sid | sid << 8 | sid << 16 | sid << 24;
-				for (int by = by0; by < by1; by++) {
-					for (int bx = 0; bx < bx1; bx++) {
+				for (int by = by0; by < by1; ++by) {
+					for (int bx = 0; bx < bx1; ++bx) {
 						((int*) &map_[(sht->vy0 + by) * scrnx_ + sht->vx0 + bx0])[bx] = sid4;
 					}
 				}
 			} else {
 				/* 透明色なし専用の高速版（1バイト型） */
-				for (int by = by0; by < by1; by++) {
-					for (int bx = bx0; bx < bx1; bx++) {
+				for (int by = by0; by < by1; ++by) {
+					for (int bx = bx0; bx < bx1; ++bx) {
 						map_[(sht->vy0 + by) * scrnx_ + sht->vx0 + bx] = sid;
 					}
 				}
 			}
 		} else {
 			/* 透明色ありの一般版（1バイト型） */
-			for (int by = by0; by < by1; by++) {
-				for (int bx = bx0; bx < bx1; bx++) {
+			for (int by = by0; by < by1; ++by) {
+				for (int bx = bx0; bx < bx1; ++bx) {
 					if ((unsigned char) (sht->buf[by * sht->bxsize + bx] >> 24) != 255) {
 						map_[(sht->vy0 + by) * scrnx_ + sht->vx0 + bx] = sid;
 					}
@@ -230,7 +230,7 @@ void SheetCtl::refreshSub(int vx0, int vy0, int vx1, int vy1, int h1) {
 	if (vy1 > scrny_) vy1 = scrny_;
 	unique_ptr<unsigned int> backrgb(new unsigned int[(vx1 - vx0) * (vy1 - vy0)]);
 
-	for (int sid = 0; sid <= h1; sid++) {
+	for (int sid = 0; sid <= h1; ++sid) {
 		sht = sheets_[sid];
 		/* vx0～vy1を使って、bx0～by1を逆算する */
 		bx0 = (vx0 - sht->vx0 < 0)? 0 : vx0 - sht->vx0;
@@ -238,8 +238,8 @@ void SheetCtl::refreshSub(int vx0, int vy0, int vx1, int vy1, int h1) {
 		bx1 = (vx1 - sht->vx0 > sht->bxsize)? sht->bxsize : vx1 - sht->vx0;
 		by1 = (vy1 - sht->vy0 > sht->bysize)? sht->bysize : vy1 - sht->vy0;
 		if (color_ == 32) {
-			for (int by = by0; by < by1; by++) {
-				for (int bx = bx0; bx < bx1; bx++) {
+			for (int by = by0; by < by1; ++by) {
+				for (int bx = bx0; bx < bx1; ++bx) {
 					rgb = sht->buf[by * sht->bxsize + bx];
 					if (map_[(sht->vy0 + by) * scrnx_ + sht->vx0 + bx] == sid) {
 						((unsigned int *)vram_)[((sht->vy0 + by) * scrnx_ + (sht->vx0 + bx))]
@@ -253,8 +253,8 @@ void SheetCtl::refreshSub(int vx0, int vy0, int vx1, int vy1, int h1) {
 				}
 			}
 		} else if (color_ == 24) {
-			for (int by = by0; by < by1; by++) {
-				for (int bx = bx0; bx < bx1; bx++) {
+			for (int by = by0; by < by1; ++by) {
+				for (int bx = bx0; bx < bx1; ++bx) {
 					rgb = sht->buf[by * sht->bxsize + bx];
 					if (map_[(sht->vy0 + by) * scrnx_ + sht->vx0 + bx] == sid) {
 						unsigned char *vram24 = (unsigned char *)(vram_ + ((sht->vy0 + by) * scrnx_ + (sht->vx0 + bx)) * 3);
@@ -272,8 +272,8 @@ void SheetCtl::refreshSub(int vx0, int vy0, int vx1, int vy1, int h1) {
 				}
 			}
 		} else if (color_ == 16) {
-			for (int by = by0; by < by1; by++) {
-				for (int bx = bx0; bx < bx1; bx++) {
+			for (int by = by0; by < by1; ++by) {
+				for (int bx = bx0; bx < bx1; ++bx) {
 					rgb = sht->buf[by * sht->bxsize + bx];
 					if (map_[(sht->vy0 + by) * scrnx_ + sht->vx0 + bx] == sid) {
 						((unsigned short *)vram_)[(sht->vy0 + by) * scrnx_ + (sht->vx0 + bx)]
@@ -302,12 +302,12 @@ void SheetCtl::drawLine(Sheet *sht, unsigned int c, int x0, int y0, int x1, int 
 
 	// 直線高速化
 	if (y0 == y1) {
-		for (x = x0; x <= x1; x++) {
+		for (x = x0; x <= x1; ++x) {
 			sht->buf[y0 * sht->bxsize + x] = c;
 		}
 		return;
 	} else if (x0 == x1) {
-		for (y = y0; y <= y1; y++) {
+		for (y = y0; y <= y1; ++y) {
 			sht->buf[y * sht->bxsize + x0] = c;
 		}
 		return;
@@ -329,7 +329,7 @@ void SheetCtl::drawLine(Sheet *sht, unsigned int c, int x0, int y0, int x1, int 
 		                : ((x1 - x0 - 1) << 10) / len;
 	}
 
-	for (int i = 0; i < len; i++) {
+	for (int i = 0; i < len; ++i) {
 		sht->buf[(y >> 10) * sht->bxsize + (x >> 10)] = c;
 		x += dx;
 		y += dy;
@@ -358,13 +358,13 @@ void SheetCtl::gradLine(Sheet *sht, unsigned int c0, unsigned int c1, int x0, in
 
 	if (d == 0) {	// 横
 		if (x0 == x1) {
-			for (int i = 0; i < len; i++) {
+			for (int i = 0; i < len; ++i) {
 				sht->buf[(y >> 10) * sht->bxsize + (x >> 10)] = c0;
 				x += dx;
 				y += dy;
 			}
 		} else {
-			for (int i = 0; i < len; i++) {
+			for (int i = 0; i < len; ++i) {
 				sht->buf[(y >> 10) * sht->bxsize + (x >> 10)] = GetGrad(x0, x1, x >> 10, c0, c1);
 				x += dx;
 				y += dy;
@@ -372,13 +372,13 @@ void SheetCtl::gradLine(Sheet *sht, unsigned int c0, unsigned int c1, int x0, in
 		}
 	} else if (d == 1) {	// 縦
 		if (y0 == y1) {
-			for (int i = 0; i < len; i++) {
+			for (int i = 0; i < len; ++i) {
 				sht->buf[(y >> 10) * sht->bxsize + (x >> 10)] = c0;
 				x += dx;
 				y += dy;
 			}
 		} else {
-			for (int i = 0; i < len; i++) {
+			for (int i = 0; i < len; ++i) {
 				sht->buf[(y >> 10) * sht->bxsize + (x >> 10)] = GetGrad(y0, y1, y >> 10, c0, c1);
 				x += dx;
 				y += dy;
@@ -389,11 +389,11 @@ void SheetCtl::gradLine(Sheet *sht, unsigned int c0, unsigned int c1, int x0, in
 
 // 枠のみ長方形を描画
 void SheetCtl::drawRect(Sheet *sht, unsigned int c, int x0, int y0, int x1, int y1) {
-	for (int x = x0; x < x1; x++) {
+	for (int x = x0; x < x1; ++x) {
 		sht->buf[y0 * sht->bxsize + x] = c;
 		sht->buf[(y1 - 1) * sht->bxsize + x] = c;
 	}
-	for (int y = y0 + 1; y < y1 - 1; y++) {
+	for (int y = y0 + 1; y < y1 - 1; ++y) {
 		sht->buf[y * sht->bxsize + x0] = c;
 		sht->buf[y * sht->bxsize + x1 - 1] = c;
 	}
@@ -401,8 +401,8 @@ void SheetCtl::drawRect(Sheet *sht, unsigned int c, int x0, int y0, int x1, int 
 
 // 塗りつぶし長方形を描画
 void SheetCtl::fillRect(Sheet *sht, unsigned int c, int x0, int y0, int x1, int y1) {
-	for (int y = y0; y < y1; y++) {
-		for (int x = x0; x < x1; x++) {
+	for (int y = y0; y < y1; ++y) {
+		for (int x = x0; x < x1; ++x) {
 			sht->buf[y * sht->bxsize + x] = c;
 		}
 	}
@@ -411,14 +411,14 @@ void SheetCtl::fillRect(Sheet *sht, unsigned int c, int x0, int y0, int x1, int 
 // グラデーション長方形を描画
 void SheetCtl::gradRect(Sheet *sht, unsigned int c0, unsigned int c1, int x0, int y0, int x1, int y1, int d) {
 	if (d == 0) {	// 横
-		for (int y = y0; y < y1; y++) {
-			for (int x = x0; x < x1; x++) {
+		for (int y = y0; y < y1; ++y) {
+			for (int x = x0; x < x1; ++x) {
 				sht->buf[y * sht->bxsize + x] = GetGrad(x0, x1 - 1, x, c0, c1);
 			}
 		}
 	} else if (d == 1) {	//縦
-		for (int y = y0; y < y1; y++) {
-			for (int x = x0; x < x1; x++) {
+		for (int y = y0; y < y1; ++y) {
+			for (int x = x0; x < x1; ++x) {
 				sht->buf[y * sht->bxsize + x] = GetGrad(y0, y1 - 1, y, c0, c1);
 			}
 		}
@@ -443,10 +443,10 @@ void SheetCtl::drawCircle(Sheet *sht, unsigned int c, int x0, int y0, int d) {
 			sht->buf[(yo - x) * sht->bxsize + xo + y] = c;
 			sht->buf[(yo - x) * sht->bxsize + xo - y] = c;
 			if (F >= 0) {
-				x--;
+				--x;
 				F -= 4 * x;
 			}
-			y++;
+			++y;
 			F += 4 * y + 2;
 		}
 	} else {
@@ -460,10 +460,10 @@ void SheetCtl::drawCircle(Sheet *sht, unsigned int c, int x0, int y0, int d) {
 			sht->buf[(yo - x) * sht->bxsize + xo + y] = c;
 			sht->buf[(yo - x) * sht->bxsize + xo - y] = c;
 			if (F >= 0) {
-				x--;
+				--x;
 				F -= 4 * x;
 			}
-			y++;
+			++y;
 			F += 4 * y + 2;
 		}
 	}
@@ -478,36 +478,36 @@ void SheetCtl::fillCircle(Sheet *sht, unsigned int c, int x0, int y0, int d) {
 	int yo = y0 + d / 2;
 	if (d % 2 == 1) {
 		while (x >= y) {
-			for (int xx = xo - x; xx < xo + x; xx++) {
+			for (int xx = xo - x; xx < xo + x; ++xx) {
 				sht->buf[(yo + y) * sht->bxsize + xx] = c;
 				sht->buf[(yo - y) * sht->bxsize + xx] = c;
 			}
-			for (int xx = xo - y; xx < xo + y; xx++) {
+			for (int xx = xo - y; xx < xo + y; ++xx) {
 				sht->buf[(yo + x) * sht->bxsize + xx] = c;
 				sht->buf[(yo - x) * sht->bxsize + xx] = c;
 			}
 			if (F >= 0) {
-				x--;
+				--x;
 				F -= 4 * x;
 			}
-			y++;
+			++y;
 			F += 4 * y + 2;
 		}
 	} else {
 		while (x >= y) {
-			for (int xx = xo - x; xx < xo + x; xx++) {
+			for (int xx = xo - x; xx < xo + x; ++xx) {
 				sht->buf[(yo + y) * sht->bxsize + xx] = c;
 				sht->buf[(yo - y) * sht->bxsize + xx] = c;
 			}
-			for (int xx = xo - y; xx < xo + y; xx++) {
+			for (int xx = xo - y; xx < xo + y; ++xx) {
 				sht->buf[(yo + x - 1) * sht->bxsize + xx] = c;
 				sht->buf[(yo - x) * sht->bxsize + xx] = c;
 			}
 			if (F >= 0) {
-				x--;
+				--x;
 				F -= 4 * x;
 			}
-			y++;
+			++y;
 			F += 4 * y + 2;
 		}
 	}
@@ -522,36 +522,36 @@ void SheetCtl::gradCircle(Sheet *sht, unsigned int c0, unsigned int c1, int x0, 
 	int yo = y0 + d / 2;
 	if (d % 2 == 1) {
 		while (x >= y) {
-			for (int xx = xo - x; xx < xo + x; xx++) {
+			for (int xx = xo - x; xx < xo + x; ++xx) {
 				sht->buf[(yo + y) * sht->bxsize + xx] = GetGrad(y0, y0 + d, yo + y, c0, c1);
 				sht->buf[(yo - y) * sht->bxsize + xx] = GetGrad(y0, y0 + d, yo - y, c0, c1);
 			}
-			for (int xx = xo - y; xx < xo + y; xx++) {
+			for (int xx = xo - y; xx < xo + y; ++xx) {
 				sht->buf[(yo + x) * sht->bxsize + xx] = GetGrad(y0, y0 + d, yo + x, c0, c1);
 				sht->buf[(yo - x) * sht->bxsize + xx] = GetGrad(y0, y0 + d, yo - x, c0, c1);
 			}
 			if (F >= 0) {
-				x--;
+				--x;
 				F -= 4 * x;
 			}
-			y++;
+			++y;
 			F += 4 * y + 2;
 		}
 	} else {
 		while (x >= y) {
-			for (int xx = xo - x; xx < xo + x; xx++) {
+			for (int xx = xo - x; xx < xo + x; ++xx) {
 				sht->buf[(yo + y) * sht->bxsize + xx] = GetGrad(y0, y0 + d, yo + y, c0, c1);
 				sht->buf[(yo - y) * sht->bxsize + xx] = GetGrad(y0, y0 + d, yo - y, c0, c1);
 			}
-			for (int xx = xo - y; xx < xo + y; xx++) {
+			for (int xx = xo - y; xx < xo + y; ++xx) {
 				sht->buf[(yo + x - 1) * sht->bxsize + xx] = GetGrad(y0, y0 + d, yo + x - 1, c0, c1);
 				sht->buf[(yo - x) * sht->bxsize + xx] = GetGrad(y0, y0 + d, yo - y, c0, c1);
 			}
 			if (F >= 0) {
-				x--;
+				--x;
 				F -= 4 * x;
 			}
-			y++;
+			++y;
 			F += 4 * y + 2;
 		}
 	}
@@ -561,7 +561,7 @@ void SheetCtl::gradCircle(Sheet *sht, unsigned int c0, unsigned int c1, int x0, 
 void SheetCtl::drawChar(Sheet *sht, int x, int y, unsigned int c, unsigned char * font) {
 	unsigned int *p;
 	unsigned char d;
-	for (int i = 0; i < 16; i++) {
+	for (int i = 0; i < 16; ++i) {
 		p = sht->buf + (y + i) * sht->bxsize + x;
 		d = font[i];
 		if (d & 0x80) { p[0] = c; }
@@ -583,7 +583,7 @@ void SheetCtl::drawString(Sheet *sht, int x, int y, unsigned int c, const char *
 	int k, t;
 	unsigned short langbyte1 = 0;
 	unsigned int u8code;
-	for (; *s; s++) {
+	for (; *s; ++s) {
 		if (!langbyte1) {
 			if (encode == Encoding::SJIS && ((0x81 <= *s && *s <= 0x9f) || (0xe0 <= *s && *s <= 0xfc))) {	// Shift_JIS
 				langbyte1 = *s;
@@ -591,20 +591,20 @@ void SheetCtl::drawString(Sheet *sht, int x, int y, unsigned int c, const char *
 				if (((0xe2 <= *s && *s <= 0xef) || (0xc2 <= *s && *s <= 0xd1))
 					&& 0x80 <= *(s + 1) && *(s + 1) <= 0xbf) {
 					langbyte1 = ((*s << 8) | *(s + 1));
-					s++;
+					++s;
 				} else {
 					drawChar(sht, x, y, c, fontdat + *s * 16);
 				}
 				if (langbyte1 == 0xefbd) {	// ｡~ｿ
-					s++;
+					++s;
 					drawChar(sht, x, y, c, fontdat + *s * 16);
 					langbyte1 = 0;
 				} else if (langbyte1 == 0xefbe) {	// ﾀ~ﾟ
-					s++;
+					++s;
 					drawChar(sht, x, y, c, fontdat + (*s + 0x40) * 16);
 					langbyte1 = 0;
 				} else if (langbyte1 == 0xe280 && *(s + 1) == 0xbe) {	// 波ダッシュ(~)
-					s++;
+					++s;
 					drawChar(sht, x, y, c, fontdat + 0x7e * 16);
 					langbyte1 = 0;
 				} else if (langbyte1 == 0xc2a5) {	// 円マーク(\)
@@ -626,7 +626,7 @@ void SheetCtl::drawString(Sheet *sht, int x, int y, unsigned int c, const char *
 					t = *s - 0x80 + 63;
 				} else {
 					t = *s - 0x9f;
-					k++;
+					++k;
 				}
 				font = fontdat + 256 * 16 + (k * 94 + t) * 32;
 			} else if (encode == Encoding::UTF8) {
@@ -634,7 +634,7 @@ void SheetCtl::drawString(Sheet *sht, int x, int y, unsigned int c, const char *
 					u8code = ((langbyte1 << 8) | *s);
 				} else {
 					u8code = langbyte1;
-					s--;
+					--s;
 				}
 				font = fontdat + 256 * 16 + Utf8ToKT(u8code) * 32;
 			} else/* if (encode == Encoding::EUCJP)*/ {
@@ -700,8 +700,8 @@ void SheetCtl::drawPicture(Sheet *sht, int x, int y, const char *fname, long col
 				i = _decode0_JPEG(&env, fsize, filebuf, 4, (unsigned char*)picbuf.get(), 0);
 			}
 			if (!i && info[2] <= scrnx_ && info[3] <= scrny_) {
-				for (int yy = 0; yy < info[3]; yy++) {
-					for (int xx = 0; xx < info[2]; xx++) {
+				for (int yy = 0; yy < info[3]; ++yy) {
+					for (int xx = 0; xx < info[2]; ++xx) {
 						col = Rgb(picbuf[yy * info[2] + xx].r, picbuf[yy * info[2] + xx].g, picbuf[yy * info[2] + xx].b);
 						if ((int)col != col_inv && sht->buf[(yy + y) * mag * sht->bxsize + (xx + x) * mag] != col) {
 							sht->buf[(yy + y) * mag * sht->bxsize + (xx + x) * mag] = col;
@@ -715,8 +715,8 @@ void SheetCtl::drawPicture(Sheet *sht, int x, int y, const char *fname, long col
 
 // 指定色を変更
 void SheetCtl::colorChange(Sheet &sht, int x0, int y0, int x1, int y1, unsigned int c0, unsigned int c1) {
-	for (int y = 0; y < y1 - y0; y++) {
-		for (int x = 0; x < x1 - x0; x++) {
+	for (int y = 0; y < y1 - y0; ++y) {
+		for (int x = 0; x < x1 - x0; ++x) {
 			if (sht.buf[(y + y0) * sht.bxsize + x + x0] == c0) {
 				sht.buf[(y + y0) * sht.bxsize + x + x0] = c1;
 			}

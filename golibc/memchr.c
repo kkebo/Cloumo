@@ -16,7 +16,7 @@ void* memchr (void *d, int c, size_t sz)
 	while (sz--) {
 		if (c == *dp)
 			return dp;
-		dp++;
+		++dp;
 	}
 
 	return NULL;

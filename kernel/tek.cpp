@@ -260,16 +260,16 @@ static int TekDecMain5(int *work, unsigned char *src, int osiz, unsigned char *q
 	rd->p = &src[4];
 	rd->range |= -1;
 	rd->code = src[0] << 24 | src[1] << 16 | src[2] << 8 | src[3];
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; ++i) {
 		rep[i] = ~i;
 	}
 	if (setjmp(rd->errjmp)) {
 		goto err;
 	}
-	for (i = sizeof(TekStrPrb) / sizeof(TekTPrb) + (0x300 << (lc + lp)) - 2; i >= 0; i--) {
+	for (i = sizeof(TekStrPrb) / sizeof(TekTPrb) + (0x300 << (lc + lp)) - 2; i >= 0; --i) {
 		((TekTPrb*)prb)[i] = 1 << 15;
 	}
-	for (i = 0; i < 32; i++) {
+	for (i = 0; i < 32; ++i) {
 		rd->bm[i].lt = (i >= 4); /* 0..3は寿命なし */
 		rd->bm[i].lt0 = (i < 24) ? 16 * 1024 : 8 * 1024;
 		rd->bm[i].s &= 0;
@@ -278,9 +278,9 @@ static int TekDecMain5(int *work, unsigned char *src, int osiz, unsigned char *q
 	lit1 = prb->lit + ((256 << (lc + lp)) - 2);
 	if (stk) {
 		rd->rmsk = -1 << 11;
-		for (i = 0; i < 32; i++)
+		for (i = 0; i < 32; ++i)
 			rd->bm[i].lt = 0; /* 全て寿命なし */
-		for (i = 0; i < 14; i++)
+		for (i = 0; i < 14; ++i)
 			rd->ptbm[i] = &rd->bm[0];
 	} else {
 		unsigned char pt[14];
@@ -307,10 +307,10 @@ static int TekDecMain5(int *work, unsigned char *src, int osiz, unsigned char *q
 		prb->repg3 = 0xffff;
 		if (flags == -2) { /* z1 */
 			rd->bm[22].lt = 0; /* repg3のltを0に */
-			for (i = 0; i < 14; i++)
+			for (i = 0; i < 14; ++i)
 				pt[i] = pt1[i];
 		} else {
-			for (i = 0; i < 14; i++)
+			for (i = 0; i < 14; ++i)
 				pt[i] = pt2[i];
 			lit0cntmsk = (7 >> (flags & 3)) << 4 | 8;
 			pt[ 1] =  8 + ((flags & 0x04) != 0); /* mch */
@@ -318,11 +318,11 @@ static int TekDecMain5(int *work, unsigned char *src, int osiz, unsigned char *q
 			pt[ 9] = 16 + ((flags & 0x10) != 0); /* pst */
 			pt[11] = 18 + ((flags & 0x20) != 0); /* sds */
 		}
-		for (i = 0; i < 14; i++) {
+		for (i = 0; i < 14; ++i) {
 			rd->ptbm[i] = &rd->bm[pt[i]];
 		}
 	}
-	for (i = 0; i < 32; i++) {
+	for (i = 0; i < 32; ++i) {
 		TekSetBM5(&rd->bm[i], rd->bm[i].t, rd->bm[i].m);
 	}
 
@@ -345,7 +345,7 @@ static int TekDecMain5(int *work, unsigned char *src, int osiz, unsigned char *q
 				pmch = q[rep[0]];
 				do {
 					j += j + TekRDGet1(rd, &lit1[(i + j) << 1 | pmch >> 7], 0x71, 0, rd->ptbm[2]);
-					k--;
+					--k;
 					if ((k & (lit0cntmsk >> 4)) == 0)
 						bm++;
 					if ((((pmch >> 7) ^ j) & 1) != 0 && k != 0) {

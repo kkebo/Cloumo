@@ -15,7 +15,7 @@ void MemoryInit() {
 unsigned int MemoryTotal() {
 	MemoryManager *memoryManager = (MemoryManager *)ADDRESS_MEMORY_MANAGER;
 	unsigned int t = 0;
-	for (int i = 0; i < memoryManager->frees; i++) {
+	for (int i = 0; i < memoryManager->frees; ++i) {
 		t += memoryManager->freeinfo[i].size;
 	}
 	return t;
@@ -58,14 +58,14 @@ void *malloc(unsigned int size) {
 
 	size += sizeof(unsigned int); // サイズ記録分空ける
 
-	for (int i = 0; i < memoryManager->frees; i++) {
+	for (int i = 0; i < memoryManager->frees; ++i) {
 		if (memoryManager->freeinfo[i].size >= size) {
 			unsigned int *result = (unsigned int *)memoryManager->freeinfo[i].addr;
 			memoryManager->freeinfo[i].addr += size;
 			memoryManager->freeinfo[i].size -= size;
 			if (!memoryManager->freeinfo[i].size) {
-				memoryManager->frees--;
-				for (; i < memoryManager->frees; i++) {
+				--memoryManager->frees;
+				for (; i < memoryManager->frees; ++i) {
 					memoryManager->freeinfo[i] = memoryManager->freeinfo[i + 1];
 				}
 			}
@@ -82,7 +82,7 @@ bool free0(void *addr, unsigned int size) {
 	MemoryManager *memoryManager = (MemoryManager *)ADDRESS_MEMORY_MANAGER;
 	int i;
 
-	for (i = 0; i < memoryManager->frees; i++)
+	for (i = 0; i < memoryManager->frees; ++i)
 		if (memoryManager->freeinfo[i].addr > (unsigned int)addr)
 			break;
 
@@ -92,8 +92,8 @@ bool free0(void *addr, unsigned int size) {
 			if (i < memoryManager->frees) {
 				if ((unsigned int)addr + size == memoryManager->freeinfo[i].addr) {
 					memoryManager->freeinfo[i - 1].size += memoryManager->freeinfo[i].size;
-					memoryManager->frees--;
-					for (; i < memoryManager->frees; i++) {
+					--memoryManager->frees;
+					for (; i < memoryManager->frees; ++i) {
 						memoryManager->freeinfo[i] = memoryManager->freeinfo[i + 1];
 					}
 				}
@@ -109,10 +109,10 @@ bool free0(void *addr, unsigned int size) {
 		}
 	}
 	if (memoryManager->frees < MEMORY_FREES) {
-		for (int j = memoryManager->frees; j > i; j--) {
+		for (int j = memoryManager->frees; j > i; --j) {
 			memoryManager->freeinfo[j] = memoryManager->freeinfo[j - 1];
 		}
-		memoryManager->frees++;
+		++memoryManager->frees;
 		if (memoryManager->maxfrees < memoryManager->frees) {
 			memoryManager->maxfrees = memoryManager->frees;
 		}
@@ -120,7 +120,7 @@ bool free0(void *addr, unsigned int size) {
 		memoryManager->freeinfo[i].size = size;
 		return true;
 	}
-	memoryManager->losts++;
+	++memoryManager->losts;
 	memoryManager->lostsize += size;
 	return false;
 }

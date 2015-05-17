@@ -28,14 +28,14 @@ void showSysInfo(int benchScore) {
 	SheetCtl::drawString(SheetCtl::window_[0], 2 + 1, 2 + 16 * 4 + 1, 0, "level priority flag task name");
 	int j = 0;
 	str.reserve(20);
-	for (int i = 0; i < MAX_TASKS; i++) {
+	for (int i = 0; i < MAX_TASKS; ++i) {
 		Task *task = &TaskController::tasks0_[i];
 		if (task->flags_ != TaskFlag::Free) {
 			sprintf(str, "%5d %8d %4s ", task->level_, task->priority_, (task->flags_ == TaskFlag::Running) ? "(oo)" : "(__)");
 			str = str.c_str();
 			str += task->name_;
 			SheetCtl::drawString(SheetCtl::window_[0], 2 + 1, 2 + 16 * 5 + j * 16 + 2, 0, str);
-			j++;
+			++j;
 		}
 	}
 	SheetCtl::drawRect(SheetCtl::window_[0], 0, 2, 2 + 16 * 4, SheetCtl::window_[0]->bxsize - 1 - 1, 2 + 16 * 5 + j * 16 + 3);
@@ -58,7 +58,7 @@ void SysinfoMain() {
 	showSysInfo(0);
 	
 	for (;;) {
-		count++;
+		++count;
 		Cli();
 		if (task->queue_->isempty()) {
 			//task->sleep(); ベンチマーク測定のため

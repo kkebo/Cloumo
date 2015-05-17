@@ -2,7 +2,7 @@
 
 Timer::Timer(TaskQueue *queue) {
 	queue_ = queue;
-	for (int i = 0; i < MAX_TIMER; i++) {
+	for (int i = 0; i < MAX_TIMER; ++i) {
 		if (this == &TimerController::timers0_[i]) {
 			data_ = i;
 			return;
@@ -20,7 +20,7 @@ Timer::~Timer() {
 }
 
 void *Timer::operator new(size_t size){
-	for (int i = 0; i < MAX_TIMER; i++) {
+	for (int i = 0; i < MAX_TIMER; ++i) {
 		if (TimerController::timers0_[i].flags_ == TimerFlag::Free) {
 			TimerController::timers0_[i].flags_ = TimerFlag::Reserved;
 			return &TimerController::timers0_[i];
@@ -97,7 +97,7 @@ void TimerController::init() {
 	Output8(PIT_CNT0, 0x2e);
 
 	timers0_ = ::new Timer[MAX_TIMER];
-	for (int i = 0; i < MAX_TIMER; i++) {
+	for (int i = 0; i < MAX_TIMER; ++i) {
 		timers0_[i].flags_ = TimerFlag::Free;
 	}
 
@@ -116,7 +116,7 @@ void TimerController::init() {
 	count_ = 0;
 
 	// t0 以外の動作中のタイマーを調整
-	for (int i = 1; i < MAX_TIMER; i++) {
+	for (int i = 1; i < MAX_TIMER; ++i) {
 		Timer &timer = timers0_[i];
 		if (timer.flags_ == TimerFlag::Running) {
 			timer.timeout_ -= lastcount;

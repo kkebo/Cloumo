@@ -39,7 +39,7 @@ Task::~Task() {
 }
 
 static void *Task::operator new(size_t size) {
-	for (int i = 0; i < MAX_TASKS; i++) {
+	for (int i = 0; i < MAX_TASKS; ++i) {
 		if (TaskController::tasks0_[i].flags_ ==  TaskFlag::Free) {
 			Task *task = &TaskController::tasks0_[i];
 			task->flags_ =  TaskFlag::Sleeping;
@@ -61,7 +61,7 @@ static void *Task::operator new(size_t size) {
 			task->fpu[0] = 0x037f; /* CW(control word) */
 			task->fpu[1] = 0x0000; /* SW(status word)  */
 			task->fpu[2] = 0xffff; /* TW(tag word)     */
-			for (int i = 3; i < 108 / 4; i++) {
+			for (int i = 3; i < 108 / 4; ++i) {
 				task->fpu[i] = 0;
 			}
 			return task;
@@ -110,12 +110,12 @@ Task      *TaskController::task_fpu_ = nullptr;
 Task *TaskController::init() {
 	level_ = new TaskLevel[MAX_TASKLEVELS];
 	tasks0_ = ::new Task[MAX_TASKS];
-	for (int i = 0; i < MAX_TASKS; i++) {
+	for (int i = 0; i < MAX_TASKS; ++i) {
 		tasks0_[i].flags_ =  TaskFlag::Free;
 		tasks0_[i].selector_ = (kTaskGdt0 + i) * 8;
 		SetSegmentDescriptor((SegmentDescriptor*)kAdrGdt + kTaskGdt0 + i, 103, (int)&tasks0_[i].tss_, kArTss32);
 	}
-	for (int i = 0; i < MAX_TASKLEVELS; i++) {
+	for (int i = 0; i < MAX_TASKLEVELS; ++i) {
 		level_[i].running = 0;
 		level_[i].now = 0;
 	}
@@ -139,7 +139,7 @@ void TaskController::switchTask() {
 	TaskLevel *tl = &level_[now_lv_];
 	Task *newTask;
 	Task *nowTask = tl->tasks[tl->now];
-	tl->now++;
+	++tl->now;
 	if (tl->now == tl->running) tl->now = 0;
 	if (lv_change_) {
 		switchTaskSub();
@@ -152,7 +152,7 @@ void TaskController::switchTask() {
 
 void TaskController::switchTaskSub() {
 	int i;
-	for (i = 0; i < MAX_TASKLEVELS; i++) {
+	for (i = 0; i < MAX_TASKLEVELS; ++i) {
 		if (level_[i].running > 0) break;
 	}
 	now_lv_ = i;
@@ -168,7 +168,7 @@ void TaskController::add(Task *task) {
 	TaskLevel *tl = &level_[task->level_];
 	if (tl->running < kMaxTasksLevel) {
 		tl->tasks[tl->running] = task;
-		tl->running++;
+		++tl->running;
 		task->flags_ = TaskFlag::Running;
 	}
 }
@@ -178,15 +178,15 @@ void TaskController::remove(Task *task) {
 	TaskLevel *tl = &level_[task->level_];
 
 	// 現在のレベル内でのこのタスクのインデックス番号を取得
-	for (i = 0; i < tl->running; i++)
+	for (i = 0; i < tl->running; ++i)
 		if (tl->tasks[i] == task)
 			break;
 
 	// 現在のレベルのタスク稼働数を1減らす
-	tl->running--;
+	--tl->running;
 	
 	// この瞬間に動作中のタスクのインデックス番号を修正
-	if (i < tl->now) tl->now--;
+	if (i < tl->now) --tl->now;
 	
 	// この瞬間に動作中のタスクのインデックス番号が範囲を超えていたら
 	if (tl->now >= tl->running) tl->now = 0;
@@ -195,7 +195,7 @@ void TaskController::remove(Task *task) {
 	task->flags_ =  TaskFlag::Sleeping;
 
 	// このレベル内のタスクの配列をずらす
-	for (; i < tl->running; i++) {
+	for (; i < tl->running; ++i) {
 		tl->tasks[i] = tl->tasks[i + 1];
 	}
 }

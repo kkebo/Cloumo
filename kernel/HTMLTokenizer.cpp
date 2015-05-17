@@ -1147,7 +1147,7 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 			break;
 		}
 		
-		i++;
+		++i;
 	}
 	
 	return tokens;

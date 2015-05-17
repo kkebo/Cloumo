@@ -11,13 +11,13 @@ double frexp(double x, int *exp)
 	if (x != 0.0) {
 		if (x >= 1.0) {
 			do {
-				n++;
+				++n;
 				x *= 0.5;
 			} while (x >= 1.0);
 		}
 		if (x < 0.5) {
 			do {
-				n--;
+				--n;
 				x *= 2.0;
 			} while (x < 0.5);
 		}

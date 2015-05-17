@@ -1,4 +1,4 @@
-/* K&R‚©‚ç‚Ù‚Ú‚»‚Ì‚Ü‚Üˆø—p */
+/* K&Rï¿½ï¿½ï¿½ï¿½ï¿½Ù‚Ú‚ï¿½ï¿½Ì‚Ü‚Üˆï¿½ï¿½p */
 
 #include <stddef.h>
 #include <stdio.h>
@@ -26,7 +26,7 @@ void qsort(void *base, size_t n, size_t size,
 		return;
 	swap(size, pV(0), pV(n / 2));
 	last = 0;
-	for (i = 1; i < n; i++)
+	for (i = 1; i < n; ++i)
 		if ((*cmp)(pV(i), pV(0)) < 0)
 			swap(size, pV(++last), pV(i));
 	swap(size, pV(0), pV(last));

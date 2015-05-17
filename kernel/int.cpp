@@ -50,7 +50,7 @@ void IntHandler20(int *esp) {
 	char ts = 0;
 	/* IRQ-00受付完了をPICに通知 */
 	Output8(kPic0Ocw2, 0x60);
-	TimerController::count_++;
+	++TimerController::count_;
 	if (TimerController::next_ > TimerController::count_)
 		return;
 	timer = TimerController::t0_;
