@@ -233,6 +233,13 @@ struct string{
 			data[0]=0;
 			datasize=32;
 			datalen=0;}
+		string(const char c) {
+			data = new char[32];
+			data[0] = c;
+			data[1] = 0;
+			datasize = 32;
+			datalen = 1;
+		}
 		string(const char* str){
 			unsigned s=strlen(str);
 			data=new char[s+minbuffsize];
@@ -275,22 +282,21 @@ struct string{
 		string& operator=(const char* str){
 			unsigned s=strlen(str);
 			if(s+1>datasize){
-				resizedata(s<<1-datasize);}
+				resizedata((s<<1)-datasize);}
 			memcpy(data,str,s+1);
 			datalen=s;
 			return *this;}
 		string& operator=(const string& str){
 			datalen=str.datalen;
 			if(datalen+1>datasize){
-				resizedata(datalen<<1-datasize);}
+				resizedata((datalen<<1)-datasize);}
 			memcpy(data,str.data,datalen+1);
 			return *this;}
 		string& operator+=(const char c){
 			if(datalen+2>datasize){
 				resizedata(minbuffsize);}
 			data[datalen]=c;
-			data[datalen+1]=0;
-			++datalen;
+			data[++datalen]=0;
 			return *this;}
 		string& operator+=(const char* str){
 			unsigned s=strlen(str);
@@ -380,13 +386,13 @@ struct string{
 		int compare(const char *str) {
 			return strcmp(this->c_str(), str);
 		}
-		int compare(const string &str) {
+		int compare(string &str) {
 			return strcmp(this->c_str(), str.c_str());
 		}
 		int compare(unsigned index, size_t len, const char *str) {
 			return strncmp(this->c_str() + index, str, len);
 		}
-		int compare(unsigned index, size_t len, const string &str) {
+		int compare(unsigned index, size_t len, string &str) {
 			return strncmp(this->c_str() + index, str.c_str(), len);
 		}
 		//find
@@ -410,7 +416,7 @@ struct string{
 				start=datalen;}
 			return rfindstr(str,strlen(str),start,n);}
 		//reserve
-		int reserve(const int newsize){
+		int reserve(const unsigned newsize){
 			int size=(newsize>datasize?newsize:datasize);
 			char* tmp=new char[size];
 			memcpy(tmp,data,datalen);

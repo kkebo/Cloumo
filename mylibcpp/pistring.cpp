@@ -19,7 +19,7 @@ namespace strexternalfuncs{
 			++pos;}
 		return true;}
 	unsigned strlen(const char* str){
-		unsigned x;
+		unsigned x = 0;
 		while(str[x]!=0){
 			++x;}
 		return x;}};

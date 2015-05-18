@@ -196,7 +196,7 @@ const Document &TreeConstructor::construct(Queue<shared_ptr<Token>> &tokens) {
 							
 						} else if (token->data == "title") {
 							// Follow the generic RCDATA element parsing algorithm.
-						} else if (token->data == "noscript" && scripting || token->data == "noframes" || token->data == "style") {
+						} else if ((token->data == "noscript" && scripting) || token->data == "noframes" || token->data == "style") {
 							
 						} else if (token->data == "noscript") { // && !scripting
 							
@@ -429,7 +429,7 @@ const Document &TreeConstructor::construct(Queue<shared_ptr<Token>> &tokens) {
 							
 						} else if (token->data == "iframe") {
 							
-						} else if (token->data == "noembed" || token->data == "noscript" && scripting) {
+						} else if (token->data == "noembed" || (token->data == "noscript" && scripting)) {
 							
 						} else if (token->data == "select") {
 							

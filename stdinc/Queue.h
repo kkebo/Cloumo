@@ -24,7 +24,7 @@ public:
 		tail_ = (tail_ + 1) % size_;
 		return true;
 	}
-	T &pop() {
+	T pop() {
 		T data = buf_[head_];
 		head_ = (head_ + 1) % size_;
 		return data;

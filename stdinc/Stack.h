@@ -23,7 +23,7 @@ public:
 		buf_[tail_++] = data;
 		return true;
 	}
-	T &pop() {
+	T pop() {
 		return buf_[--tail_];
 	}
 	bool isempty() const {
