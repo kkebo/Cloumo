@@ -10,12 +10,10 @@ class Stack {
 protected:
 	T *buf_;
 	int tail_ = 0, size_;
-	
-	Queue() {}
 
 public:
-	Queue(int size) : buf_(new T[size]), size_(size) {}
-	virtual ~Queue() {
+	Stack(int size) : buf_(new T[size]), size_(size) {}
+	virtual ~Stack() {
 		delete[] buf_;
 	}
 	bool push(const T &data) {

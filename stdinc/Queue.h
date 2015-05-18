@@ -10,8 +10,6 @@ class Queue {
 protected:
 	T *buf_;
 	int head_ = 0, tail_ = 0, size_;
-	
-	Queue() {}
 
 public:
 	Queue(int size) : buf_(new T[size + 1]), size_(size) {}
