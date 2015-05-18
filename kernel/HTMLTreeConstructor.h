@@ -2,6 +2,7 @@
 #define _HTMLTREECONSTRUCTOR_H_
 
 #include <Queue.h>
+#include <SmartPointer.h>
 
 namespace HTML {
 	class TreeConstructor {
@@ -35,7 +36,7 @@ namespace HTML {
 	
 	public:
 		TreeConstructor() {}
-		Document &construct(Queue<shared_ptr<Token>> &tokens);
+		const Document &construct(Queue<shared_ptr<Token>> &tokens);
 		void parseError();
 	};
 }

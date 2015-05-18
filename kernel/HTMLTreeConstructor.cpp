@@ -1,12 +1,12 @@
 #include "../headers.h"
-#include <SmartPointer.h>
+#include <Stack.h>
 
 using namespace HTML;
 
-Document &TreeConstructor::construct(Queue<shared_ptr<Token>> &tokens) {
+const Document &TreeConstructor::construct(Queue<shared_ptr<Token>> &tokens) {
 	Mode mode = Mode::Initial;
 	unique_ptr<Token> token;
-	Stack<unique_ptr<Element>> openTags; // stack of open elements
+	Stack<shared_ptr<Element>> openTags(256); // stack of open elements
 	bool scripting = false; // scripting flag
 	
 	if (tokens.isempty()) return;
@@ -28,7 +28,7 @@ Document &TreeConstructor::construct(Queue<shared_ptr<Token>> &tokens) {
 					case Token::Type::DOCTYPE:
 						/* parseError の条件あり */
 						
-						document.appendChild((Node)DocumentType(token->data));
+						document.appendChild(shared_ptr<Node>(new DocumentType(token->data)));
 						// publicId and systemId も
 						
 						mode = Mode::BeforeHtml;
@@ -46,9 +46,9 @@ Document &TreeConstructor::construct(Queue<shared_ptr<Token>> &tokens) {
 			case Mode::BeforeHtml: {
 				auto actAsAnythingElse = [&] {
 					// Create an html element. Append it to the Document object. Put this element in the stack of open elements.
-					Element elem = Element(token->data, token->attributes);
-					document.appendChild((Node &)elem);
-					openTags.push(&elem);
+					shared_ptr<Element> elem(new Element(token->data));
+					document.appendChild(elem);
+					openTags.push(elem);
 	
 					// If the Document is being loaded as part of navigation of a browsing context, then: run the application cache selection algorithm with no manifest, passing it the Document object.
 
@@ -72,11 +72,11 @@ Document &TreeConstructor::construct(Queue<shared_ptr<Token>> &tokens) {
 					case Token::Type::StartTag:
 						if (token->data == "html") {
 							// Create an element for the token in the HTML namespace.
-							Element elem = Element(token->data, token->attributes);
+							shared_ptr<Element> elem(new Element(token->data));
 							// Append it to the Document object.
-							document.appendChild((Node &)elem);
+							document.appendChild(elem);
 							// Put this element in the stack of open elements.
-							openTags.push(&elem);
+							openTags.push(elem);
 
 							// If the Document is being loaded as part of navigation of a browsing context,
 							// then: if the newly created element has a manifest attribute whose value is not the empty string,
@@ -145,9 +145,9 @@ Document &TreeConstructor::construct(Queue<shared_ptr<Token>> &tokens) {
 							continue;
 						} else if (token->data == "head") {
 							// Insert an HTML element for the token.
-							Element elem = Element(token->data, token->attributes);
-							document.appendChild((Node &)elem);
-							openTags.push(&elem);
+							shared_ptr<Element> elem(new Element(token->data));
+							document.appendChild(elem);
+							openTags.push(elem);
 							
 							// Set the head element pointer to the newly created head element.
 							
@@ -250,7 +250,7 @@ Document &TreeConstructor::construct(Queue<shared_ptr<Token>> &tokens) {
 						if (token->data == "html") {
 							
 						} else if (token->data == "body") {
-							document.appendChild((Node)Element(token->data, token->attributes));
+							document.appendChild(shared_ptr<Element>(new Element(token->data)));
 							
 							// Set the frameset-ok flag to "not ok".
 							
@@ -643,6 +643,6 @@ Document &TreeConstructor::construct(Queue<shared_ptr<Token>> &tokens) {
 	return document;
 }
 
-void parseError() {
+void TreeConstructor::parseError() {
 	
 }

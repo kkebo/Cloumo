@@ -14,6 +14,11 @@ OBJS = \
 	asmfunc.o \
 	HTMLToken.o \
 	HTMLTokenizer.o \
+	HTMLNode.o \
+	HTMLElement.o \
+	HTMLTextNode.o \
+	HTMLDocument.o \
+	HTMLTreeConstructor.o \
 	File.o
 DEPS = $(OBJS:%.o=%.d)
 

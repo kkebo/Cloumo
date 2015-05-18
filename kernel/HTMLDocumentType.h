@@ -2,7 +2,7 @@
 #define _HTMLDOCUMENTTYPE_H_
 
 namespace HTML {
-	class DocumentType {
+	class DocumentType : public Node {
 	public:
 		string name;
 		string publicId = "";

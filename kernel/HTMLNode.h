@@ -5,14 +5,17 @@
 #include <SmartPointer.h>
 
 namespace HTML {
+	class Element;
+	class TextNode;
+	
 	class Node {
 	protected:
 		List<shared_ptr<Node>> children;
 	
-	public:
-		Node *parent = nullptr;
-		
+	public:		
 		virtual void appendChild(const shared_ptr<Node> &node);
+		virtual void appendChild(const shared_ptr<Element> &node);
+		virtual void appendChild(const shared_ptr<TextNode> &node);
 	};
 }
 
