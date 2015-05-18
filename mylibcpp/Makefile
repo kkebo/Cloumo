@@ -30,10 +30,10 @@ endif
 
 all: $(TARGET).a
 
-%.o: %.cpp
+%.o: %.cpp Makefile
 	$(CXX) $(CXXFLAGS) -c $<
 
-$(TARGET).a: $(OBJS)
+$(TARGET).a: $(OBJS) Makefile
 	$(AR) r $@ $^
 
 clean:

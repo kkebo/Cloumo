@@ -33,13 +33,13 @@ endif
 
 all: $(TARGET).a
 
-%.o: %.c
+%.o: %.c Makefile
 	$(CC) $(CFLAGS) -c $<
 
-%.o: %.asm
+%.o: %.asm Makefile
 	$(NASM) -felf32 -o $@ $<
 
-$(TARGET).a: $(OBJS)
+$(TARGET).a: $(OBJS) Makefile
 	$(AR) r $@ $^
 
 clean:

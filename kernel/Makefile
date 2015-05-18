@@ -47,16 +47,16 @@ all: $(OBJS) ipl.bin asmhead.bin
 # 一般生成規則
 -include $(DEPS)
 
-%.o: %.asm
+%.o: %.asm Makefile
 	$(NASM) -felf32 -o $@ $<
 
-%.o: %.cpp
+%.o: %.cpp Makefile
 	$(CXX) $(CXXFLAGS) -c $<
 
-%.o: %.c
+%.o: %.c Makefile
 	$(CC) $(CFLAGS) -c $<
 
-%.bin: %.asm
+%.bin: %.asm Makefile
 	$(NASM) -fbin -o $@ $<
 
 # Options
