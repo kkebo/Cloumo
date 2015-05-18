@@ -30,6 +30,8 @@ endif
 
 all: $(TARGET).a
 
+-include $(DEPS)
+
 %.o: %.cpp Makefile
 	$(CXX) $(CXXFLAGS) -c $<
 
