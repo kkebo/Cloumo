@@ -35,7 +35,7 @@ namespace HTML {
 		Document document;
 	
 	public:
-		TreeConstructor() {}
+		TreeConstructor() = default;
 		const Document &construct(Queue<shared_ptr<Token>> &tokens);
 		void parseError();
 	};

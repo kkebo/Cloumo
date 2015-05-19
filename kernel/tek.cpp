@@ -2,7 +2,7 @@
 #include <setjmp.h>
 #include <string.h>
 
-typedef unsigned int TekTPrb;
+using TekTPrb = unsigned int;
 
 static int TekDecode5(int siz, unsigned char *p, unsigned char *q);
 
