@@ -83,7 +83,7 @@ namespace HTML {
 		
 		void emitCharacterToken(char c);
 		void emitEOFToken();
-		void emitToken(const unique_ptr<Token> &token);
+		void emitToken(unique_ptr<Token> &token);
 		void parseError();
 	
 	public:

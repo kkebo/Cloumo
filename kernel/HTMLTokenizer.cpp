@@ -1163,7 +1163,7 @@ void Tokenizer::emitEOFToken() {
 	tokens.push(shared_ptr<Token>(new Token(Token::Type::EndOfFile)));
 }
 
-void Tokenizer::emitToken(const unique_ptr<Token> &token) {
+void Tokenizer::emitToken(unique_ptr<Token> &token) {
 	// 現在のままではよくない．
 	// std::move 相当のものを実装したら修正するべき
 	tokens.push(shared_ptr<Token>(token.release()));

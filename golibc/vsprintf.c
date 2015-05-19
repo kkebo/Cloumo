@@ -20,8 +20,8 @@ static UCHAR *setdec(UCHAR *s, UINT ui)
 
 int vsprintf(char *s, const char *format, va_list arg)
 {
-	UCHAR c, *t = s, *p, flag_left, flag_zero /* , flag_sign, flag_space */;
-	UCHAR temp[32] /* ”š—p */, *q;
+	UCHAR c, *t = (UCHAR *)s, *p, flag_left, flag_zero /* , flag_sign, flag_space */;
+	UCHAR temp[32] /* ï¿½ï¿½ï¿½ï¿½ï¿½p */, *q;
 	temp[31] = '\0';
 	int field_min, field_max, i;
 	long l;
@@ -50,7 +50,7 @@ put1char:
 		field_min = 0;
 		if ('1' <= c && c <= '9') {
 			format--;
-			field_min = (int) strtoul0(&format, 10, &c);
+			field_min = (int) strtoul0(&format, 10, (char *)&c);
 			c = *format++;
 		} else if (c == '*') {
 			field_min = va_arg(arg, int);
@@ -61,7 +61,7 @@ put1char:
 			c = *format++;
 			if ('1' <= c && c <= '9') {
 				format--;
-				field_min = (int) strtoul0(&format, 10, &c);
+				field_min = (int) strtoul0(&format, 10, (char *)&c);
 				c = *format++;
 			} else if (c == '*') {
 				field_max = va_arg(arg, int);
@@ -72,7 +72,7 @@ put1char:
 			if (field_max != INT_MAX)
 				goto mikan;
 			p = va_arg(arg, char *);
-			l = strlen(p);
+			l = (long)strlen(p);
 			if (*p) {
 				c = ' ';
 copy_p2t:

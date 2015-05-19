@@ -77,7 +77,7 @@ void KeyboardController::Main() {
 void KeyboardController::Decode(unsigned char code) {
 	if (code < 0x80 && ascii_table_[code]) {
 		char s[2];
-		s[0] = (shift_ && !(leds_ & 4) || !shift_ && leds_ & 4) ? ascii_shift_table_[code] : ascii_table_[code];
+		s[0] = ((shift_ && !(leds_ & 4)) || (!shift_ && leds_ & 4)) ? ascii_shift_table_[code] : ascii_table_[code];
 		s[1] = 0;
 		SheetCtl::drawLine(SheetCtl::back_, Rgb(255, 255, 255), SheetCtl::tbox_cpos_ + 2, SheetCtl::back_->bysize - 20 - 22 + 2, SheetCtl::tbox_cpos_ + 2, SheetCtl::back_->bysize - 20 - 2);
 		SheetCtl::drawString(SheetCtl::back_, SheetCtl::tbox_cpos_ + 2, SheetCtl::back_->bysize - 20 - 22 + 3, 0, s);
@@ -147,7 +147,7 @@ void KeyboardController::Decode(unsigned char code) {
 				SheetCtl::fillRect(SheetCtl::window_[SheetCtl::numOfTab], Rgb(255, 255, 255), 1, 1, SheetCtl::window_[SheetCtl::numOfTab]->bxsize - 1, SheetCtl::window_[SheetCtl::numOfTab]->bysize - 1);
 				SheetCtl::window_[SheetCtl::numOfTab]->slide(SheetCtl::back_->bxsize, 0);
 				// レンダリング
-				string source(htmlFile->read(), htmlFile->size());
+				string source(reinterpret_cast<char *>(htmlFile->read()), htmlFile->size());
 				HTML::Tokenizer tokenizer;
 				Queue<shared_ptr<HTML::Token>> &tokens = tokenizer.tokenize(source.c_str());
 				for (int i = 0; !tokens.isempty(); ++i) {

@@ -46,10 +46,10 @@ void Timer::set(unsigned int timeout) {
 			TimerController::next_ = timeout_;
 		} else {
 			// this が入る位置を決める
-			while (timeout_ > timer0->timeout_) {
+			do {
 				timer1 = timer0;
 				timer0 = timer0->next_;
-			}
+			} while (timeout_ > timer0->timeout_);
 			timer1->next_ = this;
 			next_ = timer0;
 		}

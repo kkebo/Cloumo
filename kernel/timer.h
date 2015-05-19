@@ -27,7 +27,7 @@ public:
 	Timer(TaskQueue *, int);
 	~Timer();
 	static void *operator new(size_t size);
-	static void Timer::operator delete(void *p) {}
+	static void operator delete(void *p) {}
 	void set(unsigned int);
 	bool cancel();
 	int data();

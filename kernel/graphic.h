@@ -28,6 +28,7 @@ public:
 	Sheet(int x, int y, bool inv);
 	virtual ~Sheet();
 	static void *operator new(size_t size);
+	static void operator delete(void *p) {}
 	void upDown(int height);
 	void refresh(int bx0, int by0, int bx1, int by1);
 	void slide(int vx0, int vy0);

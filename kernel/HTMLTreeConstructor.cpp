@@ -9,7 +9,7 @@ const Document &TreeConstructor::construct(Queue<shared_ptr<Token>> &tokens) {
 	Stack<shared_ptr<Element>> openTags(256); // stack of open elements
 	bool scripting = false; // scripting flag
 	
-	if (tokens.isempty()) return;
+	if (tokens.isempty()) return document;
 	token.reset(tokens.pop());
 	
 	// token 取り出し

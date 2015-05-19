@@ -115,6 +115,7 @@ public:
 			reference = p.reference;
 			reference->Add();
 		}
+		return *this;
 	}
 	T *operator -> () const {
 		return pointer;
