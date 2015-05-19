@@ -51,6 +51,9 @@ public:
 	operator T* () const { // cast
 		return pointer;
 	}
+	operator bool() const {
+		return pointer != nullptr;
+	}
 };
 
 template <typename T>
@@ -97,6 +100,9 @@ public:
 	int use_count() {
 		return reference->Count();
 	}
+	bool unique() {
+		return reference->Count() == 1;
+	}
 	
 	shared_ptr<T> &operator = (const shared_ptr<T> &p) {
 		if (this != &p) {
@@ -109,6 +115,7 @@ public:
 			reference = p.reference;
 			reference->Add();
 		}
+		return *this;
 	}
 	T *operator -> () const {
 		return pointer;
@@ -121,6 +128,9 @@ public:
 	}
 	operator T* () const { // cast
 		return pointer;
+	}
+	operator bool() const {
+		return pointer != nullptr;
 	}
 };
 

@@ -1,4 +1,5 @@
 .DS_Store
+*.d
 *.o
 *.map
 *.bin
@@ -6,3 +7,4 @@ os.sys
 cloumo.img
 cloumo.iso
 golibc.a
+mylibcpp.a

@@ -7982,8 +7982,8 @@ unsigned int Utf8ToKT(unsigned int u8code) {
 		0x0
 	};
 
-	for (unsigned int k = 0; k < 84; k++) {
-		for (unsigned int t = 0; t < 94; t++) {
+	for (unsigned int k = 0; k < 84; ++k) {
+		for (unsigned int t = 0; t < 94; ++t) {
 			if (kt2uni[k * 94 + t] == u8code) {
 				return k * 94 + t;
 			}

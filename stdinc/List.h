@@ -20,7 +20,7 @@ public:
 	}
 	
 	virtual ~List() {
-		// head から順に解放
+		// dummy から順に解放
 		for (Node *p = dummy; p != nullptr; ) {
 			Node *q = p;
 			p = p->next;

@@ -5,17 +5,18 @@
 #ifndef _BROWSER_H_
 #define _BROWSER_H_
 
+#include <SmartPointer.h>
+
 class Browser {
 private:
-	File *htmlFile;
+	unique_ptr<File> htmlFile;
 	unsigned char *source;
-	Sheet *sheet;
+	unique_ptr<Sheet> sheet;
 	unsigned int size;
 	int dy;
 
 public:
 	Browser(const char *);
-	~Browser();
 	void Render();
 	void Scroll(int);
 	void Mapping();

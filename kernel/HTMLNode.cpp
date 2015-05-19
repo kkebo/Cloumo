@@ -1,9 +1,15 @@
 #include "../headers.h"
-#include <List.h>
 
 using namespace HTML;
 
-Node &Node::appendChild(Node &node) {
+void Node::appendChild(const shared_ptr<Node> &node) {
 	children.append(node);
-	return node;
+}
+
+void Node::appendChild(const shared_ptr<Element> &node) {
+	appendChild(static_cast<shared_ptr<Node>>(node));
+}
+
+void Node::appendChild(const shared_ptr<TextNode> &node) {
+	appendChild(static_cast<shared_ptr<Node>>(node));
 }

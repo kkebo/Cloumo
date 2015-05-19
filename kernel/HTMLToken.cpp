@@ -2,14 +2,9 @@
 
 using namespace HTML;
 
-void Token::setData(string &str) {
-	data = str;
-	str = "";
-}
+Token::Attribute::Attribute(string _name, string _value) : name(_name), value(_value) {}
 
-string &Token::getData() {
-	return data;
-}
+Token::Token(Type tokenType) : type(tokenType) {}
 
 Token::Type Token::getType() {
 	return type;
@@ -19,14 +14,18 @@ void Token::setSelfClosingFlag() {
 	selfClosingFlag = true;
 }
 
-void Token::addAttribute(string &name) {
-	attributes.append(Attribute(name, ""));
-	name = "";
+bool Token::isSelfClosing() {
+	return selfClosingFlag;
 }
 
-void Token::setAttributeValue(string &value) {
-	if (!attributes.isEmpty()) {
-		attributes.getLast().value = value;
-	}
-	value = "";
+void Token::appendAttribute(char c) {
+	attributes.append(shared_ptr<Attribute>(new Attribute(string(c), "")));
+}
+
+void Token::appendAttributeName(char c) {
+	attributes.getLast()->name += c;
+}
+
+void Token::appendAttributeValue(char c) {
+	attributes.getLast()->value += c;
 }
