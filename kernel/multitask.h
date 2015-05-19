@@ -44,7 +44,7 @@ public:
 	int stack;
 
 public:
-	Task() = default;
+	Task() {};
 	Task(char *name, int level, int priority, void (*mainLoop)());
 	Task(char *name, int level, int priority, int queueSize, void (*mainLoop)());
 	~Task();
