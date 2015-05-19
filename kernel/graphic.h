@@ -24,7 +24,7 @@ public:
 	bool flags; // 使用中
 	bool trans;
 	
-	Sheet() = default;
+	Sheet() {};
 	Sheet(int x, int y, bool inv);
 	virtual ~Sheet();
 	static void *operator new(size_t size);

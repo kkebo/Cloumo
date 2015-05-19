@@ -22,7 +22,7 @@ public:
 	TaskQueue *queue_;
 
 public:
-	Timer() = default;
+	Timer() {};
 	Timer(TaskQueue *);
 	Timer(TaskQueue *, int);
 	~Timer();
