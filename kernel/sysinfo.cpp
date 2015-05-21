@@ -10,18 +10,16 @@ void showSysInfo(int benchScore) {
 	SheetCtl::fillRect(SheetCtl::window_[0], Rgb(255, 255, 255), 2, 2, SheetCtl::window_[0]->bxsize - 1, SheetCtl::window_[0]->bysize - 1);
 	
 	// Benchmark Result
-	str << benchScore;
+	str = to_string(benchScore);
 	SheetCtl::drawString(SheetCtl::window_[0], 2, 2, 0, "Benchmark Score:");
 	SheetCtl::drawString(SheetCtl::window_[0], 2 + 8 * 17, 2, 0, str);
 	
 	// Memory Information
-	str = "RAM: ";
-	str << MemoryTest(0x00400000, 0xbfffffff) / 1024 / 1024 << " MB    FREE: " << memTotal / 1024 / 1024 << " MB (" << memTotal << " Byte)";
+	str = "RAM: " + to_string(MemoryTest(0x00400000, 0xbfffffff) / 1024 / 1024) + " MB    FREE: " + to_string(memTotal / 1024 / 1024) + " MB (" + to_string(memTotal) + " Byte)";
 	SheetCtl::drawString(SheetCtl::window_[0], 2, 2 + 16, 0, str);
 	
 	// Display Information
-	str = "Resoultion: ";
-	str << SheetCtl::scrnx_ << " x " << SheetCtl::scrny_ << " (" << SheetCtl::color_ << "-bit color)";
+	str = "Resoultion: " + to_string(SheetCtl::scrnx_) + " x " + to_string(SheetCtl::scrny_) + " (" + to_string(SheetCtl::color_) + "-bit color)";
 	SheetCtl::drawString(SheetCtl::window_[0], 2, 2 + 16 * 2, 0, str);
 	
 	// Task List
@@ -32,7 +30,7 @@ void showSysInfo(int benchScore) {
 		Task *task = &TaskController::tasks0_[i];
 		if (task->flags_ != TaskFlag::Free) {
 			sprintf(str.c_str(), "%5d %8d %4s ", task->level_, task->priority_, (task->flags_ == TaskFlag::Running) ? "(oo)" : "(__)");
-			str = str.c_str();
+			str = str.c_str(); // サイズの数え直し
 			str += task->name_;
 			SheetCtl::drawString(SheetCtl::window_[0], 2 + 1, 2 + 16 * 5 + j * 16 + 2, 0, str);
 			++j;

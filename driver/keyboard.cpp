@@ -178,7 +178,7 @@ void KeyboardController::Decode(unsigned char code) {
 							str = "EndOfFile Token";
 							break;
 					}
-					str << " (data='" << token->data << "')";
+					str += " (data='" + token->data + "')";
 					SheetCtl::drawString(SheetCtl::window_[SheetCtl::numOfTab], 1, 1 + i * 16, 0, str.c_str());
 				}
 				SheetCtl::window_[SheetCtl::activeTab]->upDown(-1);

@@ -248,10 +248,10 @@ void SheetCtl::refreshSub(int vx0, int vy0, int vx1, int vy1, int h1) {
 	for (int sid = 0; sid <= h1; ++sid) {
 		const Sheet &sht = *sheets_[sid];
 		/* vx0～vy1を使って、bx0～by1を逆算する */
-		bx0 = min(0, vx0 - sht.vx0);
-		by0 = min(0, vy0 - sht.vy0);
-		bx1 = max(sht.bxsize, vx1 - sht.vx0);
-		by1 = max(sht.bysize, vy1 - sht.vy0);
+		bx0 = max(0, vx0 - sht.vx0);
+		by0 = max(0, vy0 - sht.vy0);
+		bx1 = min(sht.bxsize, vx1 - sht.vx0);
+		by1 = min(sht.bysize, vy1 - sht.vy0);
 		if (color_ == 32) {
 			for (int by = by0; by < by1; ++by) {
 				for (int bx = bx0; bx < bx1; ++bx) {
