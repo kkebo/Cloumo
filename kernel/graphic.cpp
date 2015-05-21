@@ -1,5 +1,6 @@
 #include "../headers.h"
 #include <SmartPointer.h>
+#include <MinMax.h>
 
 Task *SheetCtl::refreshTask = nullptr;
 
@@ -192,36 +193,31 @@ void SheetCtl::init() {
 // 指定範囲の変更をmapに適用
 void SheetCtl::refreshMap(int vx0, int vy0, int vx1, int vy1, int h0) {
 	int bx0, by0, bx1, by1, sid4;
-	Sheet *sht;
 	if (vx0 < 0) vx0 = 0;
 	if (vy0 < 0) vy0 = 0;
 	if (vx1 > scrnx_) vx1 = scrnx_;
 	if (vy1 > scrny_) vy1 = scrny_;
 	for (int sid = h0; sid <= top_; ++sid) {
-		sht = sheets_[sid];
-		bx0 = vx0 - sht->vx0;
-		by0 = vy0 - sht->vy0;
-		bx1 = vx1 - sht->vx0;
-		by1 = vy1 - sht->vy0;
-		if (bx0 < 0) bx0 = 0;
-		if (by0 < 0) by0 = 0;
-		if (bx1 > sht->bxsize) bx1 = sht->bxsize;
-		if (by1 > sht->bysize) by1 = sht->bysize;
-		if (!sht->trans) {
-			if (!(sht->vx0 & 3) && !(bx0 & 3) && !(bx1 & 3)) {
+		const Sheet &sht = *sheets_[sid];
+		bx0 = max(0, vx0 - sht.vx0);
+		by0 = max(0, vy0 - sht.vy0);
+		bx1 = min(sht.bxsize, vx1 - sht.vx0);
+		by1 = min(sht.bysize, vy1 - sht.vy0);
+		if (!sht.trans) {
+			if (!(sht.vx0 & 3) && !(bx0 & 3) && !(bx1 & 3)) {
 				/* 透明色なし専用の高速版（4バイト型） */
 				bx1 = (bx1 - bx0) / 4;
 				sid4 = sid | sid << 8 | sid << 16 | sid << 24;
 				for (int by = by0; by < by1; ++by) {
 					for (int bx = 0; bx < bx1; ++bx) {
-						((int*) &map_[(sht->vy0 + by) * scrnx_ + sht->vx0 + bx0])[bx] = sid4;
+						((int*) &map_[(sht.vy0 + by) * scrnx_ + sht.vx0 + bx0])[bx] = sid4;
 					}
 				}
 			} else {
 				/* 透明色なし専用の高速版（1バイト型） */
 				for (int by = by0; by < by1; ++by) {
 					for (int bx = bx0; bx < bx1; ++bx) {
-						map_[(sht->vy0 + by) * scrnx_ + sht->vx0 + bx] = sid;
+						map_[(sht.vy0 + by) * scrnx_ + sht.vx0 + bx] = sid;
 					}
 				}
 			}
@@ -229,8 +225,8 @@ void SheetCtl::refreshMap(int vx0, int vy0, int vx1, int vy1, int h0) {
 			/* 透明色ありの一般版（1バイト型） */
 			for (int by = by0; by < by1; ++by) {
 				for (int bx = bx0; bx < bx1; ++bx) {
-					if ((unsigned char) (sht->buf[by * sht->bxsize + bx] >> 24) != 255) {
-						map_[(sht->vy0 + by) * scrnx_ + sht->vx0 + bx] = sid;
+					if ((unsigned char) (sht.buf[by * sht.bxsize + bx] >> 24) != 255) {
+						map_[(sht.vy0 + by) * scrnx_ + sht.vx0 + bx] = sid;
 					}
 				}
 			}
@@ -241,7 +237,6 @@ void SheetCtl::refreshMap(int vx0, int vy0, int vx1, int vy1, int h0) {
 // 指定範囲の変更をvramに適用
 void SheetCtl::refreshSub(int vx0, int vy0, int vx1, int vy1, int h1) {
 	int bx0, by0, bx1, by1;
-	Sheet *sht;
 	unsigned int rgb;
 
 	if (vx0 < 0) vx0 = 0;
@@ -251,64 +246,64 @@ void SheetCtl::refreshSub(int vx0, int vy0, int vx1, int vy1, int h1) {
 	unique_ptr<unsigned int> backrgb(new unsigned int[(vx1 - vx0) * (vy1 - vy0)]);
 
 	for (int sid = 0; sid <= h1; ++sid) {
-		sht = sheets_[sid];
+		const Sheet &sht = *sheets_[sid];
 		/* vx0～vy1を使って、bx0～by1を逆算する */
-		bx0 = (vx0 - sht->vx0 < 0)? 0 : vx0 - sht->vx0;
-		by0 = (vy0 - sht->vy0 < 0)? 0 : vy0 - sht->vy0;
-		bx1 = (vx1 - sht->vx0 > sht->bxsize)? sht->bxsize : vx1 - sht->vx0;
-		by1 = (vy1 - sht->vy0 > sht->bysize)? sht->bysize : vy1 - sht->vy0;
+		bx0 = min(0, vx0 - sht.vx0);
+		by0 = min(0, vy0 - sht.vy0);
+		bx1 = max(sht.bxsize, vx1 - sht.vx0);
+		by1 = max(sht.bysize, vy1 - sht.vy0);
 		if (color_ == 32) {
 			for (int by = by0; by < by1; ++by) {
 				for (int bx = bx0; bx < bx1; ++bx) {
-					rgb = sht->buf[by * sht->bxsize + bx];
-					if (map_[(sht->vy0 + by) * scrnx_ + sht->vx0 + bx] == sid) {
-						((unsigned int *)vram_)[((sht->vy0 + by) * scrnx_ + (sht->vx0 + bx))]
+					rgb = sht.buf[by * sht.bxsize + bx];
+					if (map_[(sht.vy0 + by) * scrnx_ + sht.vx0 + bx] == sid) {
+						((unsigned int *)vram_)[((sht.vy0 + by) * scrnx_ + (sht.vx0 + bx))]
 							= (sid <= 1) ? rgb
-							           : MixRgb(rgb, backrgb[(sht->vy0 + by - vy0) * (vx1 - vx0) + (sht->vx0 + bx - vx0)]);
+							           : MixRgb(rgb, backrgb[(sht.vy0 + by - vy0) * (vx1 - vx0) + (sht.vx0 + bx - vx0)]);
 					} else if ((unsigned char)(rgb >> 24) != 255) {
-						backrgb[(sht->vy0 + by - vy0) * (vx1 - vx0) + (sht->vx0 + bx - vx0)]
+						backrgb[(sht.vy0 + by - vy0) * (vx1 - vx0) + (sht.vx0 + bx - vx0)]
 							= (sid <= 1) ? rgb
-							           : MixRgb(rgb, backrgb[(sht->vy0 + by - vy0) * (vx1 - vx0) + (sht->vx0 + bx - vx0)]);
+							           : MixRgb(rgb, backrgb[(sht.vy0 + by - vy0) * (vx1 - vx0) + (sht.vx0 + bx - vx0)]);
 					}
 				}
 			}
 		} else if (color_ == 24) {
 			for (int by = by0; by < by1; ++by) {
 				for (int bx = bx0; bx < bx1; ++bx) {
-					rgb = sht->buf[by * sht->bxsize + bx];
-					if (map_[(sht->vy0 + by) * scrnx_ + sht->vx0 + bx] == sid) {
-						unsigned char *vram24 = (unsigned char *)(vram_ + ((sht->vy0 + by) * scrnx_ + (sht->vx0 + bx)) * 3);
+					rgb = sht.buf[by * sht.bxsize + bx];
+					if (map_[(sht.vy0 + by) * scrnx_ + sht.vx0 + bx] == sid) {
+						unsigned char *vram24 = (unsigned char *)(vram_ + ((sht.vy0 + by) * scrnx_ + (sht.vx0 + bx)) * 3);
 						if (sid > 1) {
-							rgb = MixRgb(rgb, backrgb[(sht->vy0 + by - vy0) * (vx1 - vx0) + (sht->vx0 + bx - vx0)]);
+							rgb = MixRgb(rgb, backrgb[(sht.vy0 + by - vy0) * (vx1 - vx0) + (sht.vx0 + bx - vx0)]);
 						}
 						vram24[0] = (unsigned char)rgb;
 						vram24[1] = (unsigned char)(rgb >> 8);
 						vram24[2] = (unsigned char)(rgb >> 16);
 					} else if ((unsigned char)(rgb >> 24) != 255) {
-						backrgb[(sht->vy0 + by - vy0) * (vx1 - vx0) + (sht->vx0 + bx - vx0)]
+						backrgb[(sht.vy0 + by - vy0) * (vx1 - vx0) + (sht.vx0 + bx - vx0)]
 						= (sid <= 1) ? rgb
-						: MixRgb(rgb, backrgb[(sht->vy0 + by - vy0) * (vx1 - vx0) + (sht->vx0 + bx - vx0)]);
+						: MixRgb(rgb, backrgb[(sht.vy0 + by - vy0) * (vx1 - vx0) + (sht.vx0 + bx - vx0)]);
 					}
 				}
 			}
 		} else if (color_ == 16) {
 			for (int by = by0; by < by1; ++by) {
 				for (int bx = bx0; bx < bx1; ++bx) {
-					rgb = sht->buf[by * sht->bxsize + bx];
-					if (map_[(sht->vy0 + by) * scrnx_ + sht->vx0 + bx] == sid) {
-						((unsigned short *)vram_)[(sht->vy0 + by) * scrnx_ + (sht->vx0 + bx)]
+					rgb = sht.buf[by * sht.bxsize + bx];
+					if (map_[(sht.vy0 + by) * scrnx_ + sht.vx0 + bx] == sid) {
+						((unsigned short *)vram_)[(sht.vy0 + by) * scrnx_ + (sht.vx0 + bx)]
 						              = (sid <= 1) ?
 						            		  ((((unsigned char) (rgb >> 16) << 8) & 0xf800)
 								                 | (((unsigned char) (rgb >> 8) << 3) & 0x07e0)
 								                 | ((unsigned char) rgb >> 3)) :
-						                	  ((((((unsigned char) (backrgb[(sht->vy0 + by - vy0) * (vx1 - vx0) + (sht->vx0 + bx - vx0)] >> 16) - (unsigned char) (rgb >> 16)) * (unsigned char) (rgb >> 24) / 255 + (unsigned char) (rgb >> 16)) << 8) & 0xf800)
-								                 | (((((unsigned char) (backrgb[(sht->vy0 + by - vy0) * (vx1 - vx0) + (sht->vx0 + bx - vx0)] >> 8) - (unsigned char) (rgb >> 8)) * (unsigned char) (rgb >> 24) / 255 + (unsigned char) (rgb >> 8)) << 3) & 0x07e0)
-								                 | (((unsigned char) backrgb[(sht->vy0 + by - vy0) * (vx1 - vx0) + (sht->vx0 + bx - vx0)] - (unsigned char) rgb) * (unsigned char) (rgb >> 24) / 255 + (unsigned char) rgb) >> 3);
+						                	  ((((((unsigned char) (backrgb[(sht.vy0 + by - vy0) * (vx1 - vx0) + (sht.vx0 + bx - vx0)] >> 16) - (unsigned char) (rgb >> 16)) * (unsigned char) (rgb >> 24) / 255 + (unsigned char) (rgb >> 16)) << 8) & 0xf800)
+								                 | (((((unsigned char) (backrgb[(sht.vy0 + by - vy0) * (vx1 - vx0) + (sht.vx0 + bx - vx0)] >> 8) - (unsigned char) (rgb >> 8)) * (unsigned char) (rgb >> 24) / 255 + (unsigned char) (rgb >> 8)) << 3) & 0x07e0)
+								                 | (((unsigned char) backrgb[(sht.vy0 + by - vy0) * (vx1 - vx0) + (sht.vx0 + bx - vx0)] - (unsigned char) rgb) * (unsigned char) (rgb >> 24) / 255 + (unsigned char) rgb) >> 3);
 					} else if ((unsigned char) (rgb >> 24) != 255) {
-						backrgb[(sht->vy0 + by - vy0) * (vx1 - vx0) + (sht->vx0 + bx - vx0)]
+						backrgb[(sht.vy0 + by - vy0) * (vx1 - vx0) + (sht.vx0 + bx - vx0)]
 						        = (sid <= 1) ?
 						        		rgb :
-						        		MixRgb(rgb, backrgb[(sht->vy0 + by - vy0) * (vx1 - vx0) + (sht->vx0 + bx - vx0)]);
+						        		MixRgb(rgb, backrgb[(sht.vy0 + by - vy0) * (vx1 - vx0) + (sht.vx0 + bx - vx0)]);
 					}
 				}
 			}
