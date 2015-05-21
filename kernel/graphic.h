@@ -23,9 +23,10 @@ public:
 	int height;
 	bool flags; // 使用中
 	bool trans;
+	void (*onClick)(int x, int y);
 	
 	Sheet() {};
-	Sheet(int x, int y, bool inv);
+	Sheet(int x, int y, bool inv, void (*click)() = nullptr);
 	virtual ~Sheet();
 	static void *operator new(size_t size);
 	static void operator delete(void *p) {}
@@ -55,6 +56,8 @@ public:
 	static int numOfTab;
 	static int activeTab;
 	static Sheet *context_menu_;
+	
+	// for Text Boxes
 	static int tbox_cpos_;
 	static unsigned int tbox_col_;
 	static Timer *tbox_timer_;

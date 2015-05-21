@@ -227,28 +227,23 @@ void Mouse::Main() {
 					new_my_ = mdec_.y_;
 					
 					if (mdec_.btn_ & 0x01) {	// On left click
+						// Close the context menu
 						if (SheetCtl::context_menu_->height > 0) {
 							SheetCtl::context_menu_->upDown(-1);
-						} else if (2 <= mdec_.x_ && mdec_.x_ < SheetCtl::back_->bxsize) {
-							for (int i = 0; i < SheetCtl::numOfTab; ++i) {
-								if (i != SheetCtl::activeTab && 35 + 23 * i <= mdec_.y_ && mdec_.y_ < 33 + 16 + 8 + 23 * i) {
-									// 選択したタブ
-									SheetCtl::colorChange(*SheetCtl::back_, 2, 35 + 23 * i, SheetCtl::back_->bxsize, 33 + 16 + 8 + 23 * i, kPassiveTabColor, kActiveTabColor);
-									SheetCtl::colorChange(*SheetCtl::back_, 2, 35 + 23 * i, SheetCtl::back_->bxsize, 33 + 16 + 8 + 23 * i, kPassiveTextColor, kActiveTextColor);
-									SheetCtl::back_->refresh(2, 35 + 23 * i, SheetCtl::back_->bxsize, 33 + 16 + 8 + 23 * i);
-									// アクティブだったタブ
-									SheetCtl::colorChange(*SheetCtl::back_, 2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back_->bxsize, 33 + 16 + 8 + 23 * SheetCtl::activeTab, kActiveTabColor, kPassiveTabColor);
-									SheetCtl::colorChange(*SheetCtl::back_, 2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back_->bxsize, 33 + 16 + 8 + 23 * SheetCtl::activeTab, kActiveTextColor, kPassiveTextColor);
-									SheetCtl::back_->refresh(2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back_->bxsize, 33 + 16 + 8 + 23 * SheetCtl::activeTab);
-									
-									SheetCtl::window_[SheetCtl::activeTab]->upDown(-1);
-									SheetCtl::window_[i]->upDown(1);
-									
-									SheetCtl::activeTab = i;
-								}
+						}
+						
+						// 各シートの onClick イベントを発動
+						for (int i = SheetCtl::top_ - 1; i >= 0; --i) {
+							Sheet &sht = *SheetCtl::sheets_[i];
+							if (sht.onClick
+							&& sht.vx0 <= mdec_.x_ && mdec_.x_ <= sht.vx0 + sht.bxsize
+							&& sht.vy0 <= mdec_.y_ && mdec_.y_ <= sht.vy0 + sht.bysize) {
+								sht.onClick(mdec_.x_, mdec_.y_);
+								break;
 							}
 						}
 					} else if (mdec_.btn_ & 0x02 && SheetCtl::context_menu_->height < 0) {	// On right click
+						// Open the context menu
 						SheetCtl::context_menu_->slide(mdec_.x_ - SheetCtl::context_menu_->bxsize / 2, mdec_.y_ - SheetCtl::context_menu_->bysize / 2);
 						SheetCtl::context_menu_->upDown(SheetCtl::top_);
 					}

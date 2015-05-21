@@ -3,7 +3,7 @@
 
 Task *SheetCtl::refreshTask = nullptr;
 
-Sheet::Sheet(int x, int y, bool inv) : buf(new unsigned int[x * y]), bxsize(x), bysize(y), trans(inv) {}
+Sheet::Sheet(int x, int y, bool inv, void (*click)()) : buf(new unsigned int[x * y]), bxsize(x), bysize(y), trans(inv), onClick(click) {}
 
 Sheet::~Sheet() {
 	if (height >= 0) upDown(-1);
@@ -73,11 +73,10 @@ void Sheet::upDown(int height) {
 
 // シートのリフレッシュ
 void Sheet::refresh(int bx0, int by0, int bx1, int by1) {
-	/*if (height >= 0) {	// 非表示シートはリフレッシュしない
+	if (height >= 0) {	// 非表示シートはリフレッシュしない
 		SheetCtl::refreshMap(vx0 + bx0, vy0 + by0, vx0 + bx1, vy0 + by1, height);
 		SheetCtl::refreshSub(vx0 + bx0, vy0 + by0, vx0 + bx1, vy0 + by1, height);
-	}*/
-	SheetCtl::refreshTask->queue_->push(TaskController::getNowTask()->level_);
+	}
 }
 
 // シートを移動
@@ -129,29 +128,30 @@ void SheetCtl::init() {
 	for (int i = 0; i < kMaxSheets; ++i) {
 		sheets0_[i].flags = false; /* 未使用マーク */
 	}
-	refreshTask = new Task("VRAM Refresh Task", 2, 2, 256, []() {
-		Task *task = TaskController::getNowTask();
-		
-		for (;;) {
-			Cli();
-			if (task->queue_->isempty()) {
-				task->sleep();
-				Sti();
-			} else {
-				int level = task->queue_->pop();
-				Sti();
-				task->run(level, 2);
-			}
-			SheetCtl::refreshMap(0, 0, SheetCtl::scrnx_ - 1, SheetCtl::scrny_ - 1, SheetCtl::top_);
-			SheetCtl::refreshSub(0, 0, SheetCtl::scrnx_ - 1, SheetCtl::scrny_ - 1, SheetCtl::top_);
-		}
-	});
 
 	/* フォント読み込み */
 	adrfont_ = FAT12::open("japanese.fnt")->read();
 
 	/* サイドバー */
-	back_ = new Sheet(150, scrny_, false);
+	back_ = new Sheet(150, scrny_, false, [](int x, int y) {
+		for (int i = 0; i < SheetCtl::numOfTab; ++i) {
+			if (i != SheetCtl::activeTab && 35 + 23 * i <= y && y < 33 + 16 + 8 + 23 * i) {
+				// 選択したタブ
+				SheetCtl::colorChange(*SheetCtl::back_, 2, 35 + 23 * i, SheetCtl::back_->bxsize, 33 + 16 + 8 + 23 * i, kPassiveTabColor, kActiveTabColor);
+				SheetCtl::colorChange(*SheetCtl::back_, 2, 35 + 23 * i, SheetCtl::back_->bxsize, 33 + 16 + 8 + 23 * i, kPassiveTextColor, kActiveTextColor);
+				SheetCtl::back_->refresh(2, 35 + 23 * i, SheetCtl::back_->bxsize, 33 + 16 + 8 + 23 * i);
+				// アクティブだったタブ
+				SheetCtl::colorChange(*SheetCtl::back_, 2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back_->bxsize, 33 + 16 + 8 + 23 * SheetCtl::activeTab, kActiveTabColor, kPassiveTabColor);
+				SheetCtl::colorChange(*SheetCtl::back_, 2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back_->bxsize, 33 + 16 + 8 + 23 * SheetCtl::activeTab, kActiveTextColor, kPassiveTextColor);
+				SheetCtl::back_->refresh(2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back_->bxsize, 33 + 16 + 8 + 23 * SheetCtl::activeTab);
+				
+				SheetCtl::window_[SheetCtl::activeTab]->upDown(-1);
+				SheetCtl::window_[i]->upDown(1);
+				
+				SheetCtl::activeTab = i;
+			}
+		}
+	});
 	// 背景色
 	fillRect(back_, kBackgroundColor, 0, 0, back_->bxsize, back_->bysize);
 	// 戻る・進むボタン枠
