@@ -6,7 +6,7 @@ using namespace HTML;
 const Document &TreeConstructor::construct(Queue<shared_ptr<Token>> &tokens) {
 	Mode mode = Mode::Initial;
 	unique_ptr<Token> token;
-	Stack<shared_ptr<Element>> openTags(256); // stack of open elements
+	Stack<shared_ptr<Node>> openTags(256); // stack of open elements
 	bool scripting = false; // scripting flag
 	
 	if (tokens.isempty()) return document;
@@ -46,7 +46,7 @@ const Document &TreeConstructor::construct(Queue<shared_ptr<Token>> &tokens) {
 			case Mode::BeforeHtml: {
 				auto actAsAnythingElse = [&] {
 					// Create an html element. Append it to the Document object. Put this element in the stack of open elements.
-					shared_ptr<Element> elem(new Element(token->data));
+					shared_ptr<Node> elem(new Element(token->data));
 					document.appendChild(elem);
 					openTags.push(elem);
 	
@@ -72,7 +72,7 @@ const Document &TreeConstructor::construct(Queue<shared_ptr<Token>> &tokens) {
 					case Token::Type::StartTag:
 						if (token->data == "html") {
 							// Create an element for the token in the HTML namespace.
-							shared_ptr<Element> elem(new Element(token->data));
+							shared_ptr<Node> elem(new Element(token->data));
 							// Append it to the Document object.
 							document.appendChild(elem);
 							// Put this element in the stack of open elements.
@@ -145,7 +145,7 @@ const Document &TreeConstructor::construct(Queue<shared_ptr<Token>> &tokens) {
 							continue;
 						} else if (token->data == "head") {
 							// Insert an HTML element for the token.
-							shared_ptr<Element> elem(new Element(token->data));
+							shared_ptr<Node> elem(new Element(token->data));
 							document.appendChild(elem);
 							openTags.push(elem);
 							
@@ -250,7 +250,7 @@ const Document &TreeConstructor::construct(Queue<shared_ptr<Token>> &tokens) {
 						if (token->data == "html") {
 							
 						} else if (token->data == "body") {
-							document.appendChild(shared_ptr<Element>(new Element(token->data)));
+							document.appendChild(shared_ptr<Node>(new Element(token->data)));
 							
 							// Set the frameset-ok flag to "not ok".
 							

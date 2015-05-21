@@ -15,9 +15,7 @@ protected:
 	// dummy の prev が head で，next が tail
 	
 public:
-	List() {
-		dummy = new Node();
-	}
+	List() : dummy(new Node()) {}
 	
 	virtual ~List() {
 		// dummy から順に解放
@@ -40,7 +38,7 @@ public:
 		return dummy->next->data;
 	}
 	
-	void append(T data) {
+	void append(const T &data) {
 		Node *node = new Node(data, dummy->next);
 		if (!dummy->prev) {
 			// 空だったとき head も tail も node

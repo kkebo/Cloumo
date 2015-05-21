@@ -3,13 +3,15 @@
 
 namespace HTML {
 	class Element : public Node {
-	public:
+	private:
 		string tagName;
 		string id;
 		string className;
-		
+	
+	public:
 		//Element() {}
 		Element(const string &name);
+		const string &getTagName();
 	};
 }
 
