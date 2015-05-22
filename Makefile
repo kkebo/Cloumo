@@ -3,7 +3,6 @@ OBJS = \
 	kernel/int.o \
 	kernel/descriptor.o \
 	kernel/memory.o \
-	kernel/browser.o \
 	kernel/multitask.o \
 	kernel/timer.o \
 	kernel/datetime.o \
@@ -15,9 +14,6 @@ OBJS = \
 	kernel/HTMLToken.o \
 	kernel/HTMLTokenizer.o \
 	kernel/HTMLNode.o \
-	kernel/HTMLElement.o \
-	kernel/HTMLTextNode.o \
-	kernel/HTMLDocument.o \
 	kernel/HTMLTreeConstructor.o \
 	kernel/File.o \
 	driver/FAT12.o \

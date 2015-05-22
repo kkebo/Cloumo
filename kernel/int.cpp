@@ -87,5 +87,5 @@ void IntHandler2c(int *esp) {
 	/* IRQ-02受付完了をPIC0に通知 */
 	Output8(kPic0Ocw2, 0x62);
 
-	Mouse::queue_->push(Input8(kPortKeyData));
+	Mouse::queue->push(Input8(kPortKeyData));
 }

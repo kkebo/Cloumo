@@ -3,7 +3,6 @@ OBJS = \
 	int.o \
 	descriptor.o \
 	memory.o \
-	browser.o \
 	multitask.o \
 	timer.o \
 	datetime.o \
@@ -15,9 +14,6 @@ OBJS = \
 	HTMLToken.o \
 	HTMLTokenizer.o \
 	HTMLNode.o \
-	HTMLElement.o \
-	HTMLTextNode.o \
-	HTMLDocument.o \
 	HTMLTreeConstructor.o \
 	File.o
 DEPS = $(OBJS:%.o=%.d)

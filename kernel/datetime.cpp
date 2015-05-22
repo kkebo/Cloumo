@@ -41,8 +41,8 @@ void DateTime::Main() {
 	} else {
 		sprintf(s, "AM %02d:%02d", t_[2], t_[1]);
 	}
-	SheetCtl::drawString(SheetCtl::back_, 2, SheetCtl::back_->bysize - 18, Rgb(255, 255, 255), s);
-	SheetCtl::back_->refresh(2, SheetCtl::back_->bysize - 18, 2 + 8 * 8, SheetCtl::back_->bysize - 2);
+	SheetCtl::drawString(SheetCtl::back, 2, SheetCtl::back->frame.vector.y - 18, Rgb(255, 255, 255), s);
+	SheetCtl::back->refresh(Rect(2, SheetCtl::back->frame.vector.y - 18, 8 * 8, 16));
 	
 	for (;;) {
 		Cli();
@@ -54,9 +54,9 @@ void DateTime::Main() {
 				} else {
 					sprintf(s, "AM %02d:%02d", t_[2], t_[1]);
 				}
-				SheetCtl::fillRect(SheetCtl::back_, Rgb(0, 84, 255), 2, SheetCtl::back_->bysize - 18, 2 + 8 * 8, SheetCtl::back_->bysize - 2);
-				SheetCtl::drawString(SheetCtl::back_, 2, SheetCtl::back_->bysize - 18, Rgb(255, 255, 255), s);
-				SheetCtl::back_->refresh(2, SheetCtl::back_->bysize - 18, 2 + 8 * 8, SheetCtl::back_->bysize - 2);
+				SheetCtl::fillRect(SheetCtl::back, Rgb(0, 84, 255), 2, SheetCtl::back->frame.vector.y - 18, 2 + 8 * 8, SheetCtl::back->frame.vector.y - 2);
+				SheetCtl::drawString(SheetCtl::back, 2, SheetCtl::back->frame.vector.y - 18, Rgb(255, 255, 255), s);
+				SheetCtl::back->refresh(Rect(2, SheetCtl::back->frame.vector.y - 18, 8 * 8, 16));
 				timechk = false;
 			} else {
 				task->sleep();

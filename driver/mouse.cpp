@@ -1,7 +1,6 @@
 #include "../headers.h"
-#include <stdio.h>
 
-const char *Mouse::cursor_[] = {
+const char *Mouse::cursor[] = {
 	"*****OOOOOO*****",
 	"***OO@@@@@@OO***",
 	"**O@@@GCCG@@@O**",
@@ -19,13 +18,12 @@ const char *Mouse::cursor_[] = {
 	"***OO@@@@@@OO***",
 	"*****OOOOOO*****"
 };
-bool Mouse::scroll_ = false;
-int Mouse::new_mx_ = -1;
-int Mouse::new_my_ = 0;
-Sheet *Mouse::sheet_ = nullptr;
-TaskQueue *Mouse::queue_ = nullptr;
-MouseDecode Mouse::mdec_;
-Task *Mouse::browserTask = nullptr;
+bool Mouse::scroll = false;
+Point Mouse::newCod;
+Sheet *Mouse::sheet = nullptr;
+TaskQueue *Mouse::queue = nullptr;
+MouseDecode Mouse::mdec;
+//Task *Mouse::browserTask = nullptr;
 
 void Mouse::Main() {
 	Task *task = TaskController::getNowTask();
@@ -33,44 +31,43 @@ void Mouse::Main() {
 	int dx, dy;
 	
 	// メンバ初期化
-	mdec_.x_ = SheetCtl::scrnx_ / 2;
-	mdec_.y_ = SheetCtl::scrny_ / 2;
-	mdec_.phase_ = 0;
-	mdec_.scroll_ = 0;
-	queue_ = task->queue_;
+	newCod = Point(-1, 0);
+	mdec.cod = Point(SheetCtl::scrnx / 2, SheetCtl::scrny / 2);
+	mdec.phase = 0;
+	mdec.scroll = 0;
+	queue = task->queue_;
 	
 	// マウスポインタ描画
-	Mouse::sheet_ = new Sheet(16, 16, true);
+	Mouse::sheet = new Sheet(Vector(16, 16), true);
 	for (int y = 0; y < 16; ++y) {
 		for (int x = 0; x < 16; ++x) {
-			switch (Mouse::cursor_[x][y]) {
+			switch (Mouse::cursor[x][y]) {
 				case 'O':
-					Mouse::sheet_->buf[y * 16 + x] = Rgb(255, 255, 255, 100);
+					Mouse::sheet->buf[y * 16 + x] = Rgb(255, 255, 255, 100);
 					break;
 				case '@':
-					Mouse::sheet_->buf[y * 16 + x] = Rgb(12, 69, 255, 100);
+					Mouse::sheet->buf[y * 16 + x] = Rgb(12, 69, 255, 100);
 					break;
 				case 'G':
-					Mouse::sheet_->buf[y * 16 + x] = Rgb(27, 81, 255, 100);
+					Mouse::sheet->buf[y * 16 + x] = Rgb(27, 81, 255, 100);
 					break;
 				case 'J':
-					Mouse::sheet_->buf[y * 16 + x] = Rgb(58, 104, 255, 100);
+					Mouse::sheet->buf[y * 16 + x] = Rgb(58, 104, 255, 100);
 					break;
 				case 'C':
-					Mouse::sheet_->buf[y * 16 + x] = Rgb(73, 116, 255, 100);
+					Mouse::sheet->buf[y * 16 + x] = Rgb(73, 116, 255, 100);
 					break;
 				case 'U':
-					Mouse::sheet_->buf[y * 16 + x] = Rgb(0, 182, 200, 100);
+					Mouse::sheet->buf[y * 16 + x] = Rgb(0, 182, 200, 100);
 					break;
 				default:
-					Mouse::sheet_->buf[y * 16 + x] = kTransColor;
+					Mouse::sheet->buf[y * 16 + x] = kTransColor;
 					break;
 			}
 		}
 	}
-	Mouse::sheet_->vx0 = mdec_.x_ - 8;
-	Mouse::sheet_->vy0 = mdec_.y_ - 8;
-	Mouse::sheet_->upDown(SheetCtl::top_ + 1);
+	Mouse::sheet->frame.offset = mdec.cod;
+	Mouse::sheet->upDown(SheetCtl::top + 1);
 	
 	// マウス初期化 by uchan
 	int i = 0;
@@ -134,21 +131,21 @@ void Mouse::Main() {
 			}
 		}
 		Cli();
-		if (queue_->isempty()) {
+		if (queue->isempty()) {
 			task->sleep();
 			Sti();
 		} else {
-			int data = queue_->pop();
+			int data = queue->pop();
 			Sti();
 			
 			if (0 <= i && i <= 6 && data == 0xfa) {
 				// 正常に ACK が来た
 			} else if (i == 7 && data == 0) {
 				// ホイール無し
-				scroll_ = false;
+				scroll = false;
 			} else if (i == 7 && data == 3) {
 				// ホイール有り
-				scroll_ = true;
+				scroll = true;
 			}
 			
 			if (i == 7 || errors > 10) {
@@ -172,105 +169,101 @@ void Mouse::Main() {
 
 	for (;;) {
 		Cli();
-		if (queue_->isempty()) {
-			if (Mouse::new_mx_ >= 0) {
+		if (queue->isempty()) {
+			if (newCod.x >= 0) {
 				Sti();
-				Mouse::sheet_->slide(Mouse::new_mx_ - 8, Mouse::new_my_ - 8);
-				Mouse::new_mx_ = -1;
+				sheet->slide(newCod + Point(-8, -8));
+				newCod.x = -1;
 			} else {
 				task->sleep();
 				Sti();
 			}
 		} else {
-			code = queue_->pop();
+			code = queue->pop();
 			Sti();
-			switch (mdec_.phase_) {
+			switch (mdec.phase) {
 				case 0:
-					if (code == 0xfa) ++mdec_.phase_;
+					if (code == 0xfa) ++mdec.phase;
 					break;
 				case 1:
 					if ((code & 0xc8) == 0x08) {
-						mdec_.buf_[0] = code;
-						++mdec_.phase_;
+						mdec.buf[0] = code;
+						++mdec.phase;
 					}
 					break;
 				case 2:
-					mdec_.buf_[1] = code;
-					++mdec_.phase_;
+					mdec.buf[1] = code;
+					++mdec.phase;
 					break;
 				case 3:
-					mdec_.buf_[2] = code;
+					mdec.buf[2] = code;
 					
-					if (scroll_) {
-						++mdec_.phase_;
+					if (scroll) {
+						++mdec.phase;
 					} else {
-						mdec_.phase_ = 1;
+						mdec.phase = 1;
 					}
 					
-					mdec_.btn_ = mdec_.buf_[0] & 0x07;
-					dx = mdec_.buf_[1];
-					dy = mdec_.buf_[2];
+					mdec.btn = mdec.buf[0] & 0x07;
+					dx = mdec.buf[1];
+					dy = mdec.buf[2];
 					
-					if (mdec_.buf_[0] & 0x10) dx |= 0xffffff00;
-					if (mdec_.buf_[0] & 0x20) dy |= 0xffffff00;
-					mdec_.x_ += dx;
-					mdec_.y_ -= dy;
-					if (mdec_.x_ < 0) mdec_.x_ = 0;
-					if (mdec_.y_ < 0) mdec_.y_ = 0;
-					if (mdec_.x_ > SheetCtl::scrnx_ - 1) {
-						mdec_.x_ = SheetCtl::scrnx_ - 1;
+					if (mdec.buf[0] & 0x10) dx |= 0xffffff00;
+					if (mdec.buf[0] & 0x20) dy |= 0xffffff00;
+					mdec.cod += Point(dx, -dy);
+					if (mdec.cod.x < 0) mdec.cod.x = 0;
+					if (mdec.cod.y < 0) mdec.cod.y = 0;
+					if (mdec.cod.x > SheetCtl::scrnx - 1) {
+						mdec.cod.x = SheetCtl::scrnx - 1;
 					}
-					if (mdec_.y_ > SheetCtl::scrny_ - 1) {
-						mdec_.y_ = SheetCtl::scrny_ - 1;
+					if (mdec.cod.y > SheetCtl::scrny - 1) {
+						mdec.cod.y = SheetCtl::scrny - 1;
 					}
-					new_mx_ = mdec_.x_;
-					new_my_ = mdec_.y_;
+					newCod = mdec.cod;
 					
-					if (mdec_.btn_ & 0x01) {	// On left click
+					if (mdec.btn & 0x01) {	// On left click
 						// Close the context menu
-						if (SheetCtl::context_menu_->height > 0) {
-							SheetCtl::context_menu_->upDown(-1);
+						if (SheetCtl::contextMenu->height > 0) {
+							SheetCtl::contextMenu->upDown(-1);
 						}
 						
 						// 各シートの onClick イベントを発動
-						for (int i = SheetCtl::top_ - 1; i >= 0; --i) {
-							Sheet &sht = *SheetCtl::sheets_[i];
-							if (sht.onClick
-							&& sht.vx0 <= mdec_.x_ && mdec_.x_ <= sht.vx0 + sht.bxsize
-							&& sht.vy0 <= mdec_.y_ && mdec_.y_ <= sht.vy0 + sht.bysize) {
-								sht.onClick(mdec_.x_, mdec_.y_);
+						for (int i = SheetCtl::top - 1; i >= 0; --i) {
+							Sheet &sht = *SheetCtl::sheets[i];
+							if (sht.onClick && sht.frame.contains(mdec.cod)) {
+								sht.onClick(mdec.cod);
 								break;
 							}
 						}
-					} else if (mdec_.btn_ & 0x02 && SheetCtl::context_menu_->height < 0) {	// On right click
+					} else if (mdec.btn & 0x02 && SheetCtl::contextMenu->height < 0) {	// On right click
 						// Open the context menu
-						SheetCtl::context_menu_->slide(mdec_.x_ - SheetCtl::context_menu_->bxsize / 2, mdec_.y_ - SheetCtl::context_menu_->bysize / 2);
-						SheetCtl::context_menu_->upDown(SheetCtl::top_);
+						SheetCtl::contextMenu->slide(mdec.cod - SheetCtl::contextMenu->frame.vector / 2);
+						SheetCtl::contextMenu->upDown(SheetCtl::top);
 					}
 					break;
 				case 4:
-					mdec_.buf_[3] = code;
-					mdec_.phase_ = 1;
+					mdec.buf[3] = code;
+					mdec.phase = 1;
 					
-					// mdec_.buf_[3]は、下位4ビットだけが有効な値である
+					// mdec.buf[3]は、下位4ビットだけが有効な値である
 					// とりあえず解析せずに値をしまう。
-					mdec_.scroll_ = mdec_.buf_[3] & 0x0f;
-					if (mdec_.scroll_ & 0x08) {
+					mdec.scroll = mdec.buf[3] & 0x0f;
+					if (mdec.scroll & 0x08) {
 						// マイナスの値だった
-						mdec_.scroll_ |= 0xfffffff0;
+						mdec.scroll |= 0xfffffff0;
 					}
 					
 					// とりあえず表示
 					/*char str[20];
-					sprintf(str, "%d", mdec_.scroll_);
+					sprintf(str, "%d", mdec.scroll);
 					SheetCtl::fillRect(SheetCtl::back_, Rgb(255, 255, 255), 2, 300, SheetCtl::back_->bxsize - 3, 316);
 					SheetCtl::drawString(SheetCtl::back_, 2, 300, 0, str);
 					SheetCtl::refresh(SheetCtl::back_, 2, 300, SheetCtl::back_->bxsize - 3, 316);*/
 					
 					// スクロール
-					if (browserTask && (mdec_.scroll_ == 1 || mdec_.scroll_ == -1)) {
-						browserTask->queue_->push(mdec_.scroll_);
-					}
+					//if (browserTask && (mdec.scroll == 1 || mdec.scroll == -1)) {
+					//	browserTask->queue_->push(mdec.scroll);
+					//}
 					
 					break;
 			}

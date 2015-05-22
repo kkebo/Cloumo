@@ -8,28 +8,28 @@
 const int kKeyCmdSendToMouse = 0xd4;
 const int kMouseCmdEnable = 0xf4;
 
-class Browser;
+//class Browser;
 
 struct MouseDecode {
-	unsigned char buf_[4];
-	unsigned char phase_;
-	int x_, y_;
-	int btn_;
-	int scroll_;
+	unsigned char buf[4];
+	unsigned char phase;
+	Point cod;
+	int btn;
+	int scroll;
 };
 
 class Mouse {
 private:
-	static const char *cursor_[];
-	static Sheet *sheet_;
-	static MouseDecode mdec_;
-	static bool scroll_;
-	static int new_mx_, new_my_;
+	static const char *cursor[];
+	static Sheet *sheet;
+	static MouseDecode mdec;
+	static bool scroll;
+	static Point newCod;
 	static int scroll_x, scroll_y;
 
 public:
-	static TaskQueue *queue_;
-	static Task *browserTask;
+	static TaskQueue *queue;
+	//static Task *browserTask;
 
 public:
 	static void Main();

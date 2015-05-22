@@ -1,5 +1,4 @@
 #include "../headers.h"
-#include <SmartPointer.h>
 
 using namespace HTML;
 
