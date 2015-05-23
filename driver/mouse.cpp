@@ -19,9 +19,9 @@ const char *Mouse::cursor[] = {
 	"*****OOOOOO*****"
 };
 bool Mouse::scroll = false;
-Point Mouse::newCod;
-Sheet *Mouse::sheet = nullptr;
-TaskQueue *Mouse::queue = nullptr;
+Point Mouse::newPos;
+Sheet *Mouse::sheet;
+TaskQueue *Mouse::queue;
 MouseDecode Mouse::mdec;
 //Task *Mouse::browserTask = nullptr;
 
@@ -31,11 +31,11 @@ void Mouse::Main() {
 	int dx, dy;
 	
 	// メンバ初期化
-	newCod = Point(-1, 0);
-	mdec.cod = Point(SheetCtl::scrnx / 2, SheetCtl::scrny / 2);
+	newPos = Point(-1, 0);
+	mdec.pos = Point(SheetCtl::scrnx / 2, SheetCtl::scrny / 2);
 	mdec.phase = 0;
 	mdec.scroll = 0;
-	queue = task->queue_;
+	queue = task->queue;
 	
 	// マウスポインタ描画
 	Mouse::sheet = new Sheet(Vector(16, 16), true);
@@ -66,7 +66,7 @@ void Mouse::Main() {
 			}
 		}
 	}
-	Mouse::sheet->frame.offset = mdec.cod;
+	Mouse::sheet->frame.offset = mdec.pos;
 	Mouse::sheet->upDown(SheetCtl::top + 1);
 	
 	// マウス初期化 by uchan
@@ -170,10 +170,10 @@ void Mouse::Main() {
 	for (;;) {
 		Cli();
 		if (queue->isempty()) {
-			if (newCod.x >= 0) {
+			if (newPos.x >= 0) {
 				Sti();
-				sheet->slide(newCod + Point(-8, -8));
-				newCod.x = -1;
+				sheet->slide(newPos + Point(-8, -8));
+				newPos.x = -1;
 			} else {
 				task->sleep();
 				Sti();
@@ -210,16 +210,16 @@ void Mouse::Main() {
 					
 					if (mdec.buf[0] & 0x10) dx |= 0xffffff00;
 					if (mdec.buf[0] & 0x20) dy |= 0xffffff00;
-					mdec.cod += Point(dx, -dy);
-					if (mdec.cod.x < 0) mdec.cod.x = 0;
-					if (mdec.cod.y < 0) mdec.cod.y = 0;
-					if (mdec.cod.x > SheetCtl::scrnx - 1) {
-						mdec.cod.x = SheetCtl::scrnx - 1;
+					mdec.pos += Point(dx, -dy);
+					if (mdec.pos.x < 0) mdec.pos.x = 0;
+					if (mdec.pos.y < 0) mdec.pos.y = 0;
+					if (mdec.pos.x > SheetCtl::scrnx - 1) {
+						mdec.pos.x = SheetCtl::scrnx - 1;
 					}
-					if (mdec.cod.y > SheetCtl::scrny - 1) {
-						mdec.cod.y = SheetCtl::scrny - 1;
+					if (mdec.pos.y > SheetCtl::scrny - 1) {
+						mdec.pos.y = SheetCtl::scrny - 1;
 					}
-					newCod = mdec.cod;
+					newPos = mdec.pos;
 					
 					if (mdec.btn & 0x01) {	// On left click
 						// Close the context menu
@@ -230,14 +230,14 @@ void Mouse::Main() {
 						// 各シートの onClick イベントを発動
 						for (int i = SheetCtl::top - 1; i >= 0; --i) {
 							Sheet &sht = *SheetCtl::sheets[i];
-							if (sht.onClick && sht.frame.contains(mdec.cod)) {
-								sht.onClick(mdec.cod);
+							if (sht.onClick && sht.frame.contains(mdec.pos)) {
+								sht.onClick(mdec.pos);
 								break;
 							}
 						}
 					} else if (mdec.btn & 0x02 && SheetCtl::contextMenu->height < 0) {	// On right click
 						// Open the context menu
-						SheetCtl::contextMenu->slide(mdec.cod - SheetCtl::contextMenu->frame.vector / 2);
+						SheetCtl::contextMenu->slide(mdec.pos - SheetCtl::contextMenu->frame.vector / 2);
 						SheetCtl::contextMenu->upDown(SheetCtl::top);
 					}
 					break;

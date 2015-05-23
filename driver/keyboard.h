@@ -17,20 +17,19 @@ const int kKeyCmdLED = 0xed;
 
 class KeyboardController {
 private:
-	static unsigned char ascii_table_[];
-	static unsigned char ascii_shift_table_[];
-	static int shift_;
+	static unsigned char asciiTable[];
+	static unsigned char asciiShiftTable[];
+	static int shift;
 	static bool alt;
-	static int leds_;
+	static int leds;
+	static Queue<int> *cmd;
+	static int cmdWait;
+	static TaskQueue *queue;
 
 public:
-	static Queue<int> *cmd_;
-	static int cmd_wait_;
-	static TaskQueue *queue_;
-
-public:
+	friend void IntHandler21(int *esp);
 	static void Main();
-	static void Decode(unsigned char);
+	static void Decode(unsigned char code);
 	static void wait();
 };
 

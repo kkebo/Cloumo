@@ -71,8 +71,6 @@ Global Operators:
 
 extern char stroob;
 
-struct iterator;
-
 struct string{
 	private:
 	//memory related functions
@@ -214,6 +212,8 @@ struct string{
 				iterator& operator++(int);
 				iterator& operator--();
 				iterator& operator--(int);
+				bool operator==(const iterator &it);
+				bool operator!=(const iterator &it);
 				iterator& operator+=(unsigned n);
 				iterator& operator-=(unsigned n);
 				char& operator*();};
@@ -227,6 +227,8 @@ struct string{
 				const_iterator& operator++(int);
 				const_iterator& operator--();
 				const_iterator& operator--(int);
+				bool operator==(const const_iterator &it);
+				bool operator!=(const const_iterator &it);
 				const_iterator& operator+=(unsigned n);
 				const_iterator& operator-=(unsigned n);
 				const char& operator*();};

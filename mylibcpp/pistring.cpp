@@ -127,7 +127,7 @@ int string::comparestr(const char* str,unsigned first,unsigned last,unsigned sta
 		++spos;}
 	if(pos==last+1){
 		return 0;}
-	return str[spos]-data[pos];}
+	return data[pos]-str[spos];}
 string::string(){
 	data=new char[minbuffsize];
 	data[0]=0;
@@ -305,27 +305,27 @@ void string::reverse(){
 		--end;}}
 //compare
 int string::compare(const char* str) const{
-	return comparestr(str,0,datalen,0,strlen(str));}
+	return comparestr(str,0,datalen-1,0,strlen(str)-1);}
 int string::compare(const string& str) const{
-	return comparestr(str.data,0,datalen,0,str.datalen);}
+	return comparestr(str.data,0,datalen-1,0,str.datalen-1);}
 int string::compare(unsigned pos1,unsigned n1,const string& str) const{
-	return comparestr(str.data,pos1,pos1+n1,0,str.datalen);}
+	return comparestr(str.data,pos1,pos1+n1-1,0,str.datalen-1);}
 int string::compare(unsigned pos1,unsigned n1,const char* s) const{
-	return comparestr(s,pos1,pos1+n1,0,strlen(s));}
+	return comparestr(s,pos1,pos1+n1-1,0,strlen(s)-1);}
 int string::compare(unsigned pos1,unsigned n1,const string& str,unsigned pos2,unsigned n2) const{
-	return comparestr(str.data,pos1,pos1+n1,pos2,pos2+n2);}
+	return comparestr(str.data,pos1,pos1+n1-1,pos2,pos2+n2-1);}
 int string::compare(unsigned pos1,unsigned n1,const char* s,unsigned n2) const{
-	return comparestr(s,pos1,pos1+n1,0,n2);}
+	return comparestr(s,pos1,pos1+n1-1,0,n2-1);}
 //iterator functions
 string::iterator& string::iterator::operator++(){
 	++x;
-	if(x>=str->datalen){
-		x=str->datalen-1;}
+	if(x>str->datalen){
+		x=str->datalen;}
 	return *this;}
 string::iterator& string::iterator::operator++(int){
 	++x;
-	if(x>=str->datalen){
-		x=str->datalen-1;}
+	if(x>str->datalen){
+		x=str->datalen;}
 	return *this;}
 string::iterator& string::iterator::operator--(){
 	--x;
@@ -337,10 +337,16 @@ string::iterator& string::iterator::operator--(int){
 	if(x==string::maxint){
 		x=0;}
 	return *this;}
+bool string::iterator::operator==(const string::iterator &it) {
+	return x == it.x;
+}
+bool string::iterator::operator!=(const string::iterator &it) {
+	return x != it.x;
+}
 string::iterator& string::iterator::operator+=(unsigned n){
 	x+=n;
-	if(x>=str->datalen){
-		x=str->datalen-1;}
+	if(x>str->datalen){
+		x=str->datalen;}
 	return *this;}
 string::iterator& string::iterator::operator-=(unsigned n){
 	x-=n;
@@ -352,13 +358,13 @@ char& string::iterator::operator*(){
 // const_iterator functions
 string::const_iterator& string::const_iterator::operator++(){
 	++x;
-	if(x>=str->datalen){
-		x=str->datalen-1;}
+	if(x>str->datalen){
+		x=str->datalen;}
 	return *this;}
 string::const_iterator& string::const_iterator::operator++(int){
 	++x;
-	if(x>=str->datalen){
-		x=str->datalen-1;}
+	if(x>str->datalen){
+		x=str->datalen;}
 	return *this;}
 string::const_iterator& string::const_iterator::operator--(){
 	--x;
@@ -370,10 +376,16 @@ string::const_iterator& string::const_iterator::operator--(int){
 	if(x==maxint){
 		x=0;}
 	return *this;}
+bool string::const_iterator::operator==(const string::const_iterator &it) {
+	return x == it.x;
+}
+bool string::const_iterator::operator!=(const string::const_iterator &it) {
+	return x != it.x;
+}
 string::const_iterator& string::const_iterator::operator+=(unsigned n){
 	x+=n;
-	if(x>=str->datalen){
-		x=str->datalen-1;}
+	if(x>str->datalen){
+		x=str->datalen;}
 	return *this;}
 string::const_iterator& string::const_iterator::operator-=(unsigned n){
 	x-=n;
@@ -395,12 +407,12 @@ string::const_iterator string::begin() const{
 string::iterator string::end(){
 	iterator ret;
 	ret.str=this;
-	ret.x=datalen-1;
+	ret.x=datalen;
 	return ret;}
 string::const_iterator string::end() const{
 	const_iterator ret;
 	ret.str=this;
-	ret.x=datalen-1;
+	ret.x=datalen;
 	return ret;}
 
 //I couldn't use the ones defined in the string class, so I made an obscurely named namespace to hide them

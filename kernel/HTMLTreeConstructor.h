@@ -7,31 +7,7 @@
 namespace HTML {
 	class TreeConstructor {
 	private:
-		enum class Mode {
-			Initial,
-			BeforeHtml,
-			BeforeHead,
-			InHead,
-			InHeadNoscript,
-			AfterHead,
-			InBody,
-			Text,
-			InTable,
-			InTableText,
-			InCaption,
-			InColumnGroup,
-			InTableBody,
-			InRow,
-			InCell,
-			InSelect,
-			InSelectInTable,
-			InTemplate,
-			AfterBody,
-			InFrameset,
-			AfterFrameset,
-			AfterAfterBody,
-			AfterAfterFrameseet
-		};
+		enum class Mode;
 		Document document;
 	
 	public:

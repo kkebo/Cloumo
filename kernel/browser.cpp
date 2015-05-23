@@ -1,15 +1,16 @@
 #include "../headers.h"
 #include <string.h>
 
-Browser::Browser(const char *url) : htmlFile(FAT12::open(url)) {
+Browser::Browser(const char *url) {
 	// ファイル読み込み
-	if (htmlFile) {
-		source = htmlFile->read();
-		size = htmlFile->size();
+	File htmlFile(url);
+	if (htmlFile.open()) {
+		source.reset(htmlFile.read());
+		size = htmlFile.getSize();
 		
 		// 内部シート作成
-		sheet.reset(new Sheet(SheetCtl::scrnx_ - SheetCtl::back_->bxsize - 1, SheetCtl::scrny_ * 3, false));
-		SheetCtl::fillRect(sheet, Rgb(255, 255, 255), 0, 0, sheet->bxsize - 1, sheet->bysize - 1);
+		sheet.reset(new Sheet(Vector(SheetCtl::scrnx_ - SheetCtl::back_->bxsize - 1, SheetCtl::scrny_ * 3), false));
+		sheet->fillRect(Rectangle(sheet->bxsize - 1, sheet->bysize - 1), 0xffffff);
 		
 		// マウスに登録
 		Mouse::browserTask = TaskController::getNowTask();

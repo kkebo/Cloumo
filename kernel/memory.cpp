@@ -1,6 +1,6 @@
 #include "../headers.h"
 
-bool free0(void *, unsigned int);
+bool free0(void *addr, unsigned int size);
 
 void MemoryInit() {
 	MemoryManager *memoryManager = (MemoryManager *)ADDRESS_MEMORY_MANAGER;

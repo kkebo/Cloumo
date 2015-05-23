@@ -13,7 +13,7 @@ const int kMouseCmdEnable = 0xf4;
 struct MouseDecode {
 	unsigned char buf[4];
 	unsigned char phase;
-	Point cod;
+	Point pos;
 	int btn;
 	int scroll;
 };
@@ -24,14 +24,12 @@ private:
 	static Sheet *sheet;
 	static MouseDecode mdec;
 	static bool scroll;
-	static Point newCod;
-	static int scroll_x, scroll_y;
-
-public:
+	static Point newPos;
 	static TaskQueue *queue;
 	//static Task *browserTask;
 
 public:
+	friend void IntHandler2c(int *esp);
 	static void Main();
 };
 

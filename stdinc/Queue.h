@@ -5,6 +5,8 @@
 #ifndef _QUEUE_H_
 #define _QUEUE_H_
 
+#include "../kernel/memory.h"
+
 template <typename T>
 class Queue {
 protected:

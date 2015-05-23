@@ -278,10 +278,10 @@ static int TekDecMain5(int *work, unsigned char *src, int osiz, unsigned char *q
 	lit1 = prb->lit + ((256 << (lc + lp)) - 2);
 	if (stk) {
 		rd->rmsk = -1 << 11;
-		for (i = 0; i < 32; ++i)
-			rd->bm[i].lt = 0; /* 全て寿命なし */
-		for (i = 0; i < 14; ++i)
-			rd->ptbm[i] = &rd->bm[0];
+		for (auto &&bm : rd->bm)
+			bm.lt = 0; /* 全て寿命なし */
+		for (auto &&ptbm : rd->ptbm)
+			ptbm = &rd->bm[0];
 	} else {
 		unsigned char pt[14];
 		static unsigned char pt1[14] = {
@@ -307,11 +307,9 @@ static int TekDecMain5(int *work, unsigned char *src, int osiz, unsigned char *q
 		prb->repg3 = 0xffff;
 		if (flags == -2) { /* z1 */
 			rd->bm[22].lt = 0; /* repg3のltを0に */
-			for (i = 0; i < 14; ++i)
-				pt[i] = pt1[i];
+			memcpy(pt, pt1, sizeof pt1);
 		} else {
-			for (i = 0; i < 14; ++i)
-				pt[i] = pt2[i];
+			memcpy(pt, pt2, sizeof pt2);
 			lit0cntmsk = (7 >> (flags & 3)) << 4 | 8;
 			pt[ 1] =  8 + ((flags & 0x04) != 0); /* mch */
 			pt[ 5] = 12 + ((flags & 0x08) != 0); /* llm */
@@ -322,8 +320,8 @@ static int TekDecMain5(int *work, unsigned char *src, int osiz, unsigned char *q
 			rd->ptbm[i] = &rd->bm[pt[i]];
 		}
 	}
-	for (i = 0; i < 32; ++i) {
-		TekSetBM5(&rd->bm[i], rd->bm[i].t, rd->bm[i].m);
+	for (auto &&bm : rd->bm) {
+		TekSetBM5(&bm, bm.t, bm.m);
 	}
 
 	if ((TekRDGet1(rd, &prb->pb[0].st[0].mch, 0x71, 0, rd->ptbm[0]) ^ stk) == 0) {

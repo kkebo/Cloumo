@@ -1,16 +1,29 @@
 #ifndef _FILE_H_
 #define _FILE_H_
 
+#include <SmartPointer.h>
+#include <pistring.h>
+
 class File {
-public: // private にしたい
-	unsigned char *buf_;
-	FileInfo *info_;
-	int size_;
+private:
+	string name;
+	shared_ptr<unsigned char> buf;
+	int size;
 
 public:
-	~File();
-	unsigned char *read();
-	int size();
+	File() = default;
+	File(const string &name_) : name(name_) {}
+	bool open();
+	bool open(const string &fileName);
+	inline const shared_ptr<unsigned char> &File::read() {
+		return buf;
+	}
+	inline const string &getName() {
+		return name;
+	}
+	inline int File::getSize() {
+		return size;
+	}
 };
 
 #endif

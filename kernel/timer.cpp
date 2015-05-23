@@ -1,57 +1,61 @@
 #include "../headers.h"
 
-Timer::Timer(TaskQueue *queue) {
-	queue_ = queue;
+unsigned int TimerController::count = 0;
+unsigned int TimerController::next = 0xffffffff;
+Timer TimerController::timers0[MAX_TIMER];
+Timer *TimerController::t0 = &TimerController::timers0[0];
+
+Timer::Timer(TaskQueue *queue_) : queue(queue_) {
 	for (int i = 0; i < MAX_TIMER; ++i) {
-		if (this == &TimerController::timers0_[i]) {
-			data_ = i;
+		if (this == &TimerController::timers0[i]) {
+			data = i;
 			return;
 		}
 	}
 }
 
-Timer::Timer(TaskQueue *queue, int data) {
-	queue_ = queue;
-	data_ = data;
-}
+Timer::Timer(TaskQueue *queue_, int data_) : queue(queue_), data(data_) {}
 
 Timer::~Timer() {
-	flags_ = TimerFlag::Free;
+	cancel();
+	flags = TimerFlag::Free;
 }
 
-void *Timer::operator new(size_t size){
-	for (int i = 0; i < MAX_TIMER; ++i) {
-		if (TimerController::timers0_[i].flags_ == TimerFlag::Free) {
-			TimerController::timers0_[i].flags_ = TimerFlag::Reserved;
-			return &TimerController::timers0_[i];
+void *Timer::operator new(size_t){
+	// 0: TimerController::t0
+	// 1: TaskController::timer
+	for (auto &&timer : TimerController::timers0) {
+		if (timer.flags == TimerFlag::Free) {
+			timer.flags = TimerFlag::Reserved;
+			return &timer;
 		}
 	}
 	// 空きがない
 	return nullptr;
 }
 
-void Timer::set(unsigned int timeout) {
+void Timer::set(unsigned int newTimeout) {
 	int e = LoadEflags();
 	Cli();
-	if (flags_ == TimerFlag::Reserved) {
+	if (flags == TimerFlag::Reserved) {
 		Timer *timer0, *timer1;
-		timeout_ = timeout + TimerController::count_; // 絶対時間に変換
-		flags_ = TimerFlag::Running;
-		timer0 = TimerController::t0_;
+		timeout = newTimeout + TimerController::count; // 絶対時間に変換
+		flags = TimerFlag::Running;
+		timer0 = TimerController::t0;
 	
-		if (timeout_ <= timer0->timeout_) {
+		if (timeout <= timer0->timeout) {
 			// 先頭に入る
-			TimerController::t0_ = this;
-			next_ = timer0;
-			TimerController::next_ = timeout_;
+			TimerController::t0 = this;
+			next = timer0;
+			TimerController::next = timeout;
 		} else {
 			// this が入る位置を決める
 			do {
 				timer1 = timer0;
-				timer0 = timer0->next_;
-			} while (timeout_ > timer0->timeout_);
-			timer1->next_ = this;
-			next_ = timer0;
+				timer0 = timer0->next;
+			} while (timeout > timer0->timeout);
+			timer1->next = this;
+			next = timer0;
 		}
 	}
 	StoreEflags(e);
@@ -60,20 +64,20 @@ void Timer::set(unsigned int timeout) {
 bool Timer::cancel() {
 	int e = LoadEflags();
 	Cli();
-	if (flags_ == TimerFlag::Running) {
-		if (this == TimerController::t0_) {
+	if (flags == TimerFlag::Running) {
+		if (this == TimerController::t0) {
 			// 先頭だった場合
-			TimerController::t0_ = next_;
-			TimerController::next_ = next_->timeout_;
+			TimerController::t0 = next;
+			TimerController::next = next->timeout;
 		} else {
 			// 1つ前と1つ後をつなげる
-			Timer *timer = TimerController::t0_;
-			while (timer->next_ != this) {
-				timer = timer->next_;
+			Timer *timer = TimerController::t0;
+			while (timer->next != this) {
+				timer = timer->next;
 			}
-			timer->next_ = next_;
+			timer->next = next;
 		}
-		flags_ = TimerFlag::Reserved;
+		flags = TimerFlag::Reserved;
 		StoreEflags(e);
 		return true;
 	}
@@ -82,29 +86,20 @@ bool Timer::cancel() {
 }
 
 // getter of data_
-int Timer::data() {
-	return data_;
+int Timer::getData() {
+	return data;
 }
 
-unsigned int TimerController::count_ = 0;
-unsigned int TimerController::next_ = 0xffffffff;
-Timer *TimerController::t0_ = nullptr;
-Timer *TimerController::timers0_ = nullptr;
-
 void TimerController::init() {
+	// Initialize PIT
 	Output8(PIT_CTRL, 0x34);
 	Output8(PIT_CNT0, 0x9c);
 	Output8(PIT_CNT0, 0x2e);
 
-	timers0_ = ::new Timer[MAX_TIMER];
-	for (int i = 0; i < MAX_TIMER; ++i) {
-		timers0_[i].flags_ = TimerFlag::Free;
-	}
-
-	t0_ = &timers0_[0];
-	t0_->timeout_ = 0xffffffff;
-	t0_->flags_ = TimerFlag::Running;
-	t0_->next_ = 0;
+	// Initialize member variables
+	t0->timeout = 0xffffffff;
+	t0->flags = TimerFlag::Running;
+	t0->next = 0;
 }
 
 // count_ をリセット (これじゃだめだった)
@@ -112,14 +107,13 @@ void TimerController::init() {
 	int e = LoadEflags();
 	Cli();
 	
-	int lastcount = count_;
-	count_ = 0;
+	int lastcount = count;
+	count = 0;
 
 	// t0 以外の動作中のタイマーを調整
-	for (int i = 1; i < MAX_TIMER; ++i) {
-		Timer &timer = timers0_[i];
-		if (timer.flags_ == TimerFlag::Running) {
-			timer.timeout_ -= lastcount;
+	for (auto &&timer : timers0) {
+		if (timer.flags == TimerFlag::Running) {
+			timer.timeout -= lastcount;
 		}
 	}
 	

@@ -9,13 +9,7 @@ namespace HTML {
 	class Token {
 	private:
 		// for StartTag and EndTag
-		struct Attribute {
-		public:
-			string name;
-			string value;
-			
-			Attribute(string _name, string _value);
-		};
+		struct Attribute;
 		bool selfClosingFlag = false;
 		List<shared_ptr<Attribute>> attributes;
 	

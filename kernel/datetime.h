@@ -9,8 +9,8 @@ class Timer;
 
 class DateTime {
 private:
-	static unsigned char t_[];
-	static Timer *timer_;
+	static unsigned char now[];
+	static Timer *timer;
 
 public:
 	static void Main();

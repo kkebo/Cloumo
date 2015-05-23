@@ -1,6 +1,6 @@
 #include "../headers.h"
 
-unsigned char KeyboardController::ascii_table_[0x80] = {
+unsigned char KeyboardController::asciiTable[0x80] = {
 	0,   0,   '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '^', 0/*0x08*/, 0,
 	'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '@', '[', 0/*0x0a*/, 0, 'a', 's',
 	'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', ':', 0,   0,   ']', 'z', 'x', 'c', 'v',
@@ -10,7 +10,7 @@ unsigned char KeyboardController::ascii_table_[0x80] = {
 	0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
 	0,   0,   0,   0x5c, 0,  0,   0,   0,   0,   0,   0,   0,   0,   0x5c, 0,  0
 };
-unsigned char KeyboardController::ascii_shift_table_[0x80] = {
+unsigned char KeyboardController::asciiShiftTable[0x80] = {
 	0,   0,   '!', 0x22, '#', '$', '%', '&', 0x27, '(', ')', '~', '=', '~', 0/*0x08*/, 0,
 	'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '`', '{', 0/*0x0a*/, 0, 'A', 'S',
 	'D', 'F', 'G', 'H', 'J', 'K', 'L', '+', '*', 0,   0,   '}', 'Z', 'X', 'C', 'V',
@@ -20,12 +20,12 @@ unsigned char KeyboardController::ascii_shift_table_[0x80] = {
 	0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
 	0,   0,   0,   '_', 0,   0,   0,   0,   0,   0,   0,   0,   0,   '|', 0,   0
 };
-int KeyboardController::shift_ = 0;
+int KeyboardController::shift = 0;
 bool KeyboardController::alt = false;
-int KeyboardController::cmd_wait_ = -1;
-int KeyboardController::leds_ = 0;
-Queue<int> *KeyboardController::cmd_ = nullptr;
-TaskQueue *KeyboardController::queue_ = nullptr;
+int KeyboardController::cmdWait = -1;
+int KeyboardController::leds = 0;
+Queue<int> *KeyboardController::cmd;
+TaskQueue *KeyboardController::queue;
 
 void KeyboardController::Main() {
 	Task *task = TaskController::getNowTask();
@@ -36,37 +36,37 @@ void KeyboardController::Main() {
 	wait();
 	Output8(kPortKeyData, kKBCMode);
 	
-	// メンバ初期化
+	// メンバ変数初期化
+	cmd = new Queue<int>(32);
 	BootInfo *binfo = (BootInfo *)ADDRESS_BOOTINFO;
-	leds_ = (binfo->leds >> 4) & 7;
-	queue_ = task->queue_;
-	cmd_ = new Queue<int>(32);
+	leds = (binfo->leds >> 4) & 7;
+	queue = task->queue;
 	
 	// キャレットの表示とタイマー設定
-	SheetCtl::drawLine(SheetCtl::back, SheetCtl::tbox_col_, SheetCtl::tbox_cpos_ + 2, SheetCtl::back->frame.vector.y - 20 - 22 + 2, SheetCtl::tbox_cpos_ + 2, SheetCtl::back->frame.vector.y - 20 - 2);
-	SheetCtl::back->refresh(Rect(SheetCtl::tbox_cpos_ + 2, SheetCtl::back->frame.vector.y - 20 - 22 + 2, 1, 18));
-	SheetCtl::tbox_col_ = Rgb(255, 255, 255);
-	SheetCtl::tbox_timer_ = new Timer(task->queue_, 256);
-	SheetCtl::tbox_timer_->set(50);
+	SheetCtl::back->drawLine(Line(SheetCtl::caretPosition + 2, SheetCtl::back->frame.vector.y - 20 - 22 + 2, 0, 18), SheetCtl::caretColor);
+	SheetCtl::back->refresh(Rectangle(SheetCtl::caretPosition + 2, SheetCtl::back->frame.vector.y - 20 - 22 + 2, 1, 18));
+	SheetCtl::caretColor = 0xffffff;
+	SheetCtl::caretTimer = new Timer(queue, 256);
+	SheetCtl::caretTimer->set(50);
 	
 	for (;;) {
-		if (!cmd_->isempty() && cmd_wait_ < 0) {
-			cmd_wait_ = cmd_->pop();
+		if (!cmd->isempty() && cmdWait < 0) {
+			cmdWait = cmd->pop();
 			wait();
-			Output8(kPortKeyData, cmd_wait_);
+			Output8(kPortKeyData, cmdWait);
 		}
 		Cli();
-		if (task->queue_->isempty()) {
+		if (queue->isempty()) {
 			task->sleep();
 			Sti();
 		} else {
-			int code = task->queue_->pop();
+			int code = queue->pop();
 			Sti();
-			if (code == SheetCtl::tbox_timer_->data()) {
-				SheetCtl::drawLine(SheetCtl::back, SheetCtl::tbox_col_, SheetCtl::tbox_cpos_ + 2, SheetCtl::back->frame.vector.y - 20 - 22 + 2, SheetCtl::tbox_cpos_ + 2, SheetCtl::back->frame.vector.y - 20 - 2);
-				SheetCtl::back->refresh(Rect(SheetCtl::tbox_cpos_ + 2, SheetCtl::back->frame.vector.y - 20 - 22 + 2, 1, 18));
-				SheetCtl::tbox_col_ ^= Rgb(255, 255, 255);
-				SheetCtl::tbox_timer_->set(50);
+			if (code == SheetCtl::caretTimer->getData()) {
+				SheetCtl::back->drawLine(Line(SheetCtl::caretPosition + 2, SheetCtl::back->frame.vector.y - 20 - 22 + 2, 0, 18), SheetCtl::caretColor);
+				SheetCtl::back->refresh(Rectangle(SheetCtl::caretPosition + 2, SheetCtl::back->frame.vector.y - 20 - 22 + 2, 1, 18));
+				SheetCtl::caretColor ^= 0xffffff;
+				SheetCtl::caretTimer->set(50);
 			} else if (code < 256) {
 				Decode(static_cast<unsigned char>(code));
 			}
@@ -75,19 +75,19 @@ void KeyboardController::Main() {
 }
 
 void KeyboardController::Decode(unsigned char code) {
-	if (code < 0x80 && ascii_table_[code]) {
+	if (code < 0x80 && asciiTable[code]) {
 		char s[2];
-		s[0] = ((shift_ && !(leds_ & 4)) || (!shift_ && leds_ & 4)) ? ascii_shift_table_[code] : ascii_table_[code];
+		s[0] = ((shift && !(leds & 4)) || (!shift && leds & 4)) ? asciiShiftTable[code] : asciiTable[code];
 		s[1] = 0;
-		SheetCtl::drawLine(SheetCtl::back, Rgb(255, 255, 255), SheetCtl::tbox_cpos_ + 2, SheetCtl::back->frame.vector.y - 20 - 22 + 2, SheetCtl::tbox_cpos_ + 2, SheetCtl::back->frame.vector.y - 20 - 2);
-		SheetCtl::drawString(SheetCtl::back, SheetCtl::tbox_cpos_ + 2, SheetCtl::back->frame.vector.y - 20 - 22 + 3, 0, s);
-		SheetCtl::tbox_cpos_ += 8;
-		SheetCtl::tbox_col_ = 0;
-		SheetCtl::drawLine(SheetCtl::back, SheetCtl::tbox_col_, SheetCtl::tbox_cpos_ + 2, SheetCtl::back->frame.vector.y - 20 - 22 + 2, SheetCtl::tbox_cpos_ + 2, SheetCtl::back->frame.vector.y - 20 - 2);
-		SheetCtl::back->refresh(Rect(SheetCtl::tbox_cpos_ - 8 + 2, SheetCtl::back->frame.vector.y - 20 - 22 + 2, 9, 18));
-		SheetCtl::tbox_timer_->cancel();
-		SheetCtl::tbox_timer_->set(50);
-		*SheetCtl::tbox_str_ += s[0];
+		SheetCtl::back->drawLine(Line(SheetCtl::caretPosition + 2, SheetCtl::back->frame.vector.y - 20 - 22 + 2, 0, 18), 0xffffff);
+		SheetCtl::back->drawString(s, Point(SheetCtl::caretPosition + 2, SheetCtl::back->frame.vector.y - 20 - 22 + 3), 0);
+		SheetCtl::caretPosition += 8;
+		SheetCtl::caretColor = 0;
+		SheetCtl::back->drawLine(Line(SheetCtl::caretPosition + 2, SheetCtl::back->frame.vector.y - 20 - 22 + 2, 0, 18), SheetCtl::caretColor);
+		SheetCtl::back->refresh(Rectangle(SheetCtl::caretPosition - 8 + 2, SheetCtl::back->frame.vector.y - 20 - 22 + 2, 9, 18));
+		SheetCtl::caretTimer->cancel();
+		SheetCtl::caretTimer->set(50);
+		*SheetCtl::tboxString += s[0];
 	}
 	switch (code) {
 		case 0x38: // Alt pressed
@@ -105,13 +105,15 @@ void KeyboardController::Decode(unsigned char code) {
 				if (newActive >= SheetCtl::numOfTab) newActive = 0;
 				
 				// 次のタブ
-				SheetCtl::colorChange(*SheetCtl::back, 2, 35 + 23 * newActive, SheetCtl::back->frame.vector.x, 33 + 16 + 8 + 23 * newActive, kPassiveTabColor, kActiveTabColor);
-				SheetCtl::colorChange(*SheetCtl::back, 2, 35 + 23 * newActive, SheetCtl::back->frame.vector.x, 33 + 16 + 8 + 23 * newActive, kPassiveTextColor, kActiveTextColor);
-				SheetCtl::back->refresh(Rect(2, 35 + 23 * newActive, SheetCtl::back->frame.vector.x - 2, 22));
+				Rectangle nextTabRange(2, 35 + 23 * newActive, SheetCtl::back->frame.vector.x - 2, 22);
+				SheetCtl::back->changeColor(nextTabRange, kPassiveTabColor, kActiveTabColor);
+				SheetCtl::back->changeColor(nextTabRange, kPassiveTextColor, kActiveTextColor);
+				SheetCtl::back->refresh(nextTabRange);
 				// アクティブだったタブ
-				SheetCtl::colorChange(*SheetCtl::back, 2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back->frame.vector.x, 33 + 16 + 8 + 23 * SheetCtl::activeTab, kActiveTabColor, kPassiveTabColor);
-				SheetCtl::colorChange(*SheetCtl::back, 2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back->frame.vector.x, 33 + 16 + 8 + 23 * SheetCtl::activeTab, kActiveTextColor, kPassiveTextColor);
-				SheetCtl::back->refresh(Rect(2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back->frame.vector.x - 2, 22));
+				Rectangle prevTabRange(2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back->frame.vector.x - 2, 22);
+				SheetCtl::back->changeColor(prevTabRange, kActiveTabColor, kPassiveTabColor);
+				SheetCtl::back->changeColor(prevTabRange, kActiveTextColor, kPassiveTextColor);
+				SheetCtl::back->refresh(prevTabRange);
 				
 				SheetCtl::window[SheetCtl::activeTab]->upDown(-1);
 				SheetCtl::window[newActive]->upDown(1);
@@ -121,33 +123,36 @@ void KeyboardController::Decode(unsigned char code) {
 			break;
 		
 		case 0x1c: { // Enter pressed
-			if (SheetCtl::tbox_str_->length() == 0) break;
+			if (SheetCtl::tboxString->length() == 0) break;
 			
-			string filename = *SheetCtl::tbox_str_;
+			string filename = *SheetCtl::tboxString;
 			
 			// file:/// の削除
 			if (filename.compare(0, 8, "file:///") == 0) {
 				filename.erase(0, 8);
 			}
 			
-			if (unique_ptr<File> htmlFile = FAT12::open(filename.c_str())) {
+			unique_ptr<File> htmlFile(new File(filename));
+			if (htmlFile->open()) {
 				// ファイルが存在した
 				filename = "file:///" + filename;
 				// タブ表示
-				SheetCtl::drawString(SheetCtl::back, 6, 39 + 23 * SheetCtl::numOfTab, kActiveTextColor, filename.c_str());
-				SheetCtl::colorChange(*SheetCtl::back, 2, 35 + 23 * SheetCtl::numOfTab, SheetCtl::back->frame.vector.x, 33 + 16 + 8 + 23 * SheetCtl::numOfTab, kBackgroundColor, kActiveTabColor);
-				SheetCtl::back->refresh(Rect(2, 35 + 23 * SheetCtl::numOfTab, SheetCtl::back->frame.vector.x - 2, 22));
+				Rectangle newTabRange(2, 35 + 23 * SheetCtl::numOfTab, SheetCtl::back->frame.vector.x - 2, 22);
+				SheetCtl::back->drawString(filename, Point(6, 39 + 23 * SheetCtl::numOfTab), kActiveTextColor);
+				SheetCtl::back->changeColor(newTabRange, kBackgroundColor, kActiveTabColor);
+				SheetCtl::back->refresh(newTabRange);
 				// アクティブだったタブ
-				SheetCtl::colorChange(*SheetCtl::back, 2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back->frame.vector.x, 33 + 16 + 8 + 23 * SheetCtl::activeTab, kActiveTabColor, kPassiveTabColor);
-				SheetCtl::colorChange(*SheetCtl::back, 2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back->frame.vector.x, 33 + 16 + 8 + 23 * SheetCtl::activeTab, kActiveTextColor, kPassiveTextColor);
-				SheetCtl::back->refresh(Rect(2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back->frame.vector.x - 2, 22));
+				Rectangle prevTabRange(2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back->frame.vector.x - 2, 22);
+				SheetCtl::back->changeColor(prevTabRange, kActiveTabColor, kPassiveTabColor);
+				SheetCtl::back->changeColor(prevTabRange, kActiveTextColor, kPassiveTextColor);
+				SheetCtl::back->refresh(prevTabRange);
 				// ページ表示
 				SheetCtl::window[SheetCtl::numOfTab] = new Sheet(Vector(SheetCtl::scrnx - SheetCtl::back->frame.vector.x, SheetCtl::scrny), false);
-				SheetCtl::drawRect(SheetCtl::window[SheetCtl::numOfTab], 0, 0, 0, SheetCtl::window[SheetCtl::numOfTab]->frame.vector.x, SheetCtl::window[SheetCtl::numOfTab]->frame.vector.y);
-				SheetCtl::fillRect(SheetCtl::window[SheetCtl::numOfTab], Rgb(255, 255, 255), 1, 1, SheetCtl::window[SheetCtl::numOfTab]->frame.vector.x - 1, SheetCtl::window[SheetCtl::numOfTab]->frame.vector.y - 1);
+				SheetCtl::window[SheetCtl::numOfTab]->fillRect(SheetCtl::window[SheetCtl::numOfTab]->frame, 0xffffff);
+				SheetCtl::window[SheetCtl::numOfTab]->drawRect(SheetCtl::window[SheetCtl::numOfTab]->frame, 0);
 				SheetCtl::window[SheetCtl::numOfTab]->slide(Point(SheetCtl::back->frame.vector.x, 0));
 				// レンダリング
-				string source(reinterpret_cast<char *>(htmlFile->read()), htmlFile->size());
+				string source(reinterpret_cast<char *>(htmlFile->read().get()), htmlFile->getSize());
 				HTML::Tokenizer tokenizer;
 				Queue<shared_ptr<HTML::Token>> &tokens = tokenizer.tokenize(source.c_str());
 				for (int i = 0; !tokens.isempty(); ++i) {
@@ -179,7 +184,7 @@ void KeyboardController::Decode(unsigned char code) {
 							break;
 					}
 					str += " (data='" + token->data + "')";
-					SheetCtl::drawString(SheetCtl::window[SheetCtl::numOfTab], 1, 1 + i * 16, 0, str.c_str());
+					SheetCtl::window[SheetCtl::numOfTab]->drawString(str, Point(1, 1 + i * 16), 0);
 				}
 				SheetCtl::window[SheetCtl::activeTab]->upDown(-1);
 				SheetCtl::window[SheetCtl::numOfTab]->upDown(1);
@@ -189,87 +194,91 @@ void KeyboardController::Decode(unsigned char code) {
 				// 一致するファイルなし
 				filename = "file:///" + filename;
 				// タブ表示
-				SheetCtl::drawString(SheetCtl::back, 6, 39 + 23 * SheetCtl::numOfTab, kActiveTextColor, filename.c_str());
-				SheetCtl::colorChange(*SheetCtl::back, 2, 35 + 23 * SheetCtl::numOfTab, SheetCtl::back->frame.vector.x, 33 + 16 + 8 + 23 * SheetCtl::numOfTab, kBackgroundColor, kActiveTabColor);
-				SheetCtl::back->refresh(Rect(2, 35 + 23 * SheetCtl::numOfTab, SheetCtl::back->frame.vector.x - 2, 22));
+				Rectangle newTabRange(2, 35 + 23 * SheetCtl::numOfTab, SheetCtl::back->frame.vector.x - 2, 22);
+				SheetCtl::back->drawString(filename, Point(6, 39 + 23 * SheetCtl::numOfTab), kActiveTextColor);
+				SheetCtl::back->changeColor(newTabRange, kBackgroundColor, kActiveTabColor);
+				SheetCtl::back->refresh(newTabRange);
 				// アクティブだったタブ
-				SheetCtl::colorChange(*SheetCtl::back, 2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back->frame.vector.x, 33 + 16 + 8 + 23 * SheetCtl::activeTab, kActiveTabColor, kPassiveTabColor);
-				SheetCtl::colorChange(*SheetCtl::back, 2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back->frame.vector.x, 33 + 16 + 8 + 23 * SheetCtl::activeTab, kActiveTextColor, kPassiveTextColor);
-				SheetCtl::back->refresh(Rect(2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back->frame.vector.x - 2, 22));
+				Rectangle prevTabRange(2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back->frame.vector.x - 2, 22);
+				SheetCtl::back->changeColor(prevTabRange, kActiveTabColor, kPassiveTabColor);
+				SheetCtl::back->changeColor(prevTabRange, kActiveTextColor, kPassiveTextColor);
+				SheetCtl::back->refresh(prevTabRange);
 				// ページ表示
-				SheetCtl::window[SheetCtl::numOfTab] = new Sheet(SheetCtl::scrnx - SheetCtl::back->frame.vector.x, SheetCtl::scrny, false);
-				SheetCtl::drawRect(SheetCtl::window[SheetCtl::numOfTab], 0, 0, 0, SheetCtl::window[SheetCtl::numOfTab]->frame.vector.x, SheetCtl::window[SheetCtl::numOfTab]->frame.vector.y);
-				SheetCtl::fillRect(SheetCtl::window[SheetCtl::numOfTab], Rgb(255, 255, 255), 1, 1, SheetCtl::window[SheetCtl::numOfTab]->frame.vector.x - 1, SheetCtl::window[SheetCtl::numOfTab]->frame.vector.y - 1);
+				SheetCtl::window[SheetCtl::numOfTab] = new Sheet(Vector(SheetCtl::scrnx - SheetCtl::back->frame.vector.x, SheetCtl::scrny), false);
+				SheetCtl::window[SheetCtl::numOfTab]->fillRect(SheetCtl::window[SheetCtl::numOfTab]->frame, 0xffffff);
+				SheetCtl::window[SheetCtl::numOfTab]->drawRect(SheetCtl::window[SheetCtl::numOfTab]->frame, 0);
 				SheetCtl::window[SheetCtl::numOfTab]->slide(Point(SheetCtl::back->frame.vector.x, 0));
 				// レンダリング
-				SheetCtl::drawString(SheetCtl::window[SheetCtl::numOfTab], 1, 1, 0, "File not found");
-				SheetCtl::drawString(SheetCtl::window[SheetCtl::numOfTab], 1, 1 + 16, 0,  "Can't find the file at '" + filename + "'");
+				SheetCtl::window[SheetCtl::numOfTab]->drawString("File not found", Point(1, 1), 0);
+				SheetCtl::window[SheetCtl::numOfTab]->drawString("Can't find the file at '" + filename + "'", Point(1, 1 + 16), 0);
 				SheetCtl::window[SheetCtl::activeTab]->upDown(-1);
 				SheetCtl::window[SheetCtl::numOfTab]->upDown(1);
 				SheetCtl::activeTab = SheetCtl::numOfTab;
 				++SheetCtl::numOfTab;
 			}
 			
-			*SheetCtl::tbox_str_ = "";
-			SheetCtl::tbox_cpos_ = 2;
-			SheetCtl::fillRect(SheetCtl::back, Rgb(255, 255, 255), 2, SheetCtl::back->frame.vector.y - 20 - 22, SheetCtl::back->frame.vector.x - 2, SheetCtl::back->frame.vector.y - 20);
-			SheetCtl::back->refresh(Rect(2, SheetCtl::back->frame.vector.y - 20 - 22, SheetCtl::back->frame.vector.x - 2 - 2, 22));
+			*SheetCtl::tboxString = "";
+			SheetCtl::caretPosition = 2;
+			Rectangle clearRange(2, SheetCtl::back->frame.vector.y - 20 - 22, SheetCtl::back->frame.vector.x - 2 - 2, 22);
+			SheetCtl::back->fillRect(clearRange, 0xffffff);
+			SheetCtl::back->refresh(clearRange);
 			break;
 		}
 
 		case 0x3a: // Caps Lock
-			leds_ ^= 4;
-			cmd_->push(kKeyCmdLED);
-			cmd_->push(leds_);
+			leds ^= 4;
+			cmd->push(kKeyCmdLED);
+			cmd->push(leds);
 			break;
 
 		case 0x45: // Num Lock
-			leds_ ^= 2;
-			cmd_->push(kKeyCmdLED);
-			cmd_->push(leds_);
+			leds ^= 2;
+			cmd->push(kKeyCmdLED);
+			cmd->push(leds);
 			break;
 
 		case 0x46: // Scroll Lock
-			leds_ ^= 1;
-			cmd_->push(kKeyCmdLED);
-			cmd_->push(leds_);
+			leds ^= 1;
+			cmd->push(kKeyCmdLED);
+			cmd->push(leds);
 			break;
 
 		case 0xfa:
-			cmd_wait_= -1;
+			cmdWait= -1;
 			break;
 
 		case 0xfe:
 			wait();
-			Output8(kPortKeyData, cmd_wait_);
+			Output8(kPortKeyData, cmdWait);
 			break;
 
 		case 0x2a:
-			shift_ |= 1;
+			shift |= 1;
 			break;
 
 		case 0x36:
-			shift_ |= 2;
+			shift |= 2;
 			break;
 
 		case 0xaa:
-			shift_ &= ~1;
+			shift &= ~1;
 			break;
 
 		case 0xb6:
-			shift_ &= ~2;
+			shift &= ~2;
 			break;
 
-		case 0x0e:
-			if (SheetCtl::tbox_cpos_ > 2) {
-				SheetCtl::tbox_cpos_ -= 8;
-				SheetCtl::fillRect(SheetCtl::back, Rgb(255, 255, 255), SheetCtl::tbox_cpos_ + 2, SheetCtl::back->frame.vector.y - 20 - 22 + 2, SheetCtl::tbox_cpos_ + 2 + 8 + 1, SheetCtl::back->frame.vector.y - 20 - 1);
-				SheetCtl::tbox_col_ = 0;
-				SheetCtl::drawLine(SheetCtl::back, SheetCtl::tbox_col_, SheetCtl::tbox_cpos_ + 2, SheetCtl::back->frame.vector.y - 20 - 22 + 2, SheetCtl::tbox_cpos_ + 2, SheetCtl::back->frame.vector.y - 20 - 2);
-				SheetCtl::back->refresh(Rect(SheetCtl::tbox_cpos_ + 2, SheetCtl::back->frame.vector.y - 20 - 22 + 2, 9, 18));
-				SheetCtl::tbox_timer_->cancel();
-				SheetCtl::tbox_timer_->set(50);
-				SheetCtl::tbox_str_->erase(SheetCtl::tbox_str_->length() - 1, SheetCtl::tbox_str_->length());
+		case 0x0e: // Backspace
+			if (SheetCtl::caretPosition > 2) {
+				SheetCtl::caretPosition -= 8;
+				Rectangle clearRange(SheetCtl::caretPosition + 2, SheetCtl::back->frame.vector.y - 20 - 22 + 2, 9, 18);
+				SheetCtl::back->fillRect(clearRange, 0xffffff);
+				SheetCtl::caretColor = 0;
+				SheetCtl::back->drawLine(Line(clearRange.offset, Vector(0, 18)), SheetCtl::caretColor);
+				SheetCtl::back->refresh(clearRange);
+				SheetCtl::caretTimer->cancel();
+				SheetCtl::caretTimer->set(50);
+				SheetCtl::tboxString->erase(SheetCtl::tboxString->length() - 1, SheetCtl::tboxString->length());
 			}
 			break;
 	}

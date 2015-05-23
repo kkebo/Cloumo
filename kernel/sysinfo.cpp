@@ -7,50 +7,50 @@ void showSysInfo(int benchScore) {
 	auto memTotal = MemoryTotal();
 	
 	// Clear the screen
-	SheetCtl::fillRect(SheetCtl::window[0], Rgb(255, 255, 255), 2, 2, SheetCtl::window[0]->frame.vector.x - 1, SheetCtl::window[0]->frame.vector.y - 1);
+	Rectangle clearRange(Point(2, 2), SheetCtl::window[0]->frame.vector - 3);
+	SheetCtl::window[0]->fillRect(clearRange, 0xffffff);
 	
 	// Benchmark Result
 	str = to_string(benchScore);
-	SheetCtl::drawString(SheetCtl::window[0], 2, 2, 0, "Benchmark Score:");
-	SheetCtl::drawString(SheetCtl::window[0], 2 + 8 * 17, 2, 0, str);
+	SheetCtl::window[0]->drawString("Benchmark Score:", Point(2, 2), 0);
+	SheetCtl::window[0]->drawString(str, Point(2 + 8 * 17, 2), 0);
 	
 	// Memory Information
 	str = "RAM: " + to_string(MemoryTest(0x00400000, 0xbfffffff) / 1024 / 1024) + " MB    FREE: " + to_string(memTotal / 1024 / 1024) + " MB (" + to_string(memTotal) + " Byte)";
-	SheetCtl::drawString(SheetCtl::window[0], 2, 2 + 16, 0, str);
+	SheetCtl::window[0]->drawString(str, Point(2, 2 + 16), 0);
 	
 	// Display Information
 	str = "Resoultion: " + to_string(SheetCtl::scrnx) + " x " + to_string(SheetCtl::scrny) + " (" + to_string(SheetCtl::color) + "-bit color)";
-	SheetCtl::drawString(SheetCtl::window[0], 2, 2 + 16 * 2, 0, str);
+	SheetCtl::window[0]->drawString(str, Point(2, 2 + 16 * 2), 0);
 	
 	// Task List
-	SheetCtl::drawString(SheetCtl::window[0], 2 + 1, 2 + 16 * 4 + 1, 0, "level priority flag task name");
+	SheetCtl::window[0]->drawString("level priority flag task name", Point(2 + 1, 2 + 16 * 4 + 1), 0);
 	int j = 0;
 	str.reserve(20);
-	for (int i = 0; i < MAX_TASKS; ++i) {
-		Task *task = &TaskController::tasks0_[i];
-		if (task->flags_ != TaskFlag::Free) {
-			sprintf(str.c_str(), "%5d %8d %4s ", task->level_, task->priority_, (task->flags_ == TaskFlag::Running) ? "(oo)" : "(__)");
+	for (auto &&task : TaskController::tasks0) {
+		if (task.flags != TaskFlag::Free) {
+			sprintf(str.c_str(), "%5d %8d %4s ", task.level, task.priority, (task.flags == TaskFlag::Running) ? "(oo)" : "(__)");
 			str = str.c_str(); // サイズの数え直し
-			str += task->name_;
-			SheetCtl::drawString(SheetCtl::window[0], 2 + 1, 2 + 16 * 5 + j * 16 + 2, 0, str);
+			str += task.name;
+			SheetCtl::window[0]->drawString(str, Point(2 + 1, 2 + 16 * 5 + j * 16 + 2), 0);
 			++j;
 		}
 	}
-	SheetCtl::drawRect(SheetCtl::window[0], 0, 2, 2 + 16 * 4, SheetCtl::window[0]->frame.vector.x - 1 - 1, 2 + 16 * 5 + j * 16 + 3);
-	SheetCtl::drawLine(SheetCtl::window[0], 0, 3, 2 + 16 * 5 + 1, SheetCtl::window[0]->frame.vector.x - 1 - 2, 2 + 16 * 5 + 1);
-	SheetCtl::drawLine(SheetCtl::window[0], 0, 3 + 5 * 8 + 3, 2 + 16 * 4 + 1, 3 + 5 * 8 + 3, 2 + 16 * 5 + j * 16 + 2);
-	SheetCtl::drawLine(SheetCtl::window[0], 0, 3 + 14 * 8 + 3, 2 + 16 * 4 + 1, 3 + 14 * 8 + 3, 2 + 16 * 5 + j * 16 + 2);
-	SheetCtl::drawLine(SheetCtl::window[0], 0, 3 + 19 * 8 + 3, 2 + 16 * 4 + 1, 3 + 19 * 8 + 3, 2 + 16 * 5 + j * 16 + 2);
+	SheetCtl::window[0]->drawRect(Rectangle(2, 2 + 16 * 4, SheetCtl::window[0]->frame.vector.x - 1 - 1 - 2, 16 + j * 16 + 3), 0);
+	SheetCtl::window[0]->drawLine(Line(3, 2 + 16 * 5 + 1, SheetCtl::window[0]->frame.vector.x - 1 - 2 - 3, 0), 0);
+	SheetCtl::window[0]->drawLine(Line(3 + 5 * 8 + 3, 2 + 16 * 4 + 1, 0, 16 + j * 16 + 1), 0);
+	SheetCtl::window[0]->drawLine(Line(3 + 14 * 8 + 3, 2 + 16 * 4 + 1, 0, 16 + j * 16 + 1), 0);
+	SheetCtl::window[0]->drawLine(Line(3 + 19 * 8 + 3, 2 + 16 * 4 + 1, 0, 16 + j * 16 + 1), 0);
 	
 	// Refresh the screen
-	SheetCtl::window[0]->refresh(Rect(2, 2, SheetCtl::window[0]->frame.vector.x - 1 - 2, SheetCtl::window[0]->frame.vector.y - 1 - 2));
+	SheetCtl::window[0]->refresh(clearRange);
 }
 
 void SysinfoMain() {
 	Task *task = TaskController::getNowTask();
 	int count = 0, count0 = 0;
 	
-	Timer *timer = new Timer(task->queue_);
+	Timer *timer = new Timer(task->queue);
 	timer->set(100);
 	
 	showSysInfo(0);
@@ -58,13 +58,13 @@ void SysinfoMain() {
 	for (;;) {
 		++count;
 		Cli();
-		if (task->queue_->isempty()) {
+		if (task->queue->isempty()) {
 			//task->sleep(); ベンチマーク測定のため
 			Sti();
 		} else {
-			int data = task->queue_->pop();
+			int data = task->queue->pop();
 			Sti();
-			if (data == timer->data()) {
+			if (data == timer->getData()) {
 				showSysInfo(count - count0);
 				count0 = count;
 				timer->set(100);

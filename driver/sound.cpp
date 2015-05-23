@@ -3,7 +3,7 @@
  */
 #include "../headers.h"
 
-void Beep(char c, int len, Timer *timer, bool st) {
+void Beep(char c, int len, Timer *timer, bool st = false) {
 	static int tonetable[12] = {
 		1071618315, 1135340056, 1202850889, 1274376125, 1350154473, 1430438836,
 		1515497155, 1605613306, 1701088041, 1802240000, 1909406767, 2022946002
@@ -29,10 +29,10 @@ void Beep(char c, int len, Timer *timer, bool st) {
 
 	for (;;) {
 		Cli();
-		if (!timer->queue_->isempty()) {
-			i = timer->queue_->pop();
+		if (!timer->queue->isempty()) {
+			i = timer->queue->pop();
 			Sti();
-			if (i == timer->data()) return;
+			if (i == timer->getData()) return;
 		} else {
 			TaskController::getNowTask()->sleep();
 			Sti();

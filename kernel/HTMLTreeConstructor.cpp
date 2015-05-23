@@ -3,6 +3,32 @@
 
 using namespace HTML;
 
+enum class TreeConstructor::Mode {
+	Initial,
+	BeforeHtml,
+	BeforeHead,
+	InHead,
+	InHeadNoscript,
+	AfterHead,
+	InBody,
+	Text,
+	InTable,
+	InTableText,
+	InCaption,
+	InColumnGroup,
+	InTableBody,
+	InRow,
+	InCell,
+	InSelect,
+	InSelectInTable,
+	InTemplate,
+	AfterBody,
+	InFrameset,
+	AfterFrameset,
+	AfterAfterBody,
+	AfterAfterFrameseet
+};
+
 const Document &TreeConstructor::construct(Queue<shared_ptr<Token>> &tokens) {
 	Mode mode = Mode::Initial;
 	unique_ptr<Token> token;

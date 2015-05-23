@@ -13,36 +13,39 @@ enum class TimerFlag { Free, Reserved, Running };
 
 class Timer {
 private:
-	int data_ = -1;
+	int data = -1;
+	
+	Timer() : flags(TimerFlag::Free) {}
 
 public:
-	Timer *next_;
-	unsigned int timeout_;
-	TimerFlag flags_;
-	TaskQueue *queue_;
+	Timer *next;
+	unsigned int timeout;
+	TimerFlag flags;
+	TaskQueue *queue;
 
 public:
-	Timer() {};
-	Timer(TaskQueue *);
-	Timer(TaskQueue *, int);
+	friend class TimerController;
+	friend Task *TaskController::init();
+	Timer(TaskQueue *queue_);
+	Timer(TaskQueue *queue_, int data_);
 	~Timer();
-	static void *operator new(size_t size);
-	static void operator delete(void *p) {}
-	void set(unsigned int);
+	static void *operator new(size_t);
+	static void operator delete(void *) {}
+	void set(unsigned int newTimeout);
 	bool cancel();
-	int data();
+	int getData();
 };
 
 class TimerController {
 public:
-	static Timer *timers0_;
-	static unsigned int count_;
-	static unsigned int next_;
-	static Timer *t0_;
+	static Timer timers0[];
+	static unsigned int count;
+	static unsigned int next;
+	static Timer *t0;
 
 public:
 	static void init();
-	static void reset();
+	//static void reset();
 };
 
 #endif

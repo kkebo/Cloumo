@@ -33,41 +33,41 @@ void PICInit() {
 void IntHandler07(int *esp) {
 	Task *now = TaskController::getNowTask();
 	asm volatile("clts");
-	if (TaskController::task_fpu_ != now) {
-		if (TaskController::task_fpu_) {
-			int *p = (int *)TaskController::task_fpu_->fpu;
+	if (TaskController::taskFPU != now) {
+		if (TaskController::taskFPU) {
+			int *p = (int *)TaskController::taskFPU->fpu;
 			asm volatile("fnsave %0" : "=m"(p));
 		}
 		int *p = (int *)now->fpu;
 		asm volatile("frstor %0" : "=m"(p));
-		TaskController::task_fpu_ = now;
+		TaskController::taskFPU = now;
 	}
 }
 
 // PIT割り込み
 void IntHandler20(int *esp) {
 	Timer *timer;
-	char ts = 0;
+	bool ts = false;
 	/* IRQ-00受付完了をPICに通知 */
 	Output8(kPic0Ocw2, 0x60);
-	++TimerController::count_;
-	if (TimerController::next_ > TimerController::count_)
+	++TimerController::count;
+	if (TimerController::next > TimerController::count)
 		return;
-	timer = TimerController::t0_;
-	while (timer->timeout_ <= TimerController::count_) {
-		timer->flags_ = TimerFlag::Reserved;
-		if (timer != TaskController::timer_) {
-			timer->queue_->push(timer->data());
+	timer = TimerController::t0;
+	while (timer->timeout <= TimerController::count) {
+		timer->flags = TimerFlag::Reserved;
+		if (timer != TaskController::timer) {
+			timer->queue->push(timer->getData());
 		} else {
-			ts = 1;
+			ts = true;
 		}
-		timer = timer->next_;
+		timer = timer->next;
 	}
-	TimerController::t0_ = timer;
-	TimerController::next_ = timer->timeout_;
+	TimerController::t0 = timer;
+	TimerController::next = timer->timeout;
 	if (ts)
 		TaskController::switchTask();
-	/*if (TimerController::count_ >= 0xf0000000) { // オーバーフローする前にリセット (これじゃだめだった)
+	/*if (TimerController::count >= 0xf0000000) { // オーバーフローする前にリセット (これじゃだめだった)
 		TimerController::reset();
 	}*/
 }
@@ -77,7 +77,7 @@ void IntHandler21(int *esp) {
 	/* IRQ-01受付完了をPICに通知 */
 	Output8(kPic0Ocw2, 0x61);
 
-	KeyboardController::queue_->push(Input8(kPortKeyData));
+	KeyboardController::queue->push(Input8(kPortKeyData));
 }
 
 // PS/2マウスからの割り込み

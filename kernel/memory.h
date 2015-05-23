@@ -5,7 +5,7 @@
 #ifndef _MEMORY_H_
 #define _MEMORY_H_
 
-#include <string.h>
+#include <stddef.h>
 
 const int EFLAGS_AC_BIT     = 0x00040000;
 const int CR0_CACHE_DISABLE = 0x60000000;
