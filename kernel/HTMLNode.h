@@ -11,21 +11,20 @@ namespace HTML {
 		List<shared_ptr<Node>> children;
 	
 	public:
-		virtual ~Node() = default;
 		virtual void appendChild(const shared_ptr<Node> &node);
-		virtual const string &getTagName() {}
 	};
 	
 	class Element : public Node {
 	private:
-		string tagName;
+		string _tagName;
 		string id;
 		string className;
 	
 	public:
+		const string &tagName = _tagName;
+	
 		//Element() {}
 		Element(const string &name);
-		const string &getTagName();
 	};
 	
 	class TextNode : public Node {

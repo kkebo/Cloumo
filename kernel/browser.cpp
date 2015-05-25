@@ -6,14 +6,14 @@ Browser::Browser(const char *url) {
 	File htmlFile(url);
 	if (htmlFile.open()) {
 		source.reset(htmlFile.read());
-		size = htmlFile.getSize();
+		size = htmlFile.size;
 		
 		// 内部シート作成
-		sheet.reset(new Sheet(Vector(SheetCtl::scrnx_ - SheetCtl::back_->bxsize - 1, SheetCtl::scrny_ * 3), false));
+		sheet.reset(new Sheet(Size(SheetCtl::scrnx_ - SheetCtl::back_->bxsize - 1, SheetCtl::scrny_ * 3), false));
 		sheet->fillRect(Rectangle(sheet->bxsize - 1, sheet->bysize - 1), 0xffffff);
 		
 		// マウスに登録
-		Mouse::browserTask = TaskController::getNowTask();
+		Mouse::browserTask = TaskSwitcher::getNowTask();
 	}
 }
 

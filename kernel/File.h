@@ -6,23 +6,20 @@
 
 class File {
 private:
-	string name;
+	string _name;
 	shared_ptr<unsigned char> buf;
-	int size;
+	int _size;
 
 public:
+	const string &name = _name;
+	const int &size = _size;
+	
 	File() = default;
-	File(const string &name_) : name(name_) {}
+	File(const string &name_) : _name(name_) {}
 	bool open();
 	bool open(const string &fileName);
 	inline const shared_ptr<unsigned char> &File::read() {
 		return buf;
-	}
-	inline const string &getName() {
-		return name;
-	}
-	inline int File::getSize() {
-		return size;
 	}
 };
 

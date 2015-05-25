@@ -5,11 +5,11 @@ unsigned char DateTime::now[7] = { 0, 0, 0, 0, 0, 0, 0 };
 Timer *DateTime::timer;
 
 void DateTime::Main() {
-	Task *task = TaskController::getNowTask();
+	Task *task = TaskSwitcher::getNowTask();
 	int i;
 	bool timechk = false;
 	char s[9];
-	Rectangle rewriteRange(2, SheetCtl::back->frame.vector.y - 18, 8 * 8, 16);
+	Rectangle rewriteRange(2, SheetCtl::back->frame.size.height - 18, 8 * 8, 16);
 	
 	// 現在時刻取得
 	static unsigned char adr[7] = { 0x00, 0x02, 0x04, 0x07, 0x08, 0x09, 0x32 };
@@ -66,16 +66,20 @@ void DateTime::Main() {
 		} else {
 			i = task->queue->pop();
 			Sti();
-			if (i == timer->getData()) { // 番号が合っているか確認
+			if (i == timer->data) { // 番号が合っているか確認
 				timer->set(100);
-				++now[0];	// □□□□/□□/□□ □□:□□:■■
+				++now[0]; // second
 				if (now[0] >= 60) {
 					now[0] -= 60;
-					++now[1];	// □□□□/□□/□□ □□:■■:□□
+					++now[1]; // minute
 					if (now[1] >= 60) {
 						now[1] -= 60;
-						++now[2];	// □□□□/□□/□□ ■■:□□:□□
-						if (now[2] >= 24) ++now[3];	// □□□□/□□/■■ □□:□□:□□
+						++now[2]; // hour
+						if (now[2] >= 24) {
+							now[2] -= 24;
+							++now[3]; // day
+							// それ以降は後から作る
+						}
 					}
 					timechk = true;
 				}

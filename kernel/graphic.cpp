@@ -2,24 +2,15 @@
 #include <SmartPointer.h>
 #include <MinMax.h>
 
-Sheet::Sheet(const Vector &size, bool inv, void (*click)()) : buf(new unsigned int[size.getArea()]), frame(size), trans(inv), onClick(click) {}
+Sheet::Sheet(const Size &size, bool _nonRect = false, void (*click)() = nullptr) :
+	buf(new unsigned int[size.getArea()]),
+	_frame(size),
+	nonRect(_nonRect),
+	onClick(click) {}
 
 Sheet::~Sheet() {
 	if (height >= 0) upDown(-1);
-	flags = false;
 	delete[] buf;
-}
-
-void *Sheet::operator new(size_t) {
-	for (int i = 0; i < kMaxSheets; ++i) {
-		if (!SheetCtl::sheets0[i].flags) {
-			Sheet *sht = &SheetCtl::sheets0[i];
-			sht->flags = true;
-			sht->height = -1;
-			return sht;
-		}
-	}
-	return nullptr;
 }
 
 // シートの高さを変更
@@ -28,42 +19,45 @@ void Sheet::upDown(int height) {
 
 	if (height > SheetCtl::top + 1) height = SheetCtl::top + 1;
 	if (height < -1) height = -1;
-	this->height = height;
+	this->_height = height;
 
-	if (old > height) {	// 前より低くなった
-		if (height >= 0) {	// 表示
+	if (old > height) { // 前より低くなった
+		if (height >= 0) { // 表示
 			for (int h = old; h > height; --h) {
 				SheetCtl::sheets[h] = SheetCtl::sheets[h - 1];
-				SheetCtl::sheets[h]->height = h;
+				SheetCtl::sheets[h]->_height = h;
 			}
 			SheetCtl::sheets[height] = this;
 			SheetCtl::refreshMap(frame, height + 1);
 			SheetCtl::refreshSub(frame, SheetCtl::top);
-		} else {	// 非表示
+		} else { // 非表示
 			if (SheetCtl::top > old) {
 				for (int h = old; h < SheetCtl::top; ++h) {
 					SheetCtl::sheets[h] = SheetCtl::sheets[h + 1];
-					SheetCtl::sheets[h]->height = h;
+					SheetCtl::sheets[h]->_height = h;
 				}
 			}
-			--SheetCtl::top;
+			--SheetCtl::_top;
 			SheetCtl::refreshMap(frame, 0);
 			SheetCtl::refreshSub(frame, SheetCtl::top);
 		}
-	} else if (old < height) {	// 以前より高くなった
+	} else if (old < height) { // 以前より高くなった
 		if (old >= 0) {	// より高く
 			for (int h = old; h < height; ++h) {
 				SheetCtl::sheets[h] = SheetCtl::sheets[h + 1];
-				SheetCtl::sheets[h]->height = h;
+				SheetCtl::sheets[h]->_height = h;
 			}
 			SheetCtl::sheets[height] = this;
-		} else {	// 非表示から表示へ
+		} else { // 非表示から表示へ
+			// 管理配列の限界が来たら無視
+			if (SheetCtl::top + 1 >= kMaxSheets) return;
+			
 			for (int h = SheetCtl::top; h >= height; --h) {
 				SheetCtl::sheets[h + 1] = SheetCtl::sheets[h];
-				SheetCtl::sheets[h + 1]->height = h + 1;
+				SheetCtl::sheets[h + 1]->_height = h + 1;
 			}
 			SheetCtl::sheets[height] = this;
-			++SheetCtl::top;
+			++SheetCtl::_top;
 		}
 		SheetCtl::refreshMap(frame, height);
 		SheetCtl::refreshSub(frame, SheetCtl::top);
@@ -71,15 +65,16 @@ void Sheet::upDown(int height) {
 }
 
 // シートのリフレッシュ
-void Sheet::refresh(const Rectangle &range) const {
+void Sheet::refresh(Rectangle range) const {
 	if (height >= 0) {	// 非表示シートはリフレッシュしない
-		SheetCtl::refreshMap(range.slideAndClone(frame.offset), height);
-		SheetCtl::refreshSub(range.slideAndClone(frame.offset), height);
+		range.slide(frame.offset);
+		SheetCtl::refreshMap(range, height);
+		SheetCtl::refreshSub(range, height);
 	}
 }
 
 // シートを移動
-void Sheet::slide(const Point &cod) {
+void Sheet::moveTo(const Point &cod) {
 	Rectangle oldFrame(frame);
 	frame.offset = cod;
 	if (height >= 0) {	// 非表示シートはリフレッシュしない
@@ -95,36 +90,36 @@ void Sheet::drawLine(const Line &line, unsigned int color) {
 	int x, y, dx, dy, len;
 
 	// 縦横の直線高速化
-	if (line.vector.y == 0) {
-		for (x = 0; x <= line.vector.x; ++x) {
-			buf[line.offset.y * frame.vector.x + x + line.offset.x] = color;
+	if (line.start.y == line.end.y) {
+		for (x = line.start.x; x <= line.end.x; ++x) {
+			buf[line.start.y * frame.size.width + x] = color;
 		}
 		return;
-	} else if (line.vector.x == 0) {
-		for (y = 0; y <= line.vector.y; ++y) {
-			buf[(y + line.offset.y) * frame.vector.x + line.offset.x] = color;
+	} else if (line.start.x == line.end.x) {
+		for (y = line.start.y; y <= line.end.y; ++y) {
+			buf[y * frame.size.width + line.start.x] = color;
 		}
 		return;
 	}
 
-	dx = line.vector.x > 0 ? line.vector.x : -line.vector.x;
-	dy = line.vector.y > 0 ? line.vector.y : -line.vector.y;
-	x = line.offset.x << 10;
-	y = line.offset.y << 10;
+	dx = line.end.x - line.start.x > 0 ? line.end.x - line.start.x : line.start.x - line.end.x;
+	dy = line.end.y - line.start.y > 0 ? line.end.y - line.start.y : line.start.y - line.end.y;
+	x = line.start.x << 10;
+	y = line.start.y << 10;
 	if (dx >= dy) {
 		len = dx + 1;
-		dx = line.vector.x < 0 ? -1024 : 1024;
-		dy = line.vector.y >= 0 ? ((line.vector.y + 1) << 10) / len
-		                        : ((line.vector.y - 1) << 10) / len;
+		dx = line.end.x - line.start.x < 0 ? -1024 : 1024;
+		dy = line.end.y - line.start.y >= 0 ? ((line.end.y - line.start.y + 1) << 10) / len
+		                                    : ((line.end.y - line.start.y - 1) << 10) / len;
 	} else {
 		len = dy + 1;
-		dy = line.vector.y < 0 ? -1024 : 1024;
-		dx = line.vector.x >= 0 ? ((line.vector.x + 1) << 10) / len
-		                        : ((line.vector.x - 1) << 10) / len;
+		dy = line.end.y - line.start.y < 0 ? -1024 : 1024;
+		dx = line.end.x - line.start.x >= 0 ? ((line.end.x - line.start.x + 1) << 10) / len
+		                                    : ((line.end.x - line.start.x - 1) << 10) / len;
 	}
 
 	for (int i = 0; i < len; ++i) {
-		buf[(y >> 10) * frame.vector.x + (x >> 10)] = color;
+		buf[(y >> 10) * frame.size.width + (x >> 10)] = color;
 		x += dx;
 		y += dy;
 	}
@@ -134,46 +129,46 @@ void Sheet::drawLine(const Line &line, unsigned int color) {
 void Sheet::gradLine(const Line &line, unsigned int col0, unsigned int col1, GradientDirection direction) {
 	int x, y, dx, dy, len;
 
-	dx = line.vector.x > 0 ? line.vector.x : -line.vector.x;
-	dy = line.vector.y > 0 ? line.vector.y : -line.vector.y;
-	x = line.offset.x << 10;
-	y = line.offset.y << 10;
+	dx = line.end.x - line.start.x > 0 ? line.end.x - line.start.x : line.start.x - line.end.x;
+	dy = line.end.y - line.start.y > 0 ? line.end.y - line.start.y : line.start.y - line.end.y;
+	x = line.start.x << 10;
+	y = line.start.y << 10;
 	if (dx >= dy) {
 		len = dx + 1;
-		dx = line.vector.x < 0 ? -1024 : 1024;
-		dy = line.vector.y >= 0 ? ((line.vector.y + 1) << 10) / len
-		                        : ((line.vector.y - 1) << 10) / len;
+		dx = line.end.x - line.start.x < 0 ? -1024 : 1024;
+		dy = line.end.y - line.start.y >= 0 ? ((line.end.y - line.start.y + 1) << 10) / len
+		                                    : ((line.end.y - line.start.y - 1) << 10) / len;
 	} else {
 		len = dy + 1;
-		dy = line.vector.y < 0 ? -1024 : 1024;
-		dx = line.vector.x >= 0 ? ((line.vector.x + 1) << 10) / len
-		                        : ((line.vector.x - 1) << 10) / len;
+		dy = line.end.y - line.start.y < 0 ? -1024 : 1024;
+		dx = line.end.x - line.start.x >= 0 ? ((line.end.x - line.start.x + 1) << 10) / len
+		                                    : ((line.end.x - line.start.x - 1) << 10) / len;
 	}
 
 	if (direction == GradientDirection::LeftToRight) { // 横
-		if (line.vector.x == 0) { // 高速
+		if (line.start.x == line.end.x) { // 高速
 			for (int i = 0; i < len; ++i) {
-				buf[(y >> 10) * frame.vector.x + (x >> 10)] = col0;
+				buf[(y >> 10) * frame.size.width + (x >> 10)] = col0;
 				x += dx;
 				y += dy;
 			}
 		} else {
 			for (int i = 0; i < len; ++i) {
-				buf[(y >> 10) * frame.vector.x + (x >> 10)] = GetGrad(0, line.vector.x, (x >> 10) - line.offset.x, col0, col1);
+				buf[(y >> 10) * frame.size.width + (x >> 10)] = GetGrad(line.start.x, line.end.x, x >> 10, col0, col1);
 				x += dx;
 				y += dy;
 			}
 		}
 	} else if (direction == GradientDirection::TopToBottom) { // 縦
-		if (line.vector.y == 0) { // 高速
+		if (line.start.y == line.end.y) { // 高速
 			for (int i = 0; i < len; ++i) {
-				buf[(y >> 10) * frame.vector.x + (x >> 10)] = col0;
+				buf[(y >> 10) * frame.size.width + (x >> 10)] = col0;
 				x += dx;
 				y += dy;
 			}
 		} else {
 			for (int i = 0; i < len; ++i) {
-				buf[(y >> 10) * frame.vector.x + (x >> 10)] = GetGrad(0, line.vector.y, (y >> 10) - line.offset.y, col0, col1);
+				buf[(y >> 10) * frame.size.width + (x >> 10)] = GetGrad(line.start.y, line.end.y, y >> 10, col0, col1);
 				x += dx;
 				y += dy;
 			}
@@ -184,23 +179,27 @@ void Sheet::gradLine(const Line &line, unsigned int col0, unsigned int col1, Gra
 // 枠のみ長方形を描画
 void Sheet::drawRect(const Rectangle &rect, unsigned int color) {
 	int endy = rect.getEndPoint().y - 1;
-	for (int x = 0; x < rect.vector.x; ++x) {
-		buf[rect.offset.y * frame.vector.x + x + rect.offset.x] = color;
-		buf[endy * frame.vector.x + x] = color;
+	for (int x = 0; x < rect.size.width; ++x) {
+		// 上の辺を描画
+		buf[rect.offset.y * frame.size.width + x + rect.offset.x] = color;
+		// 下の辺を描画
+		buf[endy * frame.size.width + x + rect.offset.x] = color;
 	}
 	int endx = rect.getEndPoint().x - 1;
-	for (int y = 1; y < rect.vector.y - 1; ++y) {
-		buf[(y + rect.offset.y) * frame.vector.x + rect.offset.x] = color;
-		buf[(y + rect.offset.y) * frame.vector.x + endx] = color;
+	for (int y = 1; y < rect.size.height - 1; ++y) {
+		// 左の辺を描画
+		buf[(y + rect.offset.y) * frame.size.width + rect.offset.x] = color;
+		// 右の辺を描画
+		buf[(y + rect.offset.y) * frame.size.width + endx] = color;
 	}
 }
 
 // 塗りつぶし長方形を描画
 void Sheet::fillRect(const Rectangle &rect, unsigned int color) {
-	for (int y = 0; y < rect.vector.y; ++y) {
+	for (int y = 0; y < rect.size.height; ++y) {
 		int by = y + rect.offset.y;
-		for (int x = 0; x < rect.vector.x; ++x) {
-			buf[by * frame.vector.x + x + rect.offset.x] = color;
+		for (int x = 0; x < rect.size.width; ++x) {
+			buf[by * frame.size.width + x + rect.offset.x] = color;
 		}
 	}
 }
@@ -208,17 +207,17 @@ void Sheet::fillRect(const Rectangle &rect, unsigned int color) {
 // グラデーション長方形を描画
 void Sheet::gradRect(const Rectangle &rect, unsigned int col0, unsigned int col1, GradientDirection direction) {
 	if (direction == GradientDirection::LeftToRight) { // 横
-		for (int x = 0; x < rect.vector.x; ++x) {
-			unsigned int gradColor = GetGrad(0, rect.vector.x - 1, x, col0, col1);
-			for (int y = 0; y < rect.vector.y; ++y) {
-				buf[(y + rect.offset.y) * frame.vector.x + x + rect.offset.x] = gradColor;
+		for (int x = 0; x < rect.size.width; ++x) {
+			unsigned int gradColor = GetGrad(0, rect.size.width - 1, x, col0, col1);
+			for (int y = 0; y < rect.size.height; ++y) {
+				buf[(y + rect.offset.y) * frame.size.width + x + rect.offset.x] = gradColor;
 			}
 		}
 	} else if (direction == GradientDirection::TopToBottom) { //縦
-		for (int y = 0; y < rect.vector.y; ++y) {
-			unsigned int gradColor = GetGrad(0, rect.vector.y - 1, y, col0, col1);
-			for (int x = 0; x < rect.vector.x; ++x) {
-				buf[(y + rect.offset.y) * frame.vector.x + x + rect.offset.x] = gradColor;
+		for (int y = 0; y < rect.size.height; ++y) {
+			unsigned int gradColor = GetGrad(0, rect.size.height - 1, y, col0, col1);
+			for (int x = 0; x < rect.size.width; ++x) {
+				buf[(y + rect.offset.y) * frame.size.width + x + rect.offset.x] = gradColor;
 			}
 		}
 	}
@@ -231,14 +230,14 @@ void Sheet::drawCircle(const Circle &cir, unsigned int color) {
 	int F = -2 * cir.radius + 3;
 	/*if (直径 % 2 == 1) {
 		while (x >= y) {
-			buf[(yo + y) * frame.vector.x + xo + x] = c;
-			buf[(yo + y) * frame.vector.x + xo - x] = c;
-			buf[(yo - y) * frame.vector.x + xo + x] = c;
-			buf[(yo - y) * frame.vector.x + xo - x] = c;
-			buf[(yo + x) * frame.vector.x + xo + y] = c;
-			buf[(yo + x) * frame.vector.x + xo - y] = c;
-			buf[(yo - x) * frame.vector.x + xo + y] = c;
-			buf[(yo - x) * frame.vector.x + xo - y] = c;
+			buf[(yo + y) * frame.size.width + xo + x] = c;
+			buf[(yo + y) * frame.size.width + xo - x] = c;
+			buf[(yo - y) * frame.size.width + xo + x] = c;
+			buf[(yo - y) * frame.size.width + xo - x] = c;
+			buf[(yo + x) * frame.size.width + xo + y] = c;
+			buf[(yo + x) * frame.size.width + xo - y] = c;
+			buf[(yo - x) * frame.size.width + xo + y] = c;
+			buf[(yo - x) * frame.size.width + xo - y] = c;
 			if (F >= 0) {
 				--x;
 				F -= 4 * x;
@@ -248,14 +247,14 @@ void Sheet::drawCircle(const Circle &cir, unsigned int color) {
 		}
 	} else {*/
 		while (x >= y) {
-			buf[(cir.center.y + y) * frame.vector.x + cir.center.x + x - 1] = color;
-			buf[(cir.center.y + y) * frame.vector.x + cir.center.x - x] = color;
-			buf[(cir.center.y - y) * frame.vector.x + cir.center.x + x - 1] = color;
-			buf[(cir.center.y - y) * frame.vector.x + cir.center.x - x] = color;
-			buf[(cir.center.y + x - 1) * frame.vector.x + cir.center.x + y] = color;
-			buf[(cir.center.y + x - 1) * frame.vector.x + cir.center.x - y] = color;
-			buf[(cir.center.y - x) * frame.vector.x + cir.center.x + y] = color;
-			buf[(cir.center.y - x) * frame.vector.x + cir.center.x - y] = color;
+			buf[(cir.center.y + y) * frame.size.width + cir.center.x + x - 1] = color;
+			buf[(cir.center.y + y) * frame.size.width + cir.center.x - x] = color;
+			buf[(cir.center.y - y) * frame.size.width + cir.center.x + x - 1] = color;
+			buf[(cir.center.y - y) * frame.size.width + cir.center.x - x] = color;
+			buf[(cir.center.y + x - 1) * frame.size.width + cir.center.x + y] = color;
+			buf[(cir.center.y + x - 1) * frame.size.width + cir.center.x - y] = color;
+			buf[(cir.center.y - x) * frame.size.width + cir.center.x + y] = color;
+			buf[(cir.center.y - x) * frame.size.width + cir.center.x - y] = color;
 			if (F >= 0) {
 				--x;
 				F -= 4 * x;
@@ -274,12 +273,12 @@ void Sheet::fillCircle(const Circle &cir, unsigned int color) {
 	/*if (d % 2 == 1) {
 		while (x >= y) {
 			for (int xx = xo - x; xx < xo + x; ++xx) {
-				sht->buf[(yo + y) * sht->frame.vector.x + xx] = c;
-				sht->buf[(yo - y) * sht->frame.vector.x + xx] = c;
+				sht->buf[(yo + y) * sht->frame.size.width + xx] = c;
+				sht->buf[(yo - y) * sht->frame.size.width + xx] = c;
 			}
 			for (int xx = xo - y; xx < xo + y; ++xx) {
-				sht->buf[(yo + x) * sht->frame.vector.x + xx] = c;
-				sht->buf[(yo - x) * sht->frame.vector.x + xx] = c;
+				sht->buf[(yo + x) * sht->frame.size.width + xx] = c;
+				sht->buf[(yo - x) * sht->frame.size.width + xx] = c;
 			}
 			if (F >= 0) {
 				--x;
@@ -291,12 +290,12 @@ void Sheet::fillCircle(const Circle &cir, unsigned int color) {
 	} else {*/
 		while (x >= y) {
 			for (int xx = cir.center.x - x; xx < cir.center.x + x; ++xx) {
-				buf[(cir.center.y + y) * frame.vector.x + xx] = color;
-				buf[(cir.center.y - y) * frame.vector.x + xx] = color;
+				buf[(cir.center.y + y) * frame.size.width + xx] = color;
+				buf[(cir.center.y - y) * frame.size.width + xx] = color;
 			}
 			for (int xx = cir.center.x - y; xx < cir.center.x + y; ++xx) {
-				buf[(cir.center.y + x - 1) * frame.vector.x + xx] = color;
-				buf[(cir.center.y - x) * frame.vector.x + xx] = color;
+				buf[(cir.center.y + x - 1) * frame.size.width + xx] = color;
+				buf[(cir.center.y - x) * frame.size.width + xx] = color;
 			}
 			if (F >= 0) {
 				--x;
@@ -316,12 +315,12 @@ void Sheet::gradCircle(const Circle &cir, unsigned int col0, unsigned int col1) 
 	/*if (d % 2 == 1) {
 		while (x >= y) {
 			for (int xx = xo - x; xx < xo + x; ++xx) {
-				sht->buf[(yo + y) * sht->frame.vector.x + xx] = GetGrad(y0, y0 + d, yo + y, c0, c1);
-				sht->buf[(yo - y) * sht->frame.vector.x + xx] = GetGrad(y0, y0 + d, yo - y, c0, c1);
+				sht->buf[(yo + y) * sht->frame.size.width + xx] = GetGrad(y0, y0 + d, yo + y, c0, c1);
+				sht->buf[(yo - y) * sht->frame.size.width + xx] = GetGrad(y0, y0 + d, yo - y, c0, c1);
 			}
 			for (int xx = xo - y; xx < xo + y; ++xx) {
-				sht->buf[(yo + x) * sht->frame.vector.x + xx] = GetGrad(y0, y0 + d, yo + x, c0, c1);
-				sht->buf[(yo - x) * sht->frame.vector.x + xx] = GetGrad(y0, y0 + d, yo - x, c0, c1);
+				sht->buf[(yo + x) * sht->frame.size.width + xx] = GetGrad(y0, y0 + d, yo + x, c0, c1);
+				sht->buf[(yo - x) * sht->frame.size.width + xx] = GetGrad(y0, y0 + d, yo - x, c0, c1);
 			}
 			if (F >= 0) {
 				--x;
@@ -333,12 +332,12 @@ void Sheet::gradCircle(const Circle &cir, unsigned int col0, unsigned int col1) 
 	} else {*/
 		while (x >= y) {
 			for (int xx = cir.center.x - x; xx < cir.center.x + x; ++xx) {
-				buf[(cir.center.y + y) * frame.vector.x + xx] = GetGrad(-cir.radius, cir.radius, y, col0, col1);
-				buf[(cir.center.y - y) * frame.vector.x + xx] = GetGrad(-cir.radius, cir.radius, -y, col0, col1);
+				buf[(cir.center.y + y) * frame.size.width + xx] = GetGrad(-cir.radius, cir.radius, y, col0, col1);
+				buf[(cir.center.y - y) * frame.size.width + xx] = GetGrad(-cir.radius, cir.radius, -y, col0, col1);
 			}
 			for (int xx = cir.center.x - y; xx < cir.center.x + y; ++xx) {
-				buf[(cir.center.y + x - 1) * frame.vector.x + xx] = GetGrad(-cir.radius, cir.radius, x - 1, col0, col1);
-				buf[(cir.center.y - x) * frame.vector.x + xx] = GetGrad(-cir.radius, cir.radius, -y, col0, col1);
+				buf[(cir.center.y + x - 1) * frame.size.width + xx] = GetGrad(-cir.radius, cir.radius, x - 1, col0, col1);
+				buf[(cir.center.y - x) * frame.size.width + xx] = GetGrad(-cir.radius, cir.radius, -y, col0, col1);
 			}
 			if (F >= 0) {
 				--x;
@@ -353,7 +352,7 @@ void Sheet::gradCircle(const Circle &cir, unsigned int col0, unsigned int col1) 
 // 単色文字を描画
 void Sheet::drawChar(unsigned char *font, const Point &pos, unsigned int color) {
 	for (int i = 0; i < 16; ++i) {
-		unsigned int *p = buf + (pos.y + i) * frame.vector.x + pos.x;
+		unsigned int *p = buf + (pos.y + i) * frame.size.width + pos.x;
 		unsigned char d = font[i];
 		if (d & 0x80) { p[0] = color; }
 		if (d & 0x40) { p[1] = color; }
@@ -443,7 +442,7 @@ void Sheet::drawString(const string &str, Point pos, unsigned int color, Encodin
 }
 
 void Sheet::borderRadius(bool ltop, bool rtop, bool lbottom, bool rbottom) {
-	int x = frame.vector.x, y = frame.vector.y;
+	int x = frame.size.width, y = frame.size.height;
 	// 左上
 	if (ltop) {
 		drawLine(Line(0, 0, 2, 0), kTransColor); // □□□
@@ -480,7 +479,7 @@ void Sheet::drawPicture(const char *fileName, const Point &pos, long transColor 
 
 	if (imagefile.open()) {
 		unsigned char *filebuf = imagefile.read();
-		unsigned int fsize = imagefile.getSize();
+		unsigned int fsize = imagefile.size;
 
 		if (!_info_JPEG(&env, info, fsize, filebuf) && !_info_BMP(&env, info, fsize, filebuf)) {
 			return;
@@ -493,12 +492,12 @@ void Sheet::drawPicture(const char *fileName, const Point &pos, long transColor 
 			} else {
 				i = _decode0_JPEG(&env, fsize, filebuf, 4, (unsigned char*)picbuf.get(), 0);
 			}
-			if (!i && info[2] <= SheetCtl::scrnx && info[3] <= SheetCtl::scrny) {
+			if (!i && info[2] <= SheetCtl::resolution.width && info[3] <= SheetCtl::resolution.height) {
 				for (int yy = 0; yy < info[3]; ++yy) {
 					for (int xx = 0; xx < info[2]; ++xx) {
 						color = Rgb(picbuf[yy * info[2] + xx].r, picbuf[yy * info[2] + xx].g, picbuf[yy * info[2] + xx].b);
-						if ((long)color != transColor && buf[(yy + pos.y) * ratio * frame.vector.x + (xx + pos.x) * ratio] != color) {
-							buf[(yy + pos.y) * ratio * frame.vector.x + (xx + pos.x) * ratio] = color;
+						if ((long)color != transColor && buf[(yy + pos.y) * ratio * frame.size.width + (xx + pos.x) * ratio] != color) {
+							buf[(yy + pos.y) * ratio * frame.size.width + (xx + pos.x) * ratio] = color;
 						}
 					}
 				}
@@ -509,61 +508,59 @@ void Sheet::drawPicture(const char *fileName, const Point &pos, long transColor 
 
 // 指定色を変更
 void Sheet::changeColor(const Rectangle &range, unsigned int col0, unsigned int col1) {
-	for (int y = 0; y < range.vector.y; ++y) {
-		for (int x = 0; x < range.vector.x; ++x) {
-			if (buf[(y + range.offset.y) * frame.vector.x + x + range.offset.x] == col0) {
-				buf[(y + range.offset.y) * frame.vector.x + x + range.offset.x] = col1;
+	for (int y = 0; y < range.size.height; ++y) {
+		for (int x = 0; x < range.size.width; ++x) {
+			if (buf[(y + range.offset.y) * frame.size.width + x + range.offset.x] == col0) {
+				buf[(y + range.offset.y) * frame.size.width + x + range.offset.x] = col1;
 			}
 		}
 	}
 }
 
-Task *SheetCtl::refreshTask;
-int SheetCtl::top = -1;
+int SheetCtl::_top = -1;
+const int &SheetCtl::top = SheetCtl::_top;
 int SheetCtl::caretPosition = 2;
 unsigned int SheetCtl::caretColor = 0;
 Timer *SheetCtl::caretTimer;
 string *SheetCtl::tboxString;
 unsigned char *SheetCtl::vram;
-int SheetCtl::scrnx;
-int SheetCtl::scrny;
+Size SheetCtl::_resolution(0, 0);
+const Size &SheetCtl::resolution = SheetCtl::_resolution;
 unsigned char *SheetCtl::map;
 Sheet *SheetCtl::back;
 Sheet *SheetCtl::contextMenu;
 Sheet *SheetCtl::window[kMaxTabs];
 int SheetCtl::numOfTab = 1;
 int SheetCtl::activeTab = 0;
-Sheet SheetCtl::sheets0[kMaxSheets];
 Sheet *SheetCtl::sheets[kMaxSheets];
 int SheetCtl::color;
 File *SheetCtl::font;
 
 // シートコントロールを初期化
 void SheetCtl::init() {
-	/* オブジェクト初期化 */
+	/* データメンバ初期化 */
 	BootInfo *binfo = (BootInfo *)ADDRESS_BOOTINFO;
-	vram       = binfo->vram;
-	scrnx      = binfo->scrnx;
-	scrny      = binfo->scrny;
-	color      = binfo->vmode;
-	map        = new unsigned char[scrnx * scrny];
-	tboxString = new string();
+	vram        = binfo->vram;
+	_resolution = Size(binfo->scrnx, binfo->scrny);
+	color       = binfo->vmode;
+	map         = new unsigned char[resolution.getArea()];
+	tboxString  = new string();
 
 	/* フォント読み込み */
 	font = new File("japanese.fnt");
 	font->open();
 
 	/* サイドバー */
-	back = new Sheet(Vector(150, scrny), false, [](const Point &pos) {
+	back = new Sheet(Size(150, resolution.height), false, [](const Point &pos) {
 		for (int i = 0; i < SheetCtl::numOfTab; ++i) {
 			if (i != SheetCtl::activeTab && 35 + 23 * i <= pos.y && pos.y < 33 + 16 + 8 + 23 * i) {
 				// 選択したタブ
-				Rectangle selectedTabRange(2, 35 + 23 * i, SheetCtl::back->frame.vector.x - 2, 22);
+				Rectangle selectedTabRange(2, 35 + 23 * i, SheetCtl::back->frame.size.width - 2, 22);
 				SheetCtl::back->changeColor(selectedTabRange, kPassiveTabColor, kActiveTabColor);
 				SheetCtl::back->changeColor(selectedTabRange, kPassiveTextColor, kActiveTextColor);
 				SheetCtl::back->refresh(selectedTabRange);
 				// アクティブだったタブ
-				Rectangle prevTabRange(2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back->frame.vector.x - 2, 22);
+				Rectangle prevTabRange(2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back->frame.size.width - 2, 22);
 				SheetCtl::back->changeColor(prevTabRange, kActiveTabColor, kPassiveTabColor);
 				SheetCtl::back->changeColor(prevTabRange, kActiveTextColor, kPassiveTextColor);
 				SheetCtl::back->refresh(prevTabRange);
@@ -583,61 +580,61 @@ void SheetCtl::init() {
 	back->drawPicture("btn_r.bmp", Point(59, 4), 0xff00ff);
 	// タブ
 	back->drawString("system info", Point(6, 39), kActiveTextColor);
-	back->changeColor(Rectangle(2, 35, back->frame.vector.x - 2, 22), kBackgroundColor, kActiveTabColor);
+	back->changeColor(Rectangle(2, 35, back->frame.size.width - 2, 22), kBackgroundColor, kActiveTabColor);
 	// 検索窓
-	back->fillRect(Rectangle(2, back->frame.vector.y - 20 - 22, back->frame.vector.x - 2 - 2, 22), 0xffffff);
+	back->fillRect(Rectangle(2, back->frame.size.height - 20 - 22, back->frame.size.width - 2 - 2, 22), 0xffffff);
 	// 表示設定
 	back->upDown(0);
 
 	// tabs
-	window[0] = new Sheet(Vector(scrnx - back->frame.vector.x, scrny), false);
+	window[0] = new Sheet(Size(resolution.width - back->frame.size.width, resolution.height), false);
 	window[0]->fillRect(window[0]->frame, 0xffffff);
 	window[0]->drawRect(window[0]->frame, 0);
-	window[0]->slide(Point(back->frame.vector.x, 0));
+	window[0]->moveTo(Point(back->frame.size.width, 0));
 
 	// system info タブを全面へ
 	window[0]->upDown(1);
 
 	/* 右クリックメニュー */
-	contextMenu = new Sheet(Vector(150, 150), true);
+	contextMenu = new Sheet(Size(150, 150), true);
 	contextMenu->fillRect(contextMenu->frame, kTransColor);
 	//contextMenu->gradCircle(Circle(Point(75, 75), 75), Rgb(200, 230, 255, 50), Rgb(100, 150, 255));
 	contextMenu->fillCircle(Circle(Point(75, 75), 75), 0x19e0e0e0);
 	//contextMenu->drawCircle(Circle(Point(75, 75), 75), Rgb(0, 0, 255, 50));
 	contextMenu->fillCircle(Circle(Point(75, 75), 35), kTransColor);
 	//contextMenu->drawCircle(Circle(Point(75, 75), 35), Rgb(0, 0, 255, 50));
-	contextMenu->drawPicture("copy.bmp", Point(contextMenu->frame.vector.x / 2 - 16, 3), 0xff00ff);
-	contextMenu->drawPicture("source.bmp", Point(contextMenu->frame.vector.x / 2 + 38, contextMenu->frame.vector.y / 2 - 16), 0xff00ff);
-	contextMenu->drawPicture("search.bmp", Point(contextMenu->frame.vector.x / 2 - 16, contextMenu->frame.vector.y - 32 - 3), 0xff00ff);
-	contextMenu->drawPicture("refresh.bmp", Point(contextMenu->frame.vector.x / 2 - 38 - 32, contextMenu->frame.vector.y / 2 - 16), 0xff00ff);
+	contextMenu->drawPicture("copy.bmp", Point(contextMenu->frame.size.width / 2 - 16, 3), 0xff00ff);
+	contextMenu->drawPicture("source.bmp", Point(contextMenu->frame.size.width / 2 + 38, contextMenu->frame.size.height / 2 - 16), 0xff00ff);
+	contextMenu->drawPicture("search.bmp", Point(contextMenu->frame.size.width / 2 - 16, contextMenu->frame.size.height - 32 - 3), 0xff00ff);
+	contextMenu->drawPicture("refresh.bmp", Point(contextMenu->frame.size.width / 2 - 38 - 32, contextMenu->frame.size.height / 2 - 16), 0xff00ff);
 }
 
 // 指定範囲の変更をmapに適用
 void SheetCtl::refreshMap(const Rectangle &range, int h0) {
 	int bx0, by0, bx1, by1, sid4;
 	int vx0 = max(0, range.offset.x), vy0 = max(0, range.offset.y);
-	int vx1 = min(scrnx, range.getEndPoint().x), vy1 = min(scrny, range.getEndPoint().y);
+	int vx1 = min(resolution.width, range.getEndPoint().x), vy1 = min(resolution.height, range.getEndPoint().y);
 	for (int sid = h0; sid <= top; ++sid) {
 		const Sheet &sht = *sheets[sid];
 		bx0 = max(0, vx0 - sht.frame.offset.x);
 		by0 = max(0, vy0 - sht.frame.offset.y);
-		bx1 = min(sht.frame.vector.x, vx1 - sht.frame.offset.x);
-		by1 = min(sht.frame.vector.y, vy1 - sht.frame.offset.y);
-		if (!sht.trans) {
+		bx1 = min(sht.frame.size.width, vx1 - sht.frame.offset.x);
+		by1 = min(sht.frame.size.height, vy1 - sht.frame.offset.y);
+		if (!sht.nonRect) {
 			if (!(sht.frame.offset.x & 3) && !(bx0 & 3) && !(bx1 & 3)) {
 				/* 透明色なし専用の高速版（4バイト型） */
 				bx1 = (bx1 - bx0) / 4;
 				sid4 = sid | sid << 8 | sid << 16 | sid << 24;
 				for (int by = by0; by < by1; ++by) {
 					for (int bx = 0; bx < bx1; ++bx) {
-						((int*) &map[(sht.frame.offset.y + by) * scrnx + sht.frame.offset.x + bx0])[bx] = sid4;
+						((int*) &map[(sht.frame.offset.y + by) * resolution.width + sht.frame.offset.x + bx0])[bx] = sid4;
 					}
 				}
 			} else {
 				/* 透明色なし専用の高速版（1バイト型） */
 				for (int by = by0; by < by1; ++by) {
 					for (int bx = bx0; bx < bx1; ++bx) {
-						map[(sht.frame.offset.y + by) * scrnx + sht.frame.offset.x + bx] = sid;
+						map[(sht.frame.offset.y + by) * resolution.width + sht.frame.offset.x + bx] = sid;
 					}
 				}
 			}
@@ -645,8 +642,8 @@ void SheetCtl::refreshMap(const Rectangle &range, int h0) {
 			/* 透明色ありの一般版（1バイト型） */
 			for (int by = by0; by < by1; ++by) {
 				for (int bx = bx0; bx < bx1; ++bx) {
-					if ((unsigned char) (sht.buf[by * sht.frame.vector.x + bx] >> 24) != 255) {
-						map[(sht.frame.offset.y + by) * scrnx + sht.frame.offset.x + bx] = sid;
+					if ((unsigned char) (sht.buf[by * sht.frame.size.width + bx] >> 24) != 255) {
+						map[(sht.frame.offset.y + by) * resolution.width + sht.frame.offset.x + bx] = sid;
 					}
 				}
 			}
@@ -660,7 +657,7 @@ void SheetCtl::refreshSub(const Rectangle &range, int h1) {
 	unsigned int rgb;
 
 	int vx0 = max(0, range.offset.x), vy0 = max(0, range.offset.y);
-	int vx1 = min(scrnx, range.getEndPoint().x), vy1 = min(scrny, range.getEndPoint().y);
+	int vx1 = min(resolution.width, range.getEndPoint().x), vy1 = min(resolution.height, range.getEndPoint().y);
 	unique_ptr<unsigned int> backrgb(new unsigned int[(vx1 - vx0) * (vy1 - vy0)]);
 
 	for (int sid = 0; sid <= h1; ++sid) {
@@ -668,14 +665,14 @@ void SheetCtl::refreshSub(const Rectangle &range, int h1) {
 		/* vx0～vy1を使って、bx0～by1を逆算する */
 		bx0 = max(0, vx0 - sht.frame.offset.x);
 		by0 = max(0, vy0 - sht.frame.offset.y);
-		bx1 = min(sht.frame.vector.x, vx1 - sht.frame.offset.x);
-		by1 = min(sht.frame.vector.y, vy1 - sht.frame.offset.y);
+		bx1 = min(sht.frame.size.width, vx1 - sht.frame.offset.x);
+		by1 = min(sht.frame.size.height, vy1 - sht.frame.offset.y);
 		if (color == 32) {
 			for (int by = by0; by < by1; ++by) {
 				for (int bx = bx0; bx < bx1; ++bx) {
-					rgb = sht.buf[by * sht.frame.vector.x + bx];
-					if (map[(sht.frame.offset.y + by) * scrnx + sht.frame.offset.x + bx] == sid) {
-						((unsigned int *)vram)[((sht.frame.offset.y + by) * scrnx + (sht.frame.offset.x + bx))]
+					rgb = sht.buf[by * sht.frame.size.width + bx];
+					if (map[(sht.frame.offset.y + by) * resolution.width + sht.frame.offset.x + bx] == sid) {
+						((unsigned int *)vram)[((sht.frame.offset.y + by) * resolution.width + (sht.frame.offset.x + bx))]
 							= (sid <= 1) ? rgb
 							           : MixRgb(rgb, backrgb[(sht.frame.offset.y + by - vy0) * (vx1 - vx0) + (sht.frame.offset.x + bx - vx0)]);
 					} else if ((unsigned char)(rgb >> 24) != 255) {
@@ -688,9 +685,9 @@ void SheetCtl::refreshSub(const Rectangle &range, int h1) {
 		} else if (color == 24) {
 			for (int by = by0; by < by1; ++by) {
 				for (int bx = bx0; bx < bx1; ++bx) {
-					rgb = sht.buf[by * sht.frame.vector.x + bx];
-					if (map[(sht.frame.offset.y + by) * scrnx + sht.frame.offset.x + bx] == sid) {
-						unsigned char *vram24 = (unsigned char *)(vram + ((sht.frame.offset.y + by) * scrnx + (sht.frame.offset.x + bx)) * 3);
+					rgb = sht.buf[by * sht.frame.size.width + bx];
+					if (map[(sht.frame.offset.y + by) * resolution.width + sht.frame.offset.x + bx] == sid) {
+						unsigned char *vram24 = (unsigned char *)(vram + ((sht.frame.offset.y + by) * resolution.width + (sht.frame.offset.x + bx)) * 3);
 						if (sid > 1) {
 							rgb = MixRgb(rgb, backrgb[(sht.frame.offset.y + by - vy0) * (vx1 - vx0) + (sht.frame.offset.x + bx - vx0)]);
 						}
@@ -707,9 +704,9 @@ void SheetCtl::refreshSub(const Rectangle &range, int h1) {
 		} else if (color == 16) {
 			for (int by = by0; by < by1; ++by) {
 				for (int bx = bx0; bx < bx1; ++bx) {
-					rgb = sht.buf[by * sht.frame.vector.x + bx];
-					if (map[(sht.frame.offset.y + by) * scrnx + sht.frame.offset.x + bx] == sid) {
-						((unsigned short *)vram)[(sht.frame.offset.y + by) * scrnx + (sht.frame.offset.x + bx)]
+					rgb = sht.buf[by * sht.frame.size.width + bx];
+					if (map[(sht.frame.offset.y + by) * resolution.width + sht.frame.offset.x + bx] == sid) {
+						((unsigned short *)vram)[(sht.frame.offset.y + by) * resolution.width + (sht.frame.offset.x + bx)]
 						              = (sid <= 1) ?
 						            		  ((((unsigned char) (rgb >> 16) << 8) & 0xf800)
 								                 | (((unsigned char) (rgb >> 8) << 3) & 0x07e0)

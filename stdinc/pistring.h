@@ -285,6 +285,10 @@ template <typename T>
 string to_string(T n) {
 	bool minus = false;
 	string tmp;
+	if (n == 0) {
+		tmp = "0";
+		return tmp;
+	}
 	if (n < 0) {
 		minus = true;
 		n = -n;

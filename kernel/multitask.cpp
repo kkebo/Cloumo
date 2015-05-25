@@ -1,17 +1,11 @@
 #include "../headers.h"
 
-Timer     *TaskController::timer       = nullptr;
-int       TaskController::nowLevel     = 0;
-bool      TaskController::levelChanged = false;
-TaskLevel TaskController::level[MAX_TASKLEVELS];
-Task      TaskController::tasks0[MAX_TASKS];
-Task      *TaskController::taskFPU     = nullptr;
-
 TaskQueue::TaskQueue(int size, Task *task_) : Queue<int>(size), task(task_) {}
 
 bool TaskQueue::push(int data) {
 	if (Queue::push(data)) {
-		if (task && task->flags != TaskFlag::Running) {
+		// タスクが指定されていてかつスリープしていたら起こす
+		if (task && !task->running) {
 			task->run(-1, 0);
 		}
 		return true;
@@ -19,8 +13,66 @@ bool TaskQueue::push(int data) {
 	return false;
 }
 
-Task::Task(char *name_, int level_, int priority_, void (*mainLoop)()) : name(name_), queue(nullptr) {
+// メインタスク用の Constructor
+Task::Task() {
+	_running = true;
+	
+	// GDT に登録
+	selector = kTaskGDT0 * 8;
+	SetSegmentDescriptor((SegmentDescriptor *)kAdrGdt + kTaskGDT0, 103, (int)&tss, kArTss32);
+	
+	// Task State Segment の設定
+	tss.eflags = 0x00000202;
+	tss.eax = 0;
+	tss.ecx = 0;
+	tss.edx = 0;
+	tss.ebx = 0;
+	tss.ebp = 0;
+	tss.esi = 0;
+	tss.edi = 0;
+	tss.es = 0;
+	tss.ds = 0;
+	tss.fs = 0;
+	tss.gs = 0;
+	tss.ldtr = 0;
+	tss.iomap = 0x40000000;
+	tss.ss0 = 0;
+}
+
+Task::Task(char *name_, int level_, int priority_, void (*mainLoop)()) : _name(name_) {
+	// GDT に登録
+	selector = (kTaskGDT0 + TaskSwitcher::taskCount) * 8;
+	SetSegmentDescriptor((SegmentDescriptor *)kAdrGdt + kTaskGDT0 + TaskSwitcher::taskCount, 103, (int)&tss, kArTss32);
+	++TaskSwitcher::taskCount;
+	
+	// 64KB のスタック確保
 	stack = (int)malloc4k(64 * 1024);
+	
+	// Task State Segment の設定
+	tss.eip = mainLoop;
+	tss.eflags = 0x00000202;
+	tss.eax = 0;
+	tss.ecx = 0;
+	tss.edx = 0;
+	tss.ebx = 0;
+	tss.esp = stack + 64 * 1024 - 12;
+	tss.ebp = 0;
+	tss.esi = 0;
+	tss.edi = 0;
+	tss.es = 1 * 8;//0
+	tss.cs = 2 * 8;
+	tss.ss = 1 * 8;
+	tss.ds = 1 * 8;//0
+	tss.fs = 1 * 8;//0
+	tss.gs = 1 * 8;//0
+	tss.ldtr = 0;
+	tss.iomap = 0x40000000;
+	tss.ss0 = 0;
+	
+	// run
+	run(level_, priority_);
+	
+	/*stack = (int)malloc4k(64 * 1024);
 	tss.esp = stack + 64 * 1024 - 12;
 	tss.eip = mainLoop;
 	tss.es = 1 * 8;
@@ -29,7 +81,7 @@ Task::Task(char *name_, int level_, int priority_, void (*mainLoop)()) : name(na
 	tss.ds = 1 * 8;
 	tss.fs = 1 * 8;
 	tss.gs = 1 * 8;
-	run(level_, priority_);
+	run(level_, priority_);*/
 }
 
 Task::Task(char *name_, int level_, int priority_, int queueSize, void (*mainLoop)()) : Task(name_, level_, priority_, mainLoop) {
@@ -39,134 +91,106 @@ Task::Task(char *name_, int level_, int priority_, int queueSize, void (*mainLoo
 Task::~Task() {
 	sleep();
 	delete queue;
-	flags = TaskFlag::Free;
 	free4k(stack);
-}
-
-static void *Task::operator new(size_t) {
-	for (auto &&task : TaskController::tasks0) {
-		if (task.flags == TaskFlag::Free) {
-			task.flags = TaskFlag::Sleeping;
-			task.tss.eflags = 0x00000202;
-			task.tss.eax = 0;
-			task.tss.ecx = 0;
-			task.tss.edx = 0;
-			task.tss.ebx = 0;
-			task.tss.ebp = 0;
-			task.tss.esi = 0;
-			task.tss.edi = 0;
-			task.tss.es = 0;
-			task.tss.ds = 0;
-			task.tss.fs = 0;
-			task.tss.gs = 0;
-			task.tss.ldtr = 0;
-			task.tss.iomap = 0x40000000;
-			task.tss.ss0 = 0;
-			task.fpu[0] = 0x037f; /* CW(control word) */
-			task.fpu[1] = 0x0000; /* SW(status word)  */
-			task.fpu[2] = 0xffff; /* TW(tag word)     */
-			for (int i = 3; i < 108 / 4; ++i) {
-				task.fpu[i] = 0;
-			}
-			return &task;
-		}
-	}
-	// もうタスクは作れない
-	return nullptr;
 }
 
 void Task::run(int newLevel, int newPriority) {
 	// level が負ならレベルを変更しない
 	if (newLevel < 0) newLevel = level;
 	// 優先度は 1 以上
-	if (newPriority > 0) priority = newPriority;
+	if (newPriority > 0) _priority = newPriority;
 
-	if (flags ==  TaskFlag::Running && level != newLevel) {
-		TaskController::remove(this);
+	if (running && level != newLevel) {
+		TaskSwitcher::remove(this);
 	}
-	if (flags !=  TaskFlag::Running) {
-		level = newLevel;
-		TaskController::add(this);
+	if (!running) {
+		_level = newLevel;
+		TaskSwitcher::add(this);
 	}
 
-	TaskController::levelChanged = true;
+	TaskSwitcher::levelChanged = true;
 }
 
 void Task::sleep() {
-	if (flags == TaskFlag::Running) {
-		Task* nowTask = TaskController::getNowTask();
-		TaskController::remove(this);
+	if (running) {
+		Task *nowTask = TaskSwitcher::getNowTask();
+		TaskSwitcher::remove(this);
 		if (this == nowTask) {
-			TaskController::switchTaskSub();
-			nowTask = TaskController::getNowTask();
+			TaskSwitcher::switchTaskSub();
+			nowTask = TaskSwitcher::getNowTask();
 			FarJump(0, nowTask->selector);
 		}
 	}
 }
 
-Task *TaskController::init() {
-	for (int i = 0; i < MAX_TASKS; ++i) {
-		tasks0[i].selector = (kTaskGdt0 + i) * 8;
-		SetSegmentDescriptor((SegmentDescriptor*)kAdrGdt + kTaskGdt0 + i, 103, (int)&tasks0[i].tss, kArTss32);
-	}
+int       TaskSwitcher::nowLevel     = 0;
+bool      TaskSwitcher::levelChanged = false;
+TaskLevel TaskSwitcher::_level[MAX_TASKLEVELS];
+const TaskLevel (&TaskSwitcher::level)[MAX_TASKLEVELS] = _level;
+Task      *TaskSwitcher::taskFPU     = nullptr;
+Timer     *TaskSwitcher::timer;
+int       TaskSwitcher::taskCount    = 1; // メインタスクの分をあらかじめ足しておく
 
-	/* メインタスク */
+Task *TaskSwitcher::init() {
+	// メインタスクの設定
 	Task *task = new Task();
-	task->name = (char *)kMainTaskName;
-	task->flags =  TaskFlag::Running;
-	task->priority = 2; /* 0.02秒 */
-	task->level = 0;
+	task->_name = kMainTaskName;
+	task->_level = 0;
+	task->_priority = 2;
 	add(task);
 	switchTaskSub();
 	LoadTr(task->selector);
-	timer = &TimerController::timers0[1];
-	timer->flags = TimerFlag::Reserved;
+	
+	// タスクスイッチ用タイマーの設定
+	timer = new Timer(nullptr, -1);
 	timer->set(task->priority);
 
 	return task;
 }
 
-void TaskController::switchTask() {
-	TaskLevel *tl = &level[nowLevel];
+void TaskSwitcher::switchTask() {
+	TaskLevel *tl = &_level[nowLevel];
 	Task *newTask;
 	Task *nowTask = tl->tasks[tl->now];
 	++tl->now;
 	if (tl->now == tl->running) tl->now = 0;
 	if (levelChanged) {
 		switchTaskSub();
-		tl = &level[nowLevel];
+		tl = &_level[nowLevel];
 	}
 	newTask = tl->tasks[tl->now];
 	timer->set(newTask->priority);
 	if (newTask != nowTask) FarJump(0, newTask->selector);
 }
 
-void TaskController::switchTaskSub() {
-	int i;
-	for (i = 0; i < MAX_TASKLEVELS; ++i) {
-		if (level[i].running > 0) break;
+void TaskSwitcher::switchTaskSub() {
+	for (int i = 0; i < MAX_TASKLEVELS; ++i) {
+		// Idle Task がいるので絶対に途中で止まる
+		if (level[i].running > 0) {
+			nowLevel = i;
+			levelChanged = false;
+			return;
+		}
 	}
-	nowLevel = i;
-	levelChanged = false;
 }
 
-Task *TaskController::getNowTask() {
-	TaskLevel *tl = &level[nowLevel];
+Task *TaskSwitcher::getNowTask() {
+	TaskLevel *tl = &_level[nowLevel];
 	return tl->tasks[tl->now];
 }
 
-void TaskController::add(Task *task) {
-	TaskLevel *tl = &level[task->level];
+void TaskSwitcher::add(Task *task) {
+	TaskLevel *tl = &_level[task->level];
 	if (tl->running < kMaxTasksLevel) {
 		tl->tasks[tl->running] = task;
 		++tl->running;
-		task->flags = TaskFlag::Running;
+		task->_running = true;
 	}
 }
 
-void TaskController::remove(Task *task) {
+void TaskSwitcher::remove(Task *task) {
 	int i;
-	TaskLevel *tl = &level[task->level];
+	TaskLevel *tl = &_level[task->level];
 
 	// 現在のレベル内でのこのタスクのインデックス番号を取得
 	for (i = 0; i < tl->running; ++i)
@@ -183,7 +207,7 @@ void TaskController::remove(Task *task) {
 	if (tl->now >= tl->running) tl->now = 0;
 	
 	// フラグの書き換え
-	task->flags =  TaskFlag::Sleeping;
+	task->_running = false;
 
 	// このレベル内のタスクの配列をずらす
 	for (; i < tl->running; ++i) {

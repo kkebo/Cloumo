@@ -33,8 +33,8 @@ extern "C" {
 	bool free4k(void *);
 }
 
-void *operator new(size_t) throw();
-void *operator new[](size_t) throw();
+void *operator new(size_t) noexcept;
+void *operator new[](size_t) noexcept;
 void operator delete(void *);
 void operator delete[](void *);
 

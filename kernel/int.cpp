@@ -31,16 +31,16 @@ void PICInit() {
 
 // FPU
 void IntHandler07(int *esp) {
-	Task *now = TaskController::getNowTask();
+	Task *now = TaskSwitcher::getNowTask();
 	asm volatile("clts");
-	if (TaskController::taskFPU != now) {
-		if (TaskController::taskFPU) {
-			int *p = (int *)TaskController::taskFPU->fpu;
+	if (TaskSwitcher::taskFPU != now) {
+		if (TaskSwitcher::taskFPU) {
+			int *p = (int *)TaskSwitcher::taskFPU->fpu;
 			asm volatile("fnsave %0" : "=m"(p));
 		}
 		int *p = (int *)now->fpu;
 		asm volatile("frstor %0" : "=m"(p));
-		TaskController::taskFPU = now;
+		TaskSwitcher::taskFPU = now;
 	}
 }
 
@@ -48,26 +48,39 @@ void IntHandler07(int *esp) {
 void IntHandler20(int *esp) {
 	Timer *timer;
 	bool ts = false;
+	
 	/* IRQ-00受付完了をPICに通知 */
 	Output8(kPic0Ocw2, 0x60);
+	
+	// count をインクリメント
 	++TimerController::count;
-	if (TimerController::next > TimerController::count)
-		return;
+	
+	// まだ直近のタイムアウトまで時間がある
+	if (TimerController::next > TimerController::count) return;
+	
+	// タイムアウト処理
 	timer = TimerController::t0;
 	while (timer->timeout <= TimerController::count) {
-		timer->flags = TimerFlag::Reserved;
-		if (timer != TaskController::timer) {
-			timer->queue->push(timer->getData());
+		timer->running = false;
+		if (timer != TaskSwitcher::timer) {
+			// 一般タイマーのタイムアウト
+			timer->queue->push(timer->data);
 		} else {
+			// タスクスイッチ用タイマーのタイムアウト
 			ts = true;
 		}
 		timer = timer->next;
 	}
+	
+	// 次のタイムアウトのための準備
 	TimerController::t0 = timer;
 	TimerController::next = timer->timeout;
-	if (ts)
-		TaskController::switchTask();
-	/*if (TimerController::count >= 0xf0000000) { // オーバーフローする前にリセット (これじゃだめだった)
+	
+	// タスクスイッチ
+	if (ts) TaskSwitcher::switchTask();
+	
+	// オーバーフローする前にリセット (これじゃだめだった)
+	/*if (TimerController::count >= 0xf0000000) {
 		TimerController::reset();
 	}*/
 }

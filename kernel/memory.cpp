@@ -158,11 +158,11 @@ bool free4k(void *addr) {
 	return s1;
 }*/
 
-void *operator new(size_t size) throw() {
+void *operator new(size_t size) noexcept {
 	return malloc4k(size);
 }
 
-void *operator new[](size_t size) throw() {
+void *operator new[](size_t size) noexcept {
 	return malloc4k(size);
 }
 

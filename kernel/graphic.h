@@ -15,9 +15,10 @@ enum class GradientDirection { LeftToRight, TopToBottom };
 enum class Encoding { SJIS, UTF8, EUCJP };
 
 struct Point {
-	int x, y;
+	int x = 0, y = 0;
 	
-	Point(int x_ = 0, int y_ = 0) : x(x_), y(y_) {}
+	Point() = default;
+	Point(int x_, int y_) : x(x_), y(y_) {}
 	Point operator +(const Point &p) const {
 		return Point(x + p.x, y + p.y);
 	}
@@ -39,61 +40,46 @@ struct Point {
 	}
 };
 
-struct Vector : public Point {
-	using Point::Point;
-	
-	Vector operator +(const Vector &p) const {
-		return Vector(x + p.x, y + p.y);
+struct Size {
+	int width, height;
+
+	Size(int w, int h) : width(w), height(h) {}
+	Size operator /(int n) const {
+		return Size(width / n, height / n);
 	}
-	Vector operator -(const Vector &p) const {
-		return Vector(x - p.x, y - p.y);
-	}
-	Vector operator /(int n) const {
-		return Vector(x / n, y / n);
-	}
-	Vector &operator +=(const Vector &p) {
-		x += p.x;
-		y += p.y;
-		return *this;
-	}
-	Vector &operator -=(const Vector &p) {
-		x -= p.x;
-		y -= p.y;
-		return *this;
-	}
-	int getArea() const {
-		return x * y;
+	inline int getArea() const {
+		return width * height;
 	}
 };
 
 struct Line {
-	Point offset;
-	Vector vector;
+	Point start, end;
 	
-	Line(const Point &o, const Vector &v) : offset(o), vector(v) {}
-	Line(const Vector &v) : offset(0, 0), vector(v) {}
-	Line(int x0 = 0, int y0 = 0, int x1 = 0, int y1 = 0) : Line(Point(x0, y0), Vector(x1, y1)) {}
-	Point getEndPoint() const {
-		return Point(offset.x + vector.x, offset.y + vector.y);
-	}
-	void slide(const Point &p) {
-		offset.x += p.x;
-		offset.y += p.y;
-	}
-	Line slideAndClone(const Point &p) {
-		return Line(offset + p, vector);
-	}
+	Line(const Point &o, const Point &s) : start(o), end(s) {}
+	Line(int x0, int y0, int x1, int y1) : start(x0, y0), end(x1, y1) {}
 };
 
-struct Rectangle : public Line {
-	using Line::Line;
+struct Rectangle {
+	Point offset;
+	Size size;
 
+	Rectangle(const Point &o, const Size &s) : offset(o), size(s) {}
+	Rectangle(const Size &s) : offset(0, 0), size(s) {}
+	Rectangle(int x, int y, int width, int height) : offset(x, y), size(width, height) {}
+	Rectangle(int width, int height) : offset(0, 0), size(width, height) {}
 	bool contains(const Point &p) const {
-		return offset.x <= p.x && p.x <= offset.x + vector.x
-			&& offset.y <= p.y && p.y <= offset.y + vector.y;
+		return offset.x <= p.x && p.x <= offset.x + size.width
+		    && offset.y <= p.y && p.y <= offset.y + size.height;
 	}
-	Rectangle slideAndClone(const Point &p) {
-		return Rectangle(offset + p, vector);
+	Point getEndPoint() {
+		return Point(offset.x + size.width, offset.y + size.height);
+	}
+	inline int getArea() const {
+		return size.width * size.height;
+	}
+	Rectangle &slide(const Point &p) {
+		offset += p;
+		return *this;
 	}
 };
 
@@ -107,24 +93,22 @@ struct Circle {
 
 class Sheet {
 private:
-	Sheet() : flags(false) {}
+	Rectangle _frame = Rectangle(0, 0);
+	int _height = -1;
+	bool nonRect;
 
 public:
 	unsigned int *buf;
-	Rectangle frame;
-	int height;
-	bool flags; // 使用中かどうか
-	bool trans;
+	const Rectangle &frame = _frame;
+	const int &height = _height;
 	void (*onClick)(const Point &pos);
-	
+
 	friend class SheetCtl;
-	Sheet(const Vector &size, bool inv, void (*click)() = nullptr);
+	Sheet(const Size &size, bool _nonRect = false, void (*click)() = nullptr);
 	virtual ~Sheet();
-	static void *operator new(size_t);
-	static void operator delete(void *) {}
 	void upDown(int height);
-	void refresh(const Rectangle &range) const;
-	void slide(const Point &cod);
+	void refresh(Rectangle range) const;
+	void moveTo(const Point &cod);
 	
 	// 描画関数
 	void drawLine(const Line &line, unsigned int color);
@@ -150,15 +134,10 @@ private:
 	static unsigned char *vram;
 	static unsigned char *map;
 	static File *font;
-
-public:
-	static Task *refreshTask;
-	static Sheet sheets0[];
 	static Sheet *sheets[];
-	static int scrnx;
-	static int scrny;
+	static Size _resolution;
 	static int color;
-	static int top;
+	static int _top;
 	static Sheet *back;
 	static Sheet *window[];
 	static int numOfTab;
@@ -171,11 +150,19 @@ public:
 	static Timer *caretTimer;
 	static string *tboxString;
 
-public:
-	friend class Sheet;
-	static void init();
 	static void refreshMap(const Rectangle &range, int);
 	static void refreshSub(const Rectangle &range, int);
+
+public:
+	static const int &top;
+	static const Size &resolution;
+
+	friend class Sheet;
+	friend class Mouse; // 一時的．分離するべき
+	friend class KeyboardController; // 一時的．分離するべき
+	friend class DateTime; // 一時的．分離するべき
+	friend void showSysInfo(int benchScore); // 一時的．分離するべき
+	static void init();
 };
 
 // 赤緑青をあわせてunsigned intで出力

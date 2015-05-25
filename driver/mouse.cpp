@@ -1,3 +1,4 @@
+#include <MinMax.h>
 #include "../headers.h"
 
 const char *Mouse::cursor[] = {
@@ -19,26 +20,26 @@ const char *Mouse::cursor[] = {
 	"*****OOOOOO*****"
 };
 bool Mouse::scroll = false;
-Point Mouse::newPos;
+Point Mouse::newPos(-1, 0);
 Sheet *Mouse::sheet;
 TaskQueue *Mouse::queue;
 MouseDecode Mouse::mdec;
 //Task *Mouse::browserTask = nullptr;
 
 void Mouse::Main() {
-	Task *task = TaskController::getNowTask();
+	Task *task = TaskSwitcher::getNowTask();
 	unsigned char code;
 	int dx, dy;
 	
 	// メンバ初期化
 	newPos = Point(-1, 0);
-	mdec.pos = Point(SheetCtl::scrnx / 2, SheetCtl::scrny / 2);
+	mdec.pos = Point(SheetCtl::resolution.width / 2, SheetCtl::resolution.height / 2);
 	mdec.phase = 0;
 	mdec.scroll = 0;
 	queue = task->queue;
 	
 	// マウスポインタ描画
-	Mouse::sheet = new Sheet(Vector(16, 16), true);
+	Mouse::sheet = new Sheet(Size(16, 16), true);
 	for (int y = 0; y < 16; ++y) {
 		for (int x = 0; x < 16; ++x) {
 			switch (Mouse::cursor[x][y]) {
@@ -172,7 +173,7 @@ void Mouse::Main() {
 		if (queue->isempty()) {
 			if (newPos.x >= 0) {
 				Sti();
-				sheet->slide(newPos + Point(-8, -8));
+				sheet->moveTo(newPos + Point(-8, -8));
 				newPos.x = -1;
 			} else {
 				task->sleep();
@@ -210,18 +211,13 @@ void Mouse::Main() {
 					
 					if (mdec.buf[0] & 0x10) dx |= 0xffffff00;
 					if (mdec.buf[0] & 0x20) dy |= 0xffffff00;
-					mdec.pos += Point(dx, -dy);
-					if (mdec.pos.x < 0) mdec.pos.x = 0;
-					if (mdec.pos.y < 0) mdec.pos.y = 0;
-					if (mdec.pos.x > SheetCtl::scrnx - 1) {
-						mdec.pos.x = SheetCtl::scrnx - 1;
-					}
-					if (mdec.pos.y > SheetCtl::scrny - 1) {
-						mdec.pos.y = SheetCtl::scrny - 1;
-					}
+					mdec.pos = Point(
+						min(SheetCtl::resolution.width - 1, max(0, mdec.pos.x + dx)),
+						min(SheetCtl::resolution.height - 1, max(0, mdec.pos.y - dy))
+					);
 					newPos = mdec.pos;
 					
-					if (mdec.btn & 0x01) {	// On left click
+					if (mdec.btn & 0x01) { // On left click
 						// Close the context menu
 						if (SheetCtl::contextMenu->height > 0) {
 							SheetCtl::contextMenu->upDown(-1);
@@ -235,9 +231,9 @@ void Mouse::Main() {
 								break;
 							}
 						}
-					} else if (mdec.btn & 0x02 && SheetCtl::contextMenu->height < 0) {	// On right click
+					} else if (mdec.btn & 0x02 && SheetCtl::contextMenu->height < 0) { // On right click
 						// Open the context menu
-						SheetCtl::contextMenu->slide(mdec.pos - SheetCtl::contextMenu->frame.vector / 2);
+						SheetCtl::contextMenu->moveTo(Point(mdec.pos.x - SheetCtl::contextMenu->frame.size.width / 2, mdec.pos.y - SheetCtl::contextMenu->frame.size.height / 2));
 						SheetCtl::contextMenu->upDown(SheetCtl::top);
 					}
 					break;

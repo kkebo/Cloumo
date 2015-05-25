@@ -11,7 +11,7 @@ extern "C" void _main() {
 	PICInit();
 	FAT12::init();
 	TimerController::init();
-	Task *mainTask = TaskController::init();
+	Task *mainTask = TaskSwitcher::init();
 	SheetCtl::init();
 	Cli();
 	Output8(kPic0Imr, 0xf8); /* PITとPIC1とキーボードを許可(11111000) */
@@ -24,7 +24,7 @@ extern "C" void _main() {
 	new Task((char *)kMouseTaskName, 1, 1, 128, &Mouse::Main);
 	new Task((char *)kSysInfoTaskName, 2, 1, 128, &SysinfoMain);
 	/*new Task((char *)kBrowserTaskName, 2, 2, 128, [] {
-		Task *task = TaskController::getNowTask();
+		Task *task = TaskSwitcher::getNowTask();
 		Browser *browser = new Browser("index.htm");
 		browser->Render();
 		

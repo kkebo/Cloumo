@@ -7,8 +7,7 @@
 
 #include <Queue.h>
 
-const int MAX_TASKS = 1000;
-const int kTaskGdt0 = 3;
+const int kTaskGDT0 = 3;
 const int kMaxTasksLevel = 100;
 const int MAX_TASKLEVELS = 10;
 
@@ -18,8 +17,6 @@ struct TSS32 {
 	int es, cs, ss, ds, fs, gs;
 	int ldtr, iomap;
 };
-
-enum class TaskFlag { Free, Sleeping, Running };
 
 class Task;
 
@@ -33,26 +30,32 @@ public:
 };
 
 class Task {
-private:
-	Task() : flags(TaskFlag::Free), queue(nullptr) {}
-
-public:
-	char *name;
+protected:
+	char *_name;
+	bool _running = false;
+	int _level, _priority;
 	int selector;
-	TaskFlag flags;
-	int level, priority;
-	TaskQueue *queue;
 	TSS32 tss;
-	int fpu[108 / 4];
+	int fpu[108 / 4] = {
+		0x037f, /* CW(control word) */
+		0x0000, /* SW(status word)  */
+		0xffff  /* TW(tag word)     */
+	};
 	int stack;
+	
+	Task(); // メインタスク用
 
 public:
-	friend class TaskController;
+	char *const &name = _name;
+	const bool &running = _running;
+	const int &level = _level, &priority = _priority;
+	TaskQueue *queue = nullptr;
+
+	friend class TaskSwitcher;
+	friend void IntHandler07(int *esp); // FPU
 	Task(char *name_, int level_, int priority_, void (*mainLoop)());
 	Task(char *name_, int level_, int priority_, int queueSize, void (*mainLoop)());
 	~Task();
-	static void *operator new(size_t);
-	static void operator delete(void *) {}
 	void run(int newLevel, int newPriority);
 	void sleep();
 };
@@ -65,24 +68,28 @@ struct TaskLevel {
 	TaskLevel() : running(0), now(0) {}
 };
 
-class TaskController {
-public:
+class TaskSwitcher {
+private:
 	static int nowLevel;
 	static bool levelChanged; // 次回タスクスイッチ時にレベルも変えたほうがいいか
-	static TaskLevel level[];
-	static Task tasks0[MAX_TASKS];
-
-public:
+	static TaskLevel _level[];
 	static Task *taskFPU;
 	static Timer *timer;
-
-public:
-	static Task *init();
+	static int taskCount;
+	
 	static void switchTask();
 	static void switchTaskSub();
-	static Task *getNowTask();
 	static void add(Task *task);
 	static void remove(Task *task);
+
+public:
+	static const TaskLevel (&level)[MAX_TASKLEVELS];
+
+	friend class Task;
+	friend void IntHandler07(int *esp); // FPU
+	friend void IntHandler20(int *esp); // PIT割り込み
+	static Task *init();
+	static Task *getNowTask();
 };
 
 #endif

@@ -56,7 +56,7 @@ all:
 
 # 特別生成規則
 
-kernel.bin: $(OBJS) kernel/jpeg.obj kernel/bmp.obj $(LIBS)
+kernel.bin: $(OBJS) kernel/jpeg.obj kernel/bmp.obj $(LIBS) main.ls
 	$(LD) --gc-sections -nostdlib -m elf_i386 -Map kernel.map -T main.ls -s -o $@ $(OBJS) kernel/jpeg.obj kernel/bmp.obj $(LIBS)
 
 os.sys: kernel/asmhead.bin kernel.bin

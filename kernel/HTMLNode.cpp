@@ -8,8 +8,4 @@ void Node::appendChild(const shared_ptr<Node> &node) {
 }
 
 // Element
-Element::Element(const string &name) : tagName(name) {}
-
-const string &Element::getTagName() {
-	return tagName;
-}
+Element::Element(const string &name) : _tagName(name) {}

@@ -32,9 +32,9 @@ void Beep(char c, int len, Timer *timer, bool st = false) {
 		if (!timer->queue->isempty()) {
 			i = timer->queue->pop();
 			Sti();
-			if (i == timer->getData()) return;
+			if (i == timer->data) return;
 		} else {
-			TaskController::getNowTask()->sleep();
+			TaskSwitcher::getNowTask()->sleep();
 			Sti();
 		}
 	}

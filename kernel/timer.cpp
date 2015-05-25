@@ -1,46 +1,20 @@
 #include "../headers.h"
 
-unsigned int TimerController::count = 0;
-unsigned int TimerController::next = 0xffffffff;
-Timer TimerController::timers0[MAX_TIMER];
-Timer *TimerController::t0 = &TimerController::timers0[0];
+Timer::Timer(TaskQueue *queue_) : _queue(queue_), _data(TimerController::count) {}
 
-Timer::Timer(TaskQueue *queue_) : queue(queue_) {
-	for (int i = 0; i < MAX_TIMER; ++i) {
-		if (this == &TimerController::timers0[i]) {
-			data = i;
-			return;
-		}
-	}
-}
-
-Timer::Timer(TaskQueue *queue_, int data_) : queue(queue_), data(data_) {}
+Timer::Timer(TaskQueue *queue_, int data_) : _queue(queue_), _data(data_) {}
 
 Timer::~Timer() {
 	cancel();
-	flags = TimerFlag::Free;
-}
-
-void *Timer::operator new(size_t){
-	// 0: TimerController::t0
-	// 1: TaskController::timer
-	for (auto &&timer : TimerController::timers0) {
-		if (timer.flags == TimerFlag::Free) {
-			timer.flags = TimerFlag::Reserved;
-			return &timer;
-		}
-	}
-	// 空きがない
-	return nullptr;
 }
 
 void Timer::set(unsigned int newTimeout) {
 	int e = LoadEflags();
 	Cli();
-	if (flags == TimerFlag::Reserved) {
+	if (!running) {
 		Timer *timer0, *timer1;
 		timeout = newTimeout + TimerController::count; // 絶対時間に変換
-		flags = TimerFlag::Running;
+		running = true;
 		timer0 = TimerController::t0;
 	
 		if (timeout <= timer0->timeout) {
@@ -64,7 +38,7 @@ void Timer::set(unsigned int newTimeout) {
 bool Timer::cancel() {
 	int e = LoadEflags();
 	Cli();
-	if (flags == TimerFlag::Running) {
+	if (running) {
 		if (this == TimerController::t0) {
 			// 先頭だった場合
 			TimerController::t0 = next;
@@ -77,7 +51,7 @@ bool Timer::cancel() {
 			}
 			timer->next = next;
 		}
-		flags = TimerFlag::Reserved;
+		running = false;
 		StoreEflags(e);
 		return true;
 	}
@@ -85,10 +59,9 @@ bool Timer::cancel() {
 	return false;
 }
 
-// getter of data_
-int Timer::getData() {
-	return data;
-}
+unsigned int TimerController::count = 0;
+unsigned int TimerController::next = 0xffffffff;
+Timer *TimerController::t0;
 
 void TimerController::init() {
 	// Initialize PIT
@@ -97,9 +70,10 @@ void TimerController::init() {
 	Output8(PIT_CNT0, 0x2e);
 
 	// Initialize member variables
+	t0 = new Timer(nullptr);
 	t0->timeout = 0xffffffff;
-	t0->flags = TimerFlag::Running;
-	t0->next = 0;
+	t0->running = true;
+	t0->next = nullptr;
 }
 
 // count_ をリセット (これじゃだめだった)
@@ -112,7 +86,7 @@ void TimerController::init() {
 
 	// t0 以外の動作中のタイマーを調整
 	for (auto &&timer : timers0) {
-		if (timer.flags == TimerFlag::Running) {
+		if (timer.runnig) {
 			timer.timeout -= lastcount;
 		}
 	}

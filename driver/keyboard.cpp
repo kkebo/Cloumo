@@ -28,7 +28,7 @@ Queue<int> *KeyboardController::cmd;
 TaskQueue *KeyboardController::queue;
 
 void KeyboardController::Main() {
-	Task *task = TaskController::getNowTask();
+	Task *task = TaskSwitcher::getNowTask();
 	
 	// キーボード初期化
 	wait();
@@ -43,8 +43,14 @@ void KeyboardController::Main() {
 	queue = task->queue;
 	
 	// キャレットの表示とタイマー設定
-	SheetCtl::back->drawLine(Line(SheetCtl::caretPosition + 2, SheetCtl::back->frame.vector.y - 20 - 22 + 2, 0, 18), SheetCtl::caretColor);
-	SheetCtl::back->refresh(Rectangle(SheetCtl::caretPosition + 2, SheetCtl::back->frame.vector.y - 20 - 22 + 2, 1, 18));
+	SheetCtl::back->drawLine(
+		Line(
+			SheetCtl::caretPosition + 2,
+			SheetCtl::back->frame.size.height - 20 - 22 + 2,
+			SheetCtl::caretPosition + 2,
+			SheetCtl::back->frame.size.height - 20 - 22 + 2 + 18
+		), SheetCtl::caretColor);
+	SheetCtl::back->refresh(Rectangle(SheetCtl::caretPosition + 2, SheetCtl::back->frame.size.height - 20 - 22 + 2, 1, 18));
 	SheetCtl::caretColor = 0xffffff;
 	SheetCtl::caretTimer = new Timer(queue, 256);
 	SheetCtl::caretTimer->set(50);
@@ -62,9 +68,15 @@ void KeyboardController::Main() {
 		} else {
 			int code = queue->pop();
 			Sti();
-			if (code == SheetCtl::caretTimer->getData()) {
-				SheetCtl::back->drawLine(Line(SheetCtl::caretPosition + 2, SheetCtl::back->frame.vector.y - 20 - 22 + 2, 0, 18), SheetCtl::caretColor);
-				SheetCtl::back->refresh(Rectangle(SheetCtl::caretPosition + 2, SheetCtl::back->frame.vector.y - 20 - 22 + 2, 1, 18));
+			if (code == SheetCtl::caretTimer->data) {
+				SheetCtl::back->drawLine(
+					Line(
+						SheetCtl::caretPosition + 2,
+						SheetCtl::back->frame.size.height - 20 - 22 + 2,
+						SheetCtl::caretPosition + 2,
+						SheetCtl::back->frame.size.height - 20 - 22 + 2 + 18
+					), SheetCtl::caretColor);
+				SheetCtl::back->refresh(Rectangle(SheetCtl::caretPosition + 2, SheetCtl::back->frame.size.height - 20 - 22 + 2, 1, 18));
 				SheetCtl::caretColor ^= 0xffffff;
 				SheetCtl::caretTimer->set(50);
 			} else if (code < 256) {
@@ -79,12 +91,24 @@ void KeyboardController::Decode(unsigned char code) {
 		char s[2];
 		s[0] = ((shift && !(leds & 4)) || (!shift && leds & 4)) ? asciiShiftTable[code] : asciiTable[code];
 		s[1] = 0;
-		SheetCtl::back->drawLine(Line(SheetCtl::caretPosition + 2, SheetCtl::back->frame.vector.y - 20 - 22 + 2, 0, 18), 0xffffff);
-		SheetCtl::back->drawString(s, Point(SheetCtl::caretPosition + 2, SheetCtl::back->frame.vector.y - 20 - 22 + 3), 0);
+		SheetCtl::back->drawLine(
+			Line(
+				SheetCtl::caretPosition + 2,
+				SheetCtl::back->frame.size.height - 20 - 22 + 2,
+				SheetCtl::caretPosition + 2,
+				SheetCtl::back->frame.size.height - 20 - 22 + 2 + 18
+			), 0xffffff);
+		SheetCtl::back->drawString(s, Point(SheetCtl::caretPosition + 2, SheetCtl::back->frame.size.height - 20 - 22 + 3), 0);
 		SheetCtl::caretPosition += 8;
 		SheetCtl::caretColor = 0;
-		SheetCtl::back->drawLine(Line(SheetCtl::caretPosition + 2, SheetCtl::back->frame.vector.y - 20 - 22 + 2, 0, 18), SheetCtl::caretColor);
-		SheetCtl::back->refresh(Rectangle(SheetCtl::caretPosition - 8 + 2, SheetCtl::back->frame.vector.y - 20 - 22 + 2, 9, 18));
+		SheetCtl::back->drawLine(
+			Line(
+				SheetCtl::caretPosition + 2,
+				SheetCtl::back->frame.size.height - 20 - 22 + 2,
+				SheetCtl::caretPosition + 2,
+				SheetCtl::back->frame.size.height - 20 - 22 + 2 + 18
+			), SheetCtl::caretColor);
+		SheetCtl::back->refresh(Rectangle(SheetCtl::caretPosition - 8 + 2, SheetCtl::back->frame.size.height - 20 - 22 + 2, 9, 18));
 		SheetCtl::caretTimer->cancel();
 		SheetCtl::caretTimer->set(50);
 		*SheetCtl::tboxString += s[0];
@@ -105,12 +129,12 @@ void KeyboardController::Decode(unsigned char code) {
 				if (newActive >= SheetCtl::numOfTab) newActive = 0;
 				
 				// 次のタブ
-				Rectangle nextTabRange(2, 35 + 23 * newActive, SheetCtl::back->frame.vector.x - 2, 22);
+				Rectangle nextTabRange(2, 35 + 23 * newActive, SheetCtl::back->frame.size.width - 2, 22);
 				SheetCtl::back->changeColor(nextTabRange, kPassiveTabColor, kActiveTabColor);
 				SheetCtl::back->changeColor(nextTabRange, kPassiveTextColor, kActiveTextColor);
 				SheetCtl::back->refresh(nextTabRange);
 				// アクティブだったタブ
-				Rectangle prevTabRange(2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back->frame.vector.x - 2, 22);
+				Rectangle prevTabRange(2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back->frame.size.width - 2, 22);
 				SheetCtl::back->changeColor(prevTabRange, kActiveTabColor, kPassiveTabColor);
 				SheetCtl::back->changeColor(prevTabRange, kActiveTextColor, kPassiveTextColor);
 				SheetCtl::back->refresh(prevTabRange);
@@ -137,22 +161,22 @@ void KeyboardController::Decode(unsigned char code) {
 				// ファイルが存在した
 				filename = "file:///" + filename;
 				// タブ表示
-				Rectangle newTabRange(2, 35 + 23 * SheetCtl::numOfTab, SheetCtl::back->frame.vector.x - 2, 22);
+				Rectangle newTabRange(2, 35 + 23 * SheetCtl::numOfTab, SheetCtl::back->frame.size.width - 2, 22);
 				SheetCtl::back->drawString(filename, Point(6, 39 + 23 * SheetCtl::numOfTab), kActiveTextColor);
 				SheetCtl::back->changeColor(newTabRange, kBackgroundColor, kActiveTabColor);
 				SheetCtl::back->refresh(newTabRange);
 				// アクティブだったタブ
-				Rectangle prevTabRange(2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back->frame.vector.x - 2, 22);
+				Rectangle prevTabRange(2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back->frame.size.width - 2, 22);
 				SheetCtl::back->changeColor(prevTabRange, kActiveTabColor, kPassiveTabColor);
 				SheetCtl::back->changeColor(prevTabRange, kActiveTextColor, kPassiveTextColor);
 				SheetCtl::back->refresh(prevTabRange);
 				// ページ表示
-				SheetCtl::window[SheetCtl::numOfTab] = new Sheet(Vector(SheetCtl::scrnx - SheetCtl::back->frame.vector.x, SheetCtl::scrny), false);
+				SheetCtl::window[SheetCtl::numOfTab] = new Sheet(Size(SheetCtl::resolution.width - SheetCtl::back->frame.size.width, SheetCtl::resolution.height), false);
 				SheetCtl::window[SheetCtl::numOfTab]->fillRect(SheetCtl::window[SheetCtl::numOfTab]->frame, 0xffffff);
 				SheetCtl::window[SheetCtl::numOfTab]->drawRect(SheetCtl::window[SheetCtl::numOfTab]->frame, 0);
-				SheetCtl::window[SheetCtl::numOfTab]->slide(Point(SheetCtl::back->frame.vector.x, 0));
+				SheetCtl::window[SheetCtl::numOfTab]->moveTo(Point(SheetCtl::back->frame.size.width, 0));
 				// レンダリング
-				string source(reinterpret_cast<char *>(htmlFile->read().get()), htmlFile->getSize());
+				string source(reinterpret_cast<char *>(htmlFile->read().get()), htmlFile->size);
 				HTML::Tokenizer tokenizer;
 				Queue<shared_ptr<HTML::Token>> &tokens = tokenizer.tokenize(source.c_str());
 				for (int i = 0; !tokens.isempty(); ++i) {
@@ -194,20 +218,20 @@ void KeyboardController::Decode(unsigned char code) {
 				// 一致するファイルなし
 				filename = "file:///" + filename;
 				// タブ表示
-				Rectangle newTabRange(2, 35 + 23 * SheetCtl::numOfTab, SheetCtl::back->frame.vector.x - 2, 22);
+				Rectangle newTabRange(2, 35 + 23 * SheetCtl::numOfTab, SheetCtl::back->frame.size.width - 2, 22);
 				SheetCtl::back->drawString(filename, Point(6, 39 + 23 * SheetCtl::numOfTab), kActiveTextColor);
 				SheetCtl::back->changeColor(newTabRange, kBackgroundColor, kActiveTabColor);
 				SheetCtl::back->refresh(newTabRange);
 				// アクティブだったタブ
-				Rectangle prevTabRange(2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back->frame.vector.x - 2, 22);
+				Rectangle prevTabRange(2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back->frame.size.width - 2, 22);
 				SheetCtl::back->changeColor(prevTabRange, kActiveTabColor, kPassiveTabColor);
 				SheetCtl::back->changeColor(prevTabRange, kActiveTextColor, kPassiveTextColor);
 				SheetCtl::back->refresh(prevTabRange);
 				// ページ表示
-				SheetCtl::window[SheetCtl::numOfTab] = new Sheet(Vector(SheetCtl::scrnx - SheetCtl::back->frame.vector.x, SheetCtl::scrny), false);
+				SheetCtl::window[SheetCtl::numOfTab] = new Sheet(Size(SheetCtl::resolution.width - SheetCtl::back->frame.size.width, SheetCtl::resolution.height), false);
 				SheetCtl::window[SheetCtl::numOfTab]->fillRect(SheetCtl::window[SheetCtl::numOfTab]->frame, 0xffffff);
 				SheetCtl::window[SheetCtl::numOfTab]->drawRect(SheetCtl::window[SheetCtl::numOfTab]->frame, 0);
-				SheetCtl::window[SheetCtl::numOfTab]->slide(Point(SheetCtl::back->frame.vector.x, 0));
+				SheetCtl::window[SheetCtl::numOfTab]->moveTo(Point(SheetCtl::back->frame.size.width, 0));
 				// レンダリング
 				SheetCtl::window[SheetCtl::numOfTab]->drawString("File not found", Point(1, 1), 0);
 				SheetCtl::window[SheetCtl::numOfTab]->drawString("Can't find the file at '" + filename + "'", Point(1, 1 + 16), 0);
@@ -219,7 +243,7 @@ void KeyboardController::Decode(unsigned char code) {
 			
 			*SheetCtl::tboxString = "";
 			SheetCtl::caretPosition = 2;
-			Rectangle clearRange(2, SheetCtl::back->frame.vector.y - 20 - 22, SheetCtl::back->frame.vector.x - 2 - 2, 22);
+			Rectangle clearRange(2, SheetCtl::back->frame.size.height - 20 - 22, SheetCtl::back->frame.size.width - 2 - 2, 22);
 			SheetCtl::back->fillRect(clearRange, 0xffffff);
 			SheetCtl::back->refresh(clearRange);
 			break;
@@ -271,10 +295,10 @@ void KeyboardController::Decode(unsigned char code) {
 		case 0x0e: // Backspace
 			if (SheetCtl::caretPosition > 2) {
 				SheetCtl::caretPosition -= 8;
-				Rectangle clearRange(SheetCtl::caretPosition + 2, SheetCtl::back->frame.vector.y - 20 - 22 + 2, 9, 18);
+				Rectangle clearRange(SheetCtl::caretPosition + 2, SheetCtl::back->frame.size.height - 20 - 22 + 2, 9, 18);
 				SheetCtl::back->fillRect(clearRange, 0xffffff);
 				SheetCtl::caretColor = 0;
-				SheetCtl::back->drawLine(Line(clearRange.offset, Vector(0, 18)), SheetCtl::caretColor);
+				SheetCtl::back->drawLine(Line(clearRange.offset, clearRange.offset + Point(0, 18)), SheetCtl::caretColor);
 				SheetCtl::back->refresh(clearRange);
 				SheetCtl::caretTimer->cancel();
 				SheetCtl::caretTimer->set(50);
