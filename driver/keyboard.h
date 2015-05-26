@@ -18,6 +18,10 @@ class KeyboardController {
 private:
 	static unsigned char asciiTable[];
 	static unsigned char asciiShiftTable[];
+	static unsigned char asciiTableUS[];
+	static unsigned char asciiShiftTableUS[];
+	static unsigned char *primaryTable;
+	static unsigned char *primaryShiftTable;
 	static int _shift;
 	static bool _alt;
 	static int leds;
@@ -31,6 +35,8 @@ public:
 
 	friend void IntHandler21(int *esp);
 	static void Main();
+	static void switchToUS();
+	static void switchToJIS();
 	static void Decode(unsigned char code);
 	static void wait();
 };

@@ -20,6 +20,28 @@ unsigned char KeyboardController::asciiShiftTable[0x80] = {
 	0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
 	0,   0,   0,   '_', 0,   0,   0,   0,   0,   0,   0,   0,   0,   '|', 0,   0
 };
+unsigned char KeyboardController::asciiTableUS[0x80] = {
+	0,   0,   '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 0x08, 0x09,
+	'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', 0x0a, 0, 'a', 's',
+	'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`',   0,   '\\', 'z', 'x', 'c', 'v',
+	'b', 'n', 'm', ',', '.', '/', 0,   '*', 0,   ' ', 0,   0,   0,   0,   0,   0,
+	0,   0,   0,   0,   0,   0,   0,   '7', '8', '9', '-', '4', '5', '6', '+', '1',
+	'2', '3', '0', '.', 0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+	0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+	0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0
+};
+unsigned char KeyboardController::asciiShiftTableUS[0x80] = {
+	0,   0,   '!', '@', '#', '$', '%', '^', '&', '\'', '(', ')', '_', '+', 0x08, 0x09,
+	'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', 0x0a, 0, 'A', 'S',
+	'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '"', '~',   0,   '|', 'Z', 'X', 'C', 'V',
+	'B', 'N', 'M', '<', '>', '?', 0,   '*', 0,   ' ', 0,   0,   0,   0,   0,   0,
+	0,   0,   0,   0,   0,   0,   0,   '7', '8', '9', '-', '4', '5', '6', '+', '1',
+	'2', '3', '0', '.', 0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+	0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+	0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0
+};
+unsigned char *KeyboardController::primaryTable = asciiTable;
+unsigned char *KeyboardController::primaryShiftTable = asciiShiftTable;
 int KeyboardController::_shift = 0;
 const int &KeyboardController::shift = _shift;
 bool KeyboardController::_alt = false;
@@ -62,9 +84,19 @@ void KeyboardController::Main() {
 	}
 }
 
+void KeyboardController::switchToUS() {
+	primaryTable = asciiTableUS;
+	primaryShiftTable = asciiShiftTableUS;
+}
+
+void KeyboardController::switchToJIS() {
+	primaryTable = asciiTable;
+	primaryShiftTable = asciiShiftTable;
+}
+
 void KeyboardController::Decode(unsigned char code) {
 	if (code < 0x80 && asciiTable[code]) {
-		SheetCtl::queue->push(((shift && !(leds & 4)) || (!shift && leds & 4)) ? asciiShiftTable[code] : asciiTable[code]);
+		SheetCtl::queue->push(((shift && !(leds & 4)) || (!shift && leds & 4)) ? primaryShiftTable[code] : primaryTable[code]);
 	}
 	switch (code) {
 		case 0x38: // Alt pressed

@@ -575,6 +575,24 @@ void SheetCtl::init() {
 
 	/* サイドバー */
 	back = new Sheet(Size(150, resolution.height), false, [](const Point &pos) {
+		if (43 <= pos.x && pos.x <= 74 && back->frame.size.height - 20 - 45 <= pos.y && pos.y <= back->frame.size.height - 45) {
+			// JP 選択
+			KeyboardController::switchToJIS();
+			back->changeColor(Rectangle(43, back->frame.size.height - 20 - 45, 32, 20), 0xfffffe, 0);
+			back->changeColor(Rectangle(43, back->frame.size.height - 20 - 45, 32, 20), kBackgroundColor, 0xffffff);
+			back->changeColor(Rectangle(74, back->frame.size.height - 20 - 45, 33, 20), 0, 0xfffffe);
+			back->changeColor(Rectangle(74, back->frame.size.height - 20 - 45, 33, 20), 0xffffff, kBackgroundColor);
+			back->refresh(Rectangle(43, back->frame.size.height - 20 - 45, 64, 20));
+		} else if (75 <= pos.x && pos.x <= 107 && back->frame.size.height - 20 - 45 <= pos.y && pos.y <= back->frame.size.height - 45) {
+			// US 選択
+			KeyboardController::switchToUS();
+			back->changeColor(Rectangle(74, back->frame.size.height - 20 - 45, 33, 20), 0xfffffe, 0);
+			back->changeColor(Rectangle(74, back->frame.size.height - 20 - 45, 33, 20), kBackgroundColor, 0xffffff);
+			back->changeColor(Rectangle(43, back->frame.size.height - 20 - 45, 32, 20), 0, 0xfffffe);
+			back->changeColor(Rectangle(43, back->frame.size.height - 20 - 45, 32, 20), 0xffffff, kBackgroundColor);
+			back->refresh(Rectangle(43, back->frame.size.height - 20 - 45, 64, 20));
+		}
+		
 		for (int i = 0; i < SheetCtl::numOfTab; ++i) {
 			if (i != SheetCtl::activeTab && 35 + 23 * i <= pos.y && pos.y < 33 + 16 + 8 + 23 * i) {
 				// 選択したタブ
@@ -604,6 +622,12 @@ void SheetCtl::init() {
 	// タブ
 	back->drawString("system info", Point(6, 39), kActiveTextColor);
 	back->changeColor(Rectangle(2, 35, back->frame.size.width - 2, 22), kBackgroundColor, kActiveTabColor);
+	// キーマップスイッチ
+	back->drawRect(Rectangle(42, back->frame.size.height - 20 - 46, 66, 22), 0xffffff);
+	//back->drawLine(Line(50 + 24, back->frame.size.height - 20 - 45, 50 + 24, back->frame.size.height - 20 - 25), 0xffffff);
+	back->fillRect(Rectangle(43, back->frame.size.height - 20 - 45, 32, 20), 0xffffff);
+	back->drawString("JP", Point(50, back->frame.size.height - 20 - 43), 0);
+	back->drawString("US", Point(50 + 32, back->frame.size.height - 20 - 43), 0xfffffe);
 	// 検索窓
 	back->fillRect(Rectangle(2, back->frame.size.height - 20 - 22, back->frame.size.width - 2 - 2, 22), 0xffffff);
 	// 表示設定
