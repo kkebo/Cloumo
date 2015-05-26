@@ -1,12 +1,10 @@
 #include "../headers.h"
 #include <stdio.h>
 
-unsigned char DateTime::now[7] = { 0, 0, 0, 0, 0, 0, 0 };
-Timer *DateTime::timer;
-
-void DateTime::Main() {
+void DateTimeMain() {
 	Task *task = TaskSwitcher::getNowTask();
-	int i;
+	Timer *timer;
+	unsigned char now[7] = {};
 	bool timechk = false;
 	char s[9];
 	Rectangle rewriteRange(2, SheetCtl::back->frame.size.height - 18, 8 * 8, 16);
@@ -64,9 +62,9 @@ void DateTime::Main() {
 				Sti();
 			}
 		} else {
-			i = task->queue->pop();
+			int data = task->queue->pop();
 			Sti();
-			if (i == timer->data) { // 番号が合っているか確認
+			if (data == timer->data) { // 番号が合っているか確認
 				timer->set(100);
 				++now[0]; // second
 				if (now[0] >= 60) {

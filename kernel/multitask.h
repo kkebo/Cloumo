@@ -67,6 +67,8 @@ struct TaskLevel {
 	TaskLevel() : running(0), now(0) {}
 };
 
+class Timer;
+
 class TaskSwitcher {
 private:
 	static int nowLevel;

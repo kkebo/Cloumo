@@ -19,7 +19,7 @@ extern "C" void _main() {
 	Sti();
 	
 	// タスクの起動
-	new Task("日付と時刻タスク", 2, 1, 128, &DateTime::Main);
+	new Task("日付と時刻タスク", 2, 1, 128, &DateTimeMain);
 	new Task("キーボードドライバ", 2, 2, 128, &KeyboardController::Main);
 	new Task("マウスドライバ", 1, 1, 128, &Mouse::Main);
 	new Task("システム情報タスク", 2, 1, 128, &SysinfoMain);
