@@ -138,10 +138,14 @@ private:
 	static Size _resolution;
 	static int color;
 	static int _top;
+	
+	// for GUI Task
 	static Sheet *back;
 	static Sheet *window[];
 	static int numOfTab;
 	static int activeTab;
+	static const char *mouseCursor[];
+	static Sheet *mouseCursorSheet;
 	static Sheet *contextMenu;
 	
 	// for Text Boxes
@@ -156,10 +160,13 @@ private:
 public:
 	static const int &top;
 	static const Size &resolution;
+	
+	// for GUI Task
+	static TaskQueue *queue;
+	static Point mouseCursorPos;
 
 	friend class Sheet;
 	friend class Mouse; // 一時的．分離するべき
-	friend class KeyboardController; // 一時的．分離するべき
 	friend void DateTimeMain(); // 一時的．分離するべき
 	friend void showSysInfo(int benchScore); // 一時的．分離するべき
 	static void init();

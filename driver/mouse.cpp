@@ -1,30 +1,9 @@
 #include <MinMax.h>
 #include "../headers.h"
 
-const char *Mouse::cursor[] = {
-	"*****OOOOOO*****",
-	"***OO@@@@@@OO***",
-	"**O@@@GCCG@@@O**",
-	"*O@@JUUUUUUJ@@O*",
-	"*O@JUUUUUUUUJ@O*",
-	"O@@UUUUUUUUUU@@O",
-	"O@GUUUUUUUUUUG@O",
-	"O@CUUUUUUUUUUC@O",
-	"O@CUUUUUUUUUUC@O",
-	"O@GUUUUUUUUUUG@O",
-	"O@@UUUUUUUUUU@@O",
-	"*O@JUUUUUUUUJ@O*",
-	"*O@@JUUUUUUJ@@O*",
-	"**O@@@GCCG@@@O**",
-	"***OO@@@@@@OO***",
-	"*****OOOOOO*****"
-};
 bool Mouse::scroll = false;
-Point Mouse::newPos(-1, 0);
-Sheet *Mouse::sheet;
 TaskQueue *Mouse::queue;
 MouseDecode Mouse::mdec;
-//Task *Mouse::browserTask = nullptr;
 
 void Mouse::Main() {
 	Task *task = TaskSwitcher::getNowTask();
@@ -32,43 +11,10 @@ void Mouse::Main() {
 	int dx, dy;
 	
 	// メンバ初期化
-	newPos = Point(-1, 0);
 	mdec.pos = Point(SheetCtl::resolution.width / 2, SheetCtl::resolution.height / 2);
 	mdec.phase = 0;
 	mdec.scroll = 0;
 	queue = task->queue;
-	
-	// マウスポインタ描画
-	Mouse::sheet = new Sheet(Size(16, 16), true);
-	for (int y = 0; y < 16; ++y) {
-		for (int x = 0; x < 16; ++x) {
-			switch (Mouse::cursor[x][y]) {
-				case 'O':
-					Mouse::sheet->buf[y * 16 + x] = Rgb(255, 255, 255, 100);
-					break;
-				case '@':
-					Mouse::sheet->buf[y * 16 + x] = Rgb(12, 69, 255, 100);
-					break;
-				case 'G':
-					Mouse::sheet->buf[y * 16 + x] = Rgb(27, 81, 255, 100);
-					break;
-				case 'J':
-					Mouse::sheet->buf[y * 16 + x] = Rgb(58, 104, 255, 100);
-					break;
-				case 'C':
-					Mouse::sheet->buf[y * 16 + x] = Rgb(73, 116, 255, 100);
-					break;
-				case 'U':
-					Mouse::sheet->buf[y * 16 + x] = Rgb(0, 182, 200, 100);
-					break;
-				default:
-					Mouse::sheet->buf[y * 16 + x] = kTransColor;
-					break;
-			}
-		}
-	}
-	Mouse::sheet->moveTo(mdec.pos);
-	Mouse::sheet->upDown(SheetCtl::top + 1);
 	
 	// マウス初期化 by uchan
 	int i = 0;
@@ -171,14 +117,8 @@ void Mouse::Main() {
 	for (;;) {
 		Cli();
 		if (queue->isempty()) {
-			if (newPos.x >= 0) {
-				Sti();
-				sheet->moveTo(newPos + Point(-8, -8));
-				newPos.x = -1;
-			} else {
-				task->sleep();
-				Sti();
-			}
+			task->sleep();
+			Sti();
 		} else {
 			code = queue->pop();
 			Sti();
@@ -215,26 +155,15 @@ void Mouse::Main() {
 						min(SheetCtl::resolution.width - 1, max(0, mdec.pos.x + dx)),
 						min(SheetCtl::resolution.height - 1, max(0, mdec.pos.y - dy))
 					);
-					newPos = mdec.pos;
+					
+					SheetCtl::mouseCursorPos = mdec.pos;
+					SheetCtl::queue->push(256);
 					
 					if (mdec.btn & 0x01) { // On left click
-						// Close the context menu
-						if (SheetCtl::contextMenu->height > 0) {
-							SheetCtl::contextMenu->upDown(-1);
-						}
-						
-						// 各シートの onClick イベントを発動
-						for (int i = SheetCtl::top - 1; i >= 0; --i) {
-							Sheet &sht = *SheetCtl::sheets[i];
-							if (sht.onClick && sht.frame.contains(mdec.pos)) {
-								sht.onClick(mdec.pos);
-								break;
-							}
-						}
-					} else if (mdec.btn & 0x02 && SheetCtl::contextMenu->height < 0) { // On right click
-						// Open the context menu
-						SheetCtl::contextMenu->moveTo(Point(mdec.pos.x - SheetCtl::contextMenu->frame.size.width / 2, mdec.pos.y - SheetCtl::contextMenu->frame.size.height / 2));
-						SheetCtl::contextMenu->upDown(SheetCtl::top);
+						SheetCtl::queue->push(257);
+					}
+					if (mdec.btn & 0x02) { // On right click
+						SheetCtl::queue->push(258);
 					}
 					break;
 				case 4:
@@ -249,17 +178,11 @@ void Mouse::Main() {
 						mdec.scroll |= 0xfffffff0;
 					}
 					
-					// とりあえず表示
-					/*char str[20];
-					sprintf(str, "%d", mdec.scroll);
-					SheetCtl::fillRect(SheetCtl::back_, Rgb(255, 255, 255), 2, 300, SheetCtl::back_->bxsize - 3, 316);
-					SheetCtl::drawString(SheetCtl::back_, 2, 300, 0, str);
-					SheetCtl::refresh(SheetCtl::back_, 2, 300, SheetCtl::back_->bxsize - 3, 316);*/
-					
-					// スクロール
-					//if (browserTask && (mdec.scroll == 1 || mdec.scroll == -1)) {
-					//	browserTask->queue_->push(mdec.scroll);
-					//}
+					if (mdec.scroll == -1) {
+						SheetCtl::queue->push(259);
+					} else if (mdec.scroll == 1) {
+						SheetCtl::queue->push(260);
+					}
 					
 					break;
 			}

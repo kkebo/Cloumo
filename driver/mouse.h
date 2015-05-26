@@ -19,11 +19,8 @@ struct MouseDecode {
 
 class Mouse {
 private:
-	static const char *cursor[];
-	static Sheet *sheet;
 	static MouseDecode mdec;
 	static bool scroll;
-	static Point newPos;
 	static TaskQueue *queue;
 	//static Task *browserTask;
 

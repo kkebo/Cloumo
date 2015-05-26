@@ -1,6 +1,8 @@
-#include "../headers.h"
 #include <SmartPointer.h>
 #include <MinMax.h>
+#include "../headers.h"
+#include "HTMLTokenizer.h"
+#include "HTMLTreeConstructor.h"
 
 Sheet::Sheet(const Size &size, bool _nonRect, void (*click)(const Point &)) :
 	_frame(size),
@@ -527,6 +529,7 @@ unsigned char *SheetCtl::vram;
 Size SheetCtl::_resolution(0, 0);
 const Size &SheetCtl::resolution = SheetCtl::_resolution;
 unsigned char *SheetCtl::map;
+TaskQueue *SheetCtl::queue;
 Sheet *SheetCtl::back;
 Sheet *SheetCtl::contextMenu;
 Sheet *SheetCtl::window[kMaxTabs];
@@ -535,6 +538,26 @@ int SheetCtl::activeTab = 0;
 Sheet *SheetCtl::sheets[kMaxSheets];
 int SheetCtl::color;
 File *SheetCtl::font;
+Point SheetCtl::mouseCursorPos(-1, 0);
+Sheet *SheetCtl::mouseCursorSheet;
+const char *SheetCtl::mouseCursor[] = {
+	"*****OOOOOO*****",
+	"***OO@@@@@@OO***",
+	"**O@@@GCCG@@@O**",
+	"*O@@JUUUUUUJ@@O*",
+	"*O@JUUUUUUUUJ@O*",
+	"O@@UUUUUUUUUU@@O",
+	"O@GUUUUUUUUUUG@O",
+	"O@CUUUUUUUUUUC@O",
+	"O@CUUUUUUUUUUC@O",
+	"O@GUUUUUUUUUUG@O",
+	"O@@UUUUUUUUUU@@O",
+	"*O@JUUUUUUUUJ@O*",
+	"*O@@JUUUUUUJ@@O*",
+	"**O@@@GCCG@@@O**",
+	"***OO@@@@@@OO***",
+	"*****OOOOOO*****"
+};
 
 // シートコントロールを初期化
 void SheetCtl::init() {
@@ -595,6 +618,39 @@ void SheetCtl::init() {
 	// system info タブを全面へ
 	window[0]->upDown(1);
 
+	// マウスポインタ描画
+	mouseCursorPos = Point(-1, 0);
+	mouseCursorSheet = new Sheet(Size(16, 16), true);
+	for (int y = 0; y < 16; ++y) {
+		for (int x = 0; x < 16; ++x) {
+			switch (mouseCursor[x][y]) {
+				case 'O':
+					mouseCursorSheet->buf[y * 16 + x] = Rgb(255, 255, 255, 100);
+					break;
+				case '@':
+					mouseCursorSheet->buf[y * 16 + x] = Rgb(12, 69, 255, 100);
+					break;
+				case 'G':
+					mouseCursorSheet->buf[y * 16 + x] = Rgb(27, 81, 255, 100);
+					break;
+				case 'J':
+					mouseCursorSheet->buf[y * 16 + x] = Rgb(58, 104, 255, 100);
+					break;
+				case 'C':
+					mouseCursorSheet->buf[y * 16 + x] = Rgb(73, 116, 255, 100);
+					break;
+				case 'U':
+					mouseCursorSheet->buf[y * 16 + x] = Rgb(0, 182, 200, 100);
+					break;
+				default:
+					mouseCursorSheet->buf[y * 16 + x] = kTransColor;
+					break;
+			}
+		}
+	}
+	mouseCursorSheet->moveTo(Point(resolution.width / 2, resolution.height / 2));
+	mouseCursorSheet->upDown(top + 1);
+
 	/* 右クリックメニュー */
 	contextMenu = new Sheet(Size(150, 150), true);
 	contextMenu->fillRect(contextMenu->frame, kTransColor);
@@ -607,6 +663,264 @@ void SheetCtl::init() {
 	contextMenu->drawPicture("source.bmp", Point(contextMenu->frame.size.width / 2 + 38, contextMenu->frame.size.height / 2 - 16), 0xff00ff);
 	contextMenu->drawPicture("search.bmp", Point(contextMenu->frame.size.width / 2 - 16, contextMenu->frame.size.height - 32 - 3), 0xff00ff);
 	contextMenu->drawPicture("refresh.bmp", Point(contextMenu->frame.size.width / 2 - 38 - 32, contextMenu->frame.size.height / 2 - 16), 0xff00ff);
+
+	// GUI タスクを起動
+	Task *guiTask = new Task("GUI Task", 1, 2, 256, [] {
+		Task &task = *TaskSwitcher::getNowTask();
+		
+		// キャレットの表示とタイマー設定
+		SheetCtl::back->drawLine(
+			Line(
+				SheetCtl::caretPosition + 2,
+				SheetCtl::back->frame.size.height - 20 - 22 + 2,
+				SheetCtl::caretPosition + 2,
+				SheetCtl::back->frame.size.height - 20 - 22 + 2 + 18
+			), SheetCtl::caretColor);
+		SheetCtl::back->refresh(Rectangle(SheetCtl::caretPosition + 2, SheetCtl::back->frame.size.height - 20 - 22 + 2, 1, 18));
+		SheetCtl::caretColor = 0xffffff;
+		SheetCtl::caretTimer = new Timer(queue, 0x80);
+		SheetCtl::caretTimer->set(50);
+		
+		for (;;) {
+			Cli();
+			if (task.queue->isempty()) {
+				if (mouseCursorPos.x >= 0) {
+					Sti();
+					mouseCursorSheet->moveTo(mouseCursorPos + Point(-8, -8));
+					mouseCursorPos.x = -1;
+				} else {
+					task.sleep();
+					Sti();
+				}
+			} else {
+				int data = task.queue->pop();
+				Sti();
+				if (data < 0x80) {
+					// from Keyboard Driver
+					switch (data) {
+						case 0x08: // BS
+							if (SheetCtl::caretPosition > 2) {
+								SheetCtl::caretPosition -= 8;
+								Rectangle clearRange(SheetCtl::caretPosition + 2, SheetCtl::back->frame.size.height - 20 - 22 + 2, 9, 18);
+								SheetCtl::back->fillRect(clearRange, 0xffffff);
+								SheetCtl::caretColor = 0;
+								SheetCtl::back->drawLine(Line(clearRange.offset, clearRange.offset + Point(0, 18)), SheetCtl::caretColor);
+								SheetCtl::back->refresh(clearRange);
+								SheetCtl::caretTimer->cancel();
+								SheetCtl::caretTimer->set(50);
+								SheetCtl::tboxString->erase(SheetCtl::tboxString->length() - 1, SheetCtl::tboxString->length());
+							}
+							break;
+						
+						case 0x09: // TAB
+							if (KeyboardController::alt) {
+								// タブ切り替え
+								int newActive = SheetCtl::activeTab + 1;
+								if (newActive >= SheetCtl::numOfTab) newActive = 0;
+								
+								// 次のタブ
+								Rectangle nextTabRange(2, 35 + 23 * newActive, SheetCtl::back->frame.size.width - 2, 22);
+								SheetCtl::back->changeColor(nextTabRange, kPassiveTabColor, kActiveTabColor);
+								SheetCtl::back->changeColor(nextTabRange, kPassiveTextColor, kActiveTextColor);
+								SheetCtl::back->refresh(nextTabRange);
+								// アクティブだったタブ
+								Rectangle prevTabRange(2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back->frame.size.width - 2, 22);
+								SheetCtl::back->changeColor(prevTabRange, kActiveTabColor, kPassiveTabColor);
+								SheetCtl::back->changeColor(prevTabRange, kActiveTextColor, kPassiveTextColor);
+								SheetCtl::back->refresh(prevTabRange);
+								
+								SheetCtl::window[SheetCtl::activeTab]->upDown(-1);
+								SheetCtl::window[newActive]->upDown(1);
+								
+								SheetCtl::activeTab = newActive;
+							}
+							break;
+						
+						case 0x0a: { // LF
+							if (SheetCtl::tboxString->length() == 0) break;
+							
+							string filename = *SheetCtl::tboxString;
+							
+							// file:/// の削除
+							if (filename.compare(0, 8, "file:///") == 0) {
+								filename.erase(0, 8);
+							}
+							
+							unique_ptr<File> htmlFile(new File(filename));
+							if (htmlFile->open()) {
+								// ファイルが存在した
+								filename = "file:///" + filename;
+								// タブ表示
+								Rectangle newTabRange(2, 35 + 23 * SheetCtl::numOfTab, SheetCtl::back->frame.size.width - 2, 22);
+								SheetCtl::back->drawString(filename, Point(6, 39 + 23 * SheetCtl::numOfTab), kActiveTextColor);
+								SheetCtl::back->changeColor(newTabRange, kBackgroundColor, kActiveTabColor);
+								SheetCtl::back->refresh(newTabRange);
+								// アクティブだったタブ
+								Rectangle prevTabRange(2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back->frame.size.width - 2, 22);
+								SheetCtl::back->changeColor(prevTabRange, kActiveTabColor, kPassiveTabColor);
+								SheetCtl::back->changeColor(prevTabRange, kActiveTextColor, kPassiveTextColor);
+								SheetCtl::back->refresh(prevTabRange);
+								// ページ表示
+								SheetCtl::window[SheetCtl::numOfTab] = new Sheet(Size(SheetCtl::resolution.width - SheetCtl::back->frame.size.width, SheetCtl::resolution.height), false);
+								SheetCtl::window[SheetCtl::numOfTab]->fillRect(SheetCtl::window[SheetCtl::numOfTab]->frame, 0xffffff);
+								SheetCtl::window[SheetCtl::numOfTab]->drawRect(SheetCtl::window[SheetCtl::numOfTab]->frame, 0);
+								SheetCtl::window[SheetCtl::numOfTab]->moveTo(Point(SheetCtl::back->frame.size.width, 0));
+								// レンダリング
+								string source(reinterpret_cast<char *>(htmlFile->read().get()), htmlFile->size);
+								HTML::Tokenizer tokenizer;
+								Queue<shared_ptr<HTML::Token>> &tokens = tokenizer.tokenize(source.c_str());
+								for (int i = 0; !tokens.isempty(); ++i) {
+									string str;
+									shared_ptr<HTML::Token> token(tokens.pop());
+									switch (token->type) {
+										case HTML::Token::Type::Character:
+											str = "Character Token";
+											break;
+											
+										case HTML::Token::Type::StartTag:
+											str = "StartTag Token";
+											break;
+											
+										case HTML::Token::Type::EndTag:
+											str = "EndTag Token";
+											break;
+											
+										case HTML::Token::Type::DOCTYPE:
+											str = "DOCTYPE Token";
+											break;
+											
+										case HTML::Token::Type::Comment:
+											str = "Comment Token";
+											break;
+											
+										case HTML::Token::Type::EndOfFile:
+											str = "EndOfFile Token";
+											break;
+									}
+									str += " (data='" + token->data + "')";
+									SheetCtl::window[SheetCtl::numOfTab]->drawString(str, Point(1, 1 + i * 16), 0);
+								}
+								SheetCtl::window[SheetCtl::activeTab]->upDown(-1);
+								SheetCtl::window[SheetCtl::numOfTab]->upDown(1);
+								SheetCtl::activeTab = SheetCtl::numOfTab;
+								++SheetCtl::numOfTab;
+							} else {
+								// 一致するファイルなし
+								filename = "file:///" + filename;
+								// タブ表示
+								Rectangle newTabRange(2, 35 + 23 * SheetCtl::numOfTab, SheetCtl::back->frame.size.width - 2, 22);
+								SheetCtl::back->drawString(filename, Point(6, 39 + 23 * SheetCtl::numOfTab), kActiveTextColor);
+								SheetCtl::back->changeColor(newTabRange, kBackgroundColor, kActiveTabColor);
+								SheetCtl::back->refresh(newTabRange);
+								// アクティブだったタブ
+								Rectangle prevTabRange(2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back->frame.size.width - 2, 22);
+								SheetCtl::back->changeColor(prevTabRange, kActiveTabColor, kPassiveTabColor);
+								SheetCtl::back->changeColor(prevTabRange, kActiveTextColor, kPassiveTextColor);
+								SheetCtl::back->refresh(prevTabRange);
+								// ページ表示
+								SheetCtl::window[SheetCtl::numOfTab] = new Sheet(Size(SheetCtl::resolution.width - SheetCtl::back->frame.size.width, SheetCtl::resolution.height), false);
+								SheetCtl::window[SheetCtl::numOfTab]->fillRect(SheetCtl::window[SheetCtl::numOfTab]->frame, 0xffffff);
+								SheetCtl::window[SheetCtl::numOfTab]->drawRect(SheetCtl::window[SheetCtl::numOfTab]->frame, 0);
+								SheetCtl::window[SheetCtl::numOfTab]->moveTo(Point(SheetCtl::back->frame.size.width, 0));
+								// レンダリング
+								SheetCtl::window[SheetCtl::numOfTab]->drawString("File not found", Point(1, 1), 0);
+								SheetCtl::window[SheetCtl::numOfTab]->drawString("Can't find the file at '" + filename + "'", Point(1, 1 + 16), 0);
+								SheetCtl::window[SheetCtl::activeTab]->upDown(-1);
+								SheetCtl::window[SheetCtl::numOfTab]->upDown(1);
+								SheetCtl::activeTab = SheetCtl::numOfTab;
+								++SheetCtl::numOfTab;
+							}
+							
+							*SheetCtl::tboxString = "";
+							SheetCtl::caretPosition = 2;
+							Rectangle clearRange(2, SheetCtl::back->frame.size.height - 20 - 22, SheetCtl::back->frame.size.width - 2 - 2, 22);
+							SheetCtl::back->fillRect(clearRange, 0xffffff);
+							SheetCtl::back->refresh(clearRange);
+							break;
+						}
+						
+						default: {
+							char s[2];
+							s[0] = static_cast<char>(data);
+							s[1] = 0;
+							SheetCtl::back->drawLine(
+								Line(
+									SheetCtl::caretPosition + 2,
+									SheetCtl::back->frame.size.height - 20 - 22 + 2,
+									SheetCtl::caretPosition + 2,
+									SheetCtl::back->frame.size.height - 20 - 22 + 2 + 18
+								), 0xffffff);
+							SheetCtl::back->drawString(s, Point(SheetCtl::caretPosition + 2, SheetCtl::back->frame.size.height - 20 - 22 + 3), 0);
+							SheetCtl::caretPosition += 8;
+							SheetCtl::caretColor = 0;
+							SheetCtl::back->drawLine(
+								Line(
+									SheetCtl::caretPosition + 2,
+									SheetCtl::back->frame.size.height - 20 - 22 + 2,
+									SheetCtl::caretPosition + 2,
+									SheetCtl::back->frame.size.height - 20 - 22 + 2 + 18
+								), SheetCtl::caretColor);
+							SheetCtl::back->refresh(Rectangle(SheetCtl::caretPosition - 8 + 2, SheetCtl::back->frame.size.height - 20 - 22 + 2, 9, 18));
+							SheetCtl::caretTimer->cancel();
+							SheetCtl::caretTimer->set(50);
+							*SheetCtl::tboxString += s[0];
+							break;
+						}
+					}
+				} else if (data == 0x80) {
+					// キャレットカーソル用タイマーのタイムアウト
+					SheetCtl::back->drawLine(
+						Line(
+							SheetCtl::caretPosition + 2,
+							SheetCtl::back->frame.size.height - 20 - 22 + 2,
+							SheetCtl::caretPosition + 2,
+							SheetCtl::back->frame.size.height - 20 - 22 + 2 + 18
+						), SheetCtl::caretColor);
+					SheetCtl::back->refresh(Rectangle(SheetCtl::caretPosition + 2, SheetCtl::back->frame.size.height - 20 - 22 + 2, 1, 18));
+					SheetCtl::caretColor ^= 0xffffff;
+					SheetCtl::caretTimer->set(50);
+				} else if (data < 260) {
+					// from Mouse Driver
+					switch (data) {
+						case 256: // move
+							// ignore
+							break;
+						
+						case 257: // left click
+							// Close the context menu
+							if (contextMenu->height > 0) {
+								contextMenu->upDown(-1);
+							}
+							
+							// 各シートの onClick イベントを発動
+							for (int i = SheetCtl::top - 1; i >= 0; --i) {
+								Sheet &sht = *sheets[i];
+								if (sht.onClick && sht.frame.contains(mouseCursorPos)) {
+									sht.onClick(mouseCursorPos);
+									break;
+								}
+							}
+							break;
+						
+						case 258: // right click
+							if (contextMenu->height < 0) {
+								// Open the context menu
+								contextMenu->moveTo(Point(mouseCursorPos.x - contextMenu->frame.size.width / 2, mouseCursorPos.y - contextMenu->frame.size.height / 2));
+								contextMenu->upDown(top);
+							}
+							break;
+						
+						case 259: // scroll up
+							break;
+						
+						case 260: // scroll down
+							break;
+					}
+				}
+			}
+		}
+	});
+	queue = guiTask->queue;
 }
 
 // 指定範囲の変更をmapに適用

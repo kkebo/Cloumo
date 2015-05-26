@@ -11,16 +11,16 @@ int main() {
 	PICInit();
 	FAT12::init();
 	TimerController::init();
-	Task *mainTask = TaskSwitcher::init();
-	SheetCtl::init();
+	Task &mainTask = *TaskSwitcher::init();
 	Cli();
 	Output8(kPic0Imr, 0xf8); /* PITとPIC1とキーボードを許可(11111000) */
 	Output8(kPic1Imr, 0xef); /* マウスを許可(11101111) */
 	Sti();
 	
 	// タスクの起動
+	SheetCtl::init();
 	new Task("日付と時刻タスク", 2, 1, 128, &DateTimeMain);
-	new Task("キーボードドライバ", 2, 2, 128, &KeyboardController::Main);
+	new Task("Japanese 106/109 Keyboard Driver", 2, 2, 128, &KeyboardController::Main);
 	new Task("マウスドライバ", 1, 1, 128, &Mouse::Main);
 	new Task("システム情報タスク", 2, 1, 128, &SysinfoMain);
 	/*new Task((char *)kBrowserTaskName, 2, 2, 128, [] {
@@ -60,7 +60,7 @@ int main() {
 	delete btsound;*/
 
 	// もはや用無し
-	mainTask->run(MAX_TASKLEVELS - 1, 1);
+	mainTask.run(MAX_TASKLEVELS - 1, 1);
 
 	for (;;) {
 		Hlt();

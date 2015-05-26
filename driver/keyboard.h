@@ -18,14 +18,17 @@ class KeyboardController {
 private:
 	static unsigned char asciiTable[];
 	static unsigned char asciiShiftTable[];
-	static int shift;
-	static bool alt;
+	static int _shift;
+	static bool _alt;
 	static int leds;
 	static Queue<int> *cmd;
 	static int cmdWait;
 	static TaskQueue *queue;
 
 public:
+	static const int &shift;
+	static const bool &alt;
+
 	friend void IntHandler21(int *esp);
 	static void Main();
 	static void Decode(unsigned char code);
