@@ -1,7 +1,4 @@
-#ifndef _TEK_H_
-#define _TEK_H_
+#pragma once
 
 int TekGetSize(unsigned char *);
 int TekDecomp(unsigned char *, unsigned char *, int);
-
-#endif

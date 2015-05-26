@@ -10,7 +10,7 @@ ifeq ($(OS),Windows_NT)
 	CC       = $(TOOLPATH)gcc.exe
 	CFLAGS   = -I$(INCPATH) -Os -MD -MP -Wall -fno-exceptions -B$(TOOLPATH) -std=c11 -fno-stack-protector -ffunction-sections -fdata-sections
 	CXX      = $(TOOLPATH)g++.exe
-	CXXFLAGS = -I$(INCPATH) -Os -MD -MP -Wall -fno-exceptions -fno-rtti -B$(TOOLPATH) -std=c++14 -fpermissive -fno-stack-protector -ffunction-sections -fdata-sections
+	CXXFLAGS = -I$(INCPATH) -Os -MD -MP -Wall -fno-exceptions -fno-rtti -B$(TOOLPATH) -std=c++14 -fno-stack-protector -ffunction-sections -fdata-sections
 	AR       =
 	NASM     =
 	DEL      = -del
@@ -22,7 +22,7 @@ else
 	CC       = ~/opt/cross/bin/i686-elf-gcc
 	CFLAGS   = -I$(INCPATH) -Os -MD -MP -Wall -fno-exceptions -B$(TOOLPATH) -std=c11 -fno-stack-protector -ffunction-sections -fdata-sections
 	CXX      = ~/opt/cross/bin/i686-elf-g++
-	CXXFLAGS = -I$(INCPATH) -Os -MD -MP -Wall -fno-exceptions -fno-rtti -B$(TOOLPATH) -std=c++14 -fpermissive -fno-stack-protector -ffunction-sections -fdata-sections
+	CXXFLAGS = -I$(INCPATH) -Os -MD -MP -Wall -fno-exceptions -fno-rtti -B$(TOOLPATH) -std=c++14 -fno-stack-protector -ffunction-sections -fdata-sections
 	AR       = ~/opt/cross/bin/i686-elf-ar
 	NASM     = /usr/local/bin/nasm
 	DEL      = rm -f

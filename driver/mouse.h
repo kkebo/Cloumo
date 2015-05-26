@@ -2,8 +2,7 @@
  * マウス
  */
 
-#ifndef _MOUSE_H_
-#define _MOUSE_H_
+#pragma once
 
 const int kKeyCmdSendToMouse = 0xd4;
 const int kMouseCmdEnable = 0xf4;
@@ -32,5 +31,3 @@ public:
 	friend void IntHandler2c(int *esp);
 	static void Main();
 };
-
-#endif

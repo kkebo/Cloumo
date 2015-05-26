@@ -67,7 +67,7 @@ void Mouse::Main() {
 			}
 		}
 	}
-	Mouse::sheet->frame.offset = mdec.pos;
+	Mouse::sheet->moveTo(mdec.pos);
 	Mouse::sheet->upDown(SheetCtl::top + 1);
 	
 	// マウス初期化 by uchan

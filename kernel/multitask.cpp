@@ -39,17 +39,17 @@ Task::Task() {
 	tss.ss0 = 0;
 }
 
-Task::Task(char *name_, int level_, int priority_, void (*mainLoop)()) : _name(name_) {
+Task::Task(const char *name_, int level_, int priority_, void (*mainLoop)()) : _name(name_) {
 	// GDT に登録
 	selector = (kTaskGDT0 + TaskSwitcher::taskCount) * 8;
 	SetSegmentDescriptor((SegmentDescriptor *)kAdrGdt + kTaskGDT0 + TaskSwitcher::taskCount, 103, (int)&tss, kArTss32);
 	++TaskSwitcher::taskCount;
 	
 	// 64KB のスタック確保
-	stack = (int)malloc4k(64 * 1024);
+	stack = reinterpret_cast<int>(malloc4k(64 * 1024));
 	
 	// Task State Segment の設定
-	tss.eip = mainLoop;
+	tss.eip = reinterpret_cast<int>(mainLoop);
 	tss.eflags = 0x00000202;
 	tss.eax = 0;
 	tss.ecx = 0;
@@ -84,14 +84,14 @@ Task::Task(char *name_, int level_, int priority_, void (*mainLoop)()) : _name(n
 	run(level_, priority_);*/
 }
 
-Task::Task(char *name_, int level_, int priority_, int queueSize, void (*mainLoop)()) : Task(name_, level_, priority_, mainLoop) {
+Task::Task(const char *name_, int level_, int priority_, int queueSize, void (*mainLoop)()) : Task(name_, level_, priority_, mainLoop) {
 	queue = new TaskQueue(queueSize, this);
 }
 
 Task::~Task() {
 	sleep();
 	delete queue;
-	free4k(stack);
+	free4k(reinterpret_cast<void *>(stack));
 }
 
 void Task::run(int newLevel, int newPriority) {
@@ -134,7 +134,7 @@ int       TaskSwitcher::taskCount    = 1; // メインタスクの分をあら�
 Task *TaskSwitcher::init() {
 	// メインタスクの設定
 	Task *task = new Task();
-	task->_name = kMainTaskName;
+	task->_name = "メインタスク";
 	task->_level = 0;
 	task->_priority = 2;
 	add(task);

@@ -46,14 +46,14 @@ entry:
 fatloop:
 		add		bx,-2
 		cmp		word [bx],0
-		JZ		fatloop
+		jz		fatloop
 		mov		ax,bx
-		add		ax,-0x8200-5+54+53
+		add		ax,0x7e65		; -0x8200-5+54+53
 		mov		bl,54
-		DIV		bl				; al = ax / bl
+		div		bl				; al = ax / bl
 
 		cmp		al,0
-		JNZ		fatskip1
+		jnz		fatskip1
 		mov		al,1
 fatskip1:
 		cmp		al,33
@@ -62,9 +62,9 @@ fatskip1:
 fatskip2:
 		mov		[0x0ff0],al		; IPLがどこまで読んだのかをメモ
 		add		al,-1
-		JZ		fatskip3
+		jz		fatskip3
 		mov		ah,0
-		IMUL	bx,ax,18*2
+		imul	bx,ax,18*2
 
 		mov		ax,0x0c80
 		mov		es,ax
@@ -173,14 +173,14 @@ next:
 		mov		es,bx			; これで es += al * 0x20; になる
 		pop		bx
 		sub		bx,ax
-		JZ		.ret
+		jz		.ret
 		add		cl,al			; clにalを足す
 		cmp		cl,18			; clと18を比較
 		jbe		readfast		; cl <= 18 だったらreadfastへ
 		mov		cl,1
 		add		dh,1
 		cmp		dh,2
-		JB		readfast		; dh < 2 だったらreadfastへ
+		jb		readfast		; dh < 2 だったらreadfastへ
 		mov		dh,0
 		add		ch,1
 		jmp		readfast

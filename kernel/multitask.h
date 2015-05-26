@@ -2,8 +2,7 @@
  * マルチタスク
  */
 
-#ifndef _MULTITASK_H_
-#define _MULTITASK_H_
+#pragma once
 
 #include <Queue.h>
 
@@ -31,7 +30,7 @@ public:
 
 class Task {
 protected:
-	char *_name;
+	const char *_name;
 	bool _running = false;
 	int _level, _priority;
 	int selector;
@@ -46,15 +45,15 @@ protected:
 	Task(); // メインタスク用
 
 public:
-	char *const &name = _name;
+	const char *const &name = _name;
 	const bool &running = _running;
 	const int &level = _level, &priority = _priority;
 	TaskQueue *queue = nullptr;
 
 	friend class TaskSwitcher;
 	friend void IntHandler07(int *esp); // FPU
-	Task(char *name_, int level_, int priority_, void (*mainLoop)());
-	Task(char *name_, int level_, int priority_, int queueSize, void (*mainLoop)());
+	Task(const char *name_, int level_, int priority_, void (*mainLoop)());
+	Task(const char *name_, int level_, int priority_, int queueSize, void (*mainLoop)());
 	~Task();
 	void run(int newLevel, int newPriority);
 	void sleep();
@@ -91,5 +90,3 @@ public:
 	static Task *init();
 	static Task *getNowTask();
 };
-
-#endif

@@ -2,8 +2,7 @@
  * シート
  */
 
-#ifndef _GRAPHIC_H_
-#define _GRAPHIC_H_
+#pragma once
 
 #include <pistring.h>
 
@@ -19,6 +18,7 @@ struct Point {
 	
 	Point() = default;
 	Point(int x_, int y_) : x(x_), y(y_) {}
+	Point(const Point &p) : x(p.x), y(p.y) {}
 	Point operator +(const Point &p) const {
 		return Point(x + p.x, y + p.y);
 	}
@@ -71,7 +71,7 @@ struct Rectangle {
 		return offset.x <= p.x && p.x <= offset.x + size.width
 		    && offset.y <= p.y && p.y <= offset.y + size.height;
 	}
-	Point getEndPoint() {
+	Point getEndPoint() const {
 		return Point(offset.x + size.width, offset.y + size.height);
 	}
 	inline int getArea() const {
@@ -104,11 +104,11 @@ public:
 	void (*onClick)(const Point &pos);
 
 	friend class SheetCtl;
-	Sheet(const Size &size, bool _nonRect = false, void (*click)() = nullptr);
+	Sheet(const Size &size, bool _nonRect = false, void (*click)(const Point &) = nullptr);
 	virtual ~Sheet();
 	void upDown(int height);
 	void refresh(Rectangle range) const;
-	void moveTo(const Point &cod);
+	void moveTo(const Point &pos);
 	
 	// 描画関数
 	void drawLine(const Line &line, unsigned int color);
@@ -191,5 +191,3 @@ const auto kActiveTabColor  = 0xffffff;
 const auto kActiveTextColor = 0;
 constexpr const auto kPassiveTabColor = Rgb(127, 169, 255);
 constexpr const auto kPassiveTextColor = Rgb(0, 42, 127);
-
-#endif

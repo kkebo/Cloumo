@@ -158,21 +158,21 @@ bool free4k(void *addr) {
 	return s1;
 }*/
 
-void *operator new(size_t size) noexcept {
+void *operator new(long unsigned int size) {
 	return malloc4k(size);
 }
 
-void *operator new[](size_t size) noexcept {
+void *operator new[](long unsigned int size) {
 	return malloc4k(size);
 }
 
-void operator delete(void *address) {
+void operator delete(void *address) noexcept {
 	if (address) {
 		free4k(address);
 	}
 }
 
-void operator delete[](void *address) {
+void operator delete[](void *address) noexcept {
 	if (address) {
 		free4k(address);
 	}

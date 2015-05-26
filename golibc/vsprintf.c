@@ -24,7 +24,10 @@ int vsprintf(char *s, const char *format, va_list arg)
 	UCHAR temp[32] /* �����p */, *q;
 	temp[31] = '\0';
 	int field_min, field_max, i;
-	long l;
+	union {
+		long lng;
+		UINT uint;
+	} l;
 	static char hextable_X[16] = "0123456789ABCDEF";
 	static char hextable_x[16] = "0123456789abcdef";
 	for (;;) {
@@ -71,13 +74,13 @@ put1char:
 		if (c == 's') {
 			if (field_max != INT_MAX)
 				goto mikan;
-			p = va_arg(arg, char *);
-			l = (long)strlen(p);
+			p = (UCHAR *)va_arg(arg, char *);
+			l.uint = strlen((char *)p);
 			if (*p) {
 				c = ' ';
 copy_p2t:
 				if (flag_left == 0) {
-					while (l < field_min) {
+					while (l.lng < field_min) {
 						*t++ = c;
 						field_min--;
 					}
@@ -86,7 +89,7 @@ copy_p2t:
 					*t++ = *p++;
 				} while (*p);
 			}
-			while (l < field_min) {
+			while (l.lng < field_min) {
 				*t++ = ' ';
 				field_min--;
 			}
@@ -100,15 +103,15 @@ copy_p2t:
 			}
 		}
 		if (c == 'u') {
-			l = va_arg(arg, UINT);
+			l.lng = va_arg(arg, UINT);
 			goto printf_u;
 		}
 		if (c == 'd') {
 printf_d:
-			l = va_arg(arg, long);
-			if (l < 0) {
+			l.lng = va_arg(arg, long);
+			if (l.lng < 0) {
 				*t++ = '-';
-				l = - l;
+				l.lng = - l.lng;
 				field_min--;
 			}
 printf_u:
@@ -116,10 +119,10 @@ printf_u:
 				goto mikan;
 			if (field_min <= 0)
 				field_min = 1;
-			p = setdec(&temp[31], l);
+			p = setdec(&temp[31], l.lng);
 printf_x2:
 			c = ' ';
-			l = &temp[31] - p;
+			l.lng = &temp[31] - p;
 			if (flag_zero)
 				c = '0';
 			goto copy_p2t;
@@ -129,34 +132,34 @@ printf_x2:
 		if (c == '%')
 			goto put1char;
 		if (c == 'x') {
-			q = hextable_x;
+			q = (UCHAR *)hextable_x;
 printf_x:
-			l = va_arg(arg, UINT);
+			l.lng = va_arg(arg, UINT);
 			p = &temp[31];
 			do {
-				*--p = q[l & 0x0f];
-			} while ((*(UINT *) &l) >>= 4);
+				*--p = q[l.lng & 0x0f];
+			} while (l.uint >>= 4);
 			goto printf_x2;
 		}
 		if (c == 'X') {
-			q = hextable_X;
+			q = (UCHAR *)hextable_X;
 			goto printf_x;
 		}
 		if (c == 'p') {
 			i = (int) va_arg(arg, void *);
 			p = &temp[31];
-			for (l = 0; l < 8; l++) {
+			for (l.lng = 0; l.lng < 8; l.lng++) {
 				*--p = hextable_X[i & 0x0f];
 				i >>= 4;
 			}
 			goto copy_p2t;
 		}
 		if (c == 'o') {
-			l = va_arg(arg, UINT);
+			l.lng = va_arg(arg, UINT);
 			p = &temp[31];
 			do {
-				*--p = hextable_x[l & 0x07];
-			} while ((*(UINT *) &l) >>= 3);
+				*--p = hextable_x[l.lng & 0x07];
+			} while (l.uint >>= 3);
 			goto printf_x2;
 		}
 		if (c == 'f') {

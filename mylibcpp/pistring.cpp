@@ -234,13 +234,13 @@ unsigned string::count(const char* str) const{
 unsigned string::count(const string& str) const{
 	return countstr(str.data,str.datalen);}
 //replace
-unsigned string::replace(const char* str1,const char* str2,unsigned num=maxint){
+unsigned string::replace(const char* str1,const char* str2,unsigned num){
 	return replacestr(str1,str2,strlen(str1),strlen(str2),num);}
-unsigned string::replace(const string& str1,const char* str2,unsigned num=maxint){
+unsigned string::replace(const string& str1,const char* str2,unsigned num){
 	return replacestr(str1.data,str2,str1.datalen,strlen(str2),num);}
-unsigned string::replace(const char* str1,const string& str2,unsigned num=maxint){
+unsigned string::replace(const char* str1,const string& str2,unsigned num){
 	return replacestr(str1,str2.data,strlen(str1),str2.datalen,num);}
-unsigned string::replace(const string& str1,const string& str2,unsigned num=maxint){
+unsigned string::replace(const string& str1,const string& str2,unsigned num){
 	return replacestr(str1.data,str2.data,str1.datalen,str2.datalen,num);}
 //erase
 unsigned string::erase(unsigned start,unsigned end){
@@ -248,22 +248,22 @@ unsigned string::erase(unsigned start,unsigned end){
 	datalen-=end-start;
 	return datalen;}
 //find
-unsigned string::find(const char c,unsigned n=0,unsigned start=0) const{
+unsigned string::find(const char c,unsigned n,unsigned start) const{
 	return findstr(&c,1,start,n);}
-unsigned string::find(const char* str,unsigned n=0,unsigned start=0) const{
+unsigned string::find(const char* str,unsigned n,unsigned start) const{
 	return findstr(str,strlen(str),start,n);}
-unsigned string::find(const string& str,unsigned n=0,unsigned start=0) const{
+unsigned string::find(const string& str,unsigned n,unsigned start) const{
 	return findstr(str.data,str.datalen,start,n);}
 //rfind (reverse find)
-unsigned string::rfind(const char c,unsigned n=0,unsigned start=maxint) const{
+unsigned string::rfind(const char c,unsigned n,unsigned start) const{
 	if(start==maxint){
 		start=datalen;}
 	return rfindstr(&c,1,start,n);}
-unsigned string::rfind(const char* str,unsigned n=0,unsigned start=maxint) const{
+unsigned string::rfind(const char* str,unsigned n,unsigned start) const{
 	if(start==maxint){
 		start=datalen;}
 	return rfindstr(str,strlen(str),start,n);}
-unsigned string::rfind(const string& str,unsigned n=0,unsigned start=maxint) const{
+unsigned string::rfind(const string& str,unsigned n,unsigned start) const{
 	if(start==maxint){
 		start=datalen;}
 	return rfindstr(str,strlen(str),start,n);}

@@ -1,5 +1,4 @@
-#ifndef _HTMLNODE_H_
-#define _HTMLNODE_H_
+#pragma once
 
 #include <List.h>
 #include <SmartPointer.h>
@@ -11,7 +10,7 @@ namespace HTML {
 		List<shared_ptr<Node>> children;
 	
 	public:
-		virtual void appendChild(const shared_ptr<Node> &node);
+		void appendChild(const shared_ptr<Node> &node);
 	};
 	
 	class Element : public Node {
@@ -55,5 +54,3 @@ namespace HTML {
 		//Element documentElement;
 	};
 }
-
-#endif

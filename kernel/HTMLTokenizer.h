@@ -1,5 +1,4 @@
-#ifndef _HTMLTOKENIZER_H_
-#define _HTMLTOKENIZER_H_
+#pragma once
 
 #include <Queue.h>
 #include <pistring.h>
@@ -23,4 +22,3 @@ namespace HTML {
 	};
 }
 
-#endif

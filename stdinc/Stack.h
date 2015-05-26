@@ -2,8 +2,7 @@
  * Stack
  */
 
-#ifndef _STACK_H_
-#define _STACK_H_
+#pragma once
 
 template <typename T>
 class Stack {
@@ -30,5 +29,3 @@ public:
 		return tail_ == 0;
 	}
 };
-
-#endif

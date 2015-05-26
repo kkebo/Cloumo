@@ -64,8 +64,7 @@ Global Operators:
 
 */
 
-#ifndef _PISTRING_H_
-#define _PISTRING_H_
+#pragma once
 
 #include <stddef.h>
 
@@ -136,7 +135,7 @@ struct string{
 		string();
 		string(const char* str);
 		string(const char *str, size_t len);
-		string (size_t n, char c);
+		string(size_t n, char c);
 		string(const string& str);
 		~string();
 		inline operator const char*() const{
@@ -301,5 +300,3 @@ string to_string(T n) {
 	tmp.reverse();
 	return tmp;
 }
-
-#endif

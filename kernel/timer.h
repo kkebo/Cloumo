@@ -2,8 +2,7 @@
  * タイマー
  */
 
-#ifndef _TIMER_H_
-#define _TIMER_H_
+#pragma once
 
 const int PIT_CTRL = 0x0043;
 const int PIT_CNT0 = 0x0040;
@@ -41,5 +40,3 @@ public:
 	static void init();
 	//static void reset();
 };
-
-#endif

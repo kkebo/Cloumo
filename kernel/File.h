@@ -1,5 +1,4 @@
-#ifndef _FILE_H_
-#define _FILE_H_
+#pragma once
 
 #include <SmartPointer.h>
 #include <pistring.h>
@@ -18,9 +17,7 @@ public:
 	File(const string &name_) : _name(name_) {}
 	bool open();
 	bool open(const string &fileName);
-	inline const shared_ptr<unsigned char> &File::read() {
+	inline const shared_ptr<unsigned char> &read() {
 		return buf;
 	}
 };
-
-#endif

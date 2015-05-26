@@ -1,10 +1,7 @@
-#ifndef _HTMLRENDERER_H_
-#define _HTMLRENDERER_H_
+#pragma once
 
 namespace HTML {
 	class Renderer {
 		
 	};
 }
-
-#endif

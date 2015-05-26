@@ -2,10 +2,10 @@
 #include <SmartPointer.h>
 #include <MinMax.h>
 
-Sheet::Sheet(const Size &size, bool _nonRect = false, void (*click)() = nullptr) :
-	buf(new unsigned int[size.getArea()]),
+Sheet::Sheet(const Size &size, bool _nonRect, void (*click)(const Point &)) :
 	_frame(size),
 	nonRect(_nonRect),
+	buf(new unsigned int[size.getArea()]),
 	onClick(click) {}
 
 Sheet::~Sheet() {
@@ -74,9 +74,9 @@ void Sheet::refresh(Rectangle range) const {
 }
 
 // シートを移動
-void Sheet::moveTo(const Point &cod) {
+void Sheet::moveTo(const Point &pos) {
 	Rectangle oldFrame(frame);
-	frame.offset = cod;
+	_frame.offset = pos;
 	if (height >= 0) {	// 非表示シートはリフレッシュしない
 		SheetCtl::refreshMap(oldFrame, 0);
 		SheetCtl::refreshMap(frame, height);
@@ -366,7 +366,7 @@ void Sheet::drawChar(unsigned char *font, const Point &pos, unsigned int color) 
 }
 
 // 単色文字列を描画
-void Sheet::drawString(const string &str, Point pos, unsigned int color, Encoding encode = Encoding::UTF8) {
+void Sheet::drawString(const string &str, Point pos, unsigned int color, Encoding encode) {
 	using uchar = unsigned char;
 	unsigned char *fontdat = SheetCtl::font->read();
 	unsigned char *font;
@@ -470,7 +470,7 @@ void Sheet::borderRadius(bool ltop, bool rtop, bool lbottom, bool rbottom) {
 }
 
 // 画像を描画
-void Sheet::drawPicture(const char *fileName, const Point &pos, long transColor = -1, int ratio = 1) {
+void Sheet::drawPicture(const char *fileName, const Point &pos, long transColor, int ratio) {
 	int info[4];
 	unsigned int color;
 	int i;

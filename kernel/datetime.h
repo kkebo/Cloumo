@@ -2,8 +2,7 @@
  * 時刻
  */
 
-#ifndef _DATETIME_H_
-#define _DATETIME_H_
+#pragma once
 
 class Timer;
 
@@ -15,5 +14,3 @@ private:
 public:
 	static void Main();
 };
-
-#endif

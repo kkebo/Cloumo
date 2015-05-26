@@ -1,6 +1,3 @@
-#ifndef _UTF82KT_H_
-#define _UTF82KT_H_
+#pragma once
 
 unsigned int Utf8ToKT(unsigned int);
-
-#endif

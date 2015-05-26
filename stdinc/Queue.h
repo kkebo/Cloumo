@@ -2,8 +2,7 @@
  * Queue
  */
 
-#ifndef _QUEUE_H_
-#define _QUEUE_H_
+#pragma once
 
 #include "../kernel/memory.h"
 
@@ -35,5 +34,3 @@ public:
 		return head_ == tail_;
 	}
 };
-
-#endif

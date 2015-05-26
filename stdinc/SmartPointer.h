@@ -1,5 +1,4 @@
-#ifndef _SMARTPOINTER_H_
-#define _SMARTPOINTER_H_
+#pragma once
 
 class ReferenceCounter {
 private:
@@ -17,7 +16,7 @@ private:
 	T *pointer;
 
 private:
-	void operator = (const unique_ptr<T> &) = delete;
+	void operator =(const unique_ptr<T> &) = delete;
 
 public:
 	unique_ptr(T *p = nullptr) : pointer(p) {}
@@ -25,7 +24,7 @@ public:
 		delete pointer;
 	}
 	
-	T *get() {
+	T *get() const {
 		return pointer;
 	}
 	void reset(T *p) {
@@ -81,7 +80,7 @@ public:
 		}
 	}
 	
-	T *get() {
+	T *get() const {
 		return pointer;
 	}
 	void reset(T *p) {
@@ -94,17 +93,17 @@ public:
 		reference = new ReferenceCounter();
 		reference->Add();
 	}
-	ReferenceCounter *getRC() {
+	ReferenceCounter *getRC() const {
 		return reference;
 	}
-	int use_count() {
+	int use_count() const {
 		return reference->Count();
 	}
-	bool unique() {
+	bool unique() const {
 		return reference->Count() == 1;
 	}
 	
-	shared_ptr<T> &operator = (const shared_ptr<T> &p) {
+	shared_ptr<T> &operator =(const shared_ptr<T> &p) {
 		if (this != &p) {
 			if (reference && reference->Release() == 0) {
 				delete pointer;
@@ -117,21 +116,19 @@ public:
 		}
 		return *this;
 	}
-	T *operator -> () const {
+	T *operator ->() const {
 		return pointer;
 	}
-	T *operator & () {
+	T *operator &() {
 		return &pointer;
 	}
-	T &operator * () const {
+	T &operator *() const {
 		return *pointer;
 	}
-	operator T* () const { // cast
+	operator T*() const { // cast
 		return pointer;
 	}
 	operator bool() const {
 		return pointer != nullptr;
 	}
 };
-
-#endif

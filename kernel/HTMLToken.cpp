@@ -2,13 +2,6 @@
 
 using namespace HTML;
 
-struct Token::Attribute {
-	string name;
-	string value;
-	
-	Attribute(string _name, string _value);
-};
-
 Token::Attribute::Attribute(string _name, string _value) : name(_name), value(_value) {}
 
 Token::Token(Type tokenType) : type(tokenType) {}
@@ -26,7 +19,7 @@ bool Token::isSelfClosing() {
 }
 
 void Token::appendAttribute(char c) {
-	attributes.append(shared_ptr<Attribute>(new Attribute(string(c), "")));
+	attributes.append(shared_ptr<Attribute>(new Attribute(string(1, c), "")));
 }
 
 void Token::appendAttributeName(char c) {

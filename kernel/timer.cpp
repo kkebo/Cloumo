@@ -1,8 +1,8 @@
 #include "../headers.h"
 
-Timer::Timer(TaskQueue *queue_) : _queue(queue_), _data(TimerController::count) {}
+Timer::Timer(TaskQueue *queue_) : _data(TimerController::count), _queue(queue_) {}
 
-Timer::Timer(TaskQueue *queue_, int data_) : _queue(queue_), _data(data_) {}
+Timer::Timer(TaskQueue *queue_, int data_) : _data(data_), _queue(queue_) {}
 
 Timer::~Timer() {
 	cancel();

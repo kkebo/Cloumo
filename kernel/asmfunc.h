@@ -1,8 +1,7 @@
 /*
  * アセンブラ関数
  */
-#ifndef _ASMFUNC_H_
-#define _ASMFUNC_H_
+#pragma once
 
 extern "C" {
 	void Hlt();
@@ -31,5 +30,3 @@ extern "C" {
 
 	void FarJump(int, int);
 }
-
-#endif

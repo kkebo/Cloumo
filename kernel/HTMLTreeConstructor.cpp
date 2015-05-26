@@ -637,6 +637,12 @@ const Document &TreeConstructor::construct(Queue<shared_ptr<Token>> &tokens) {
 				}
 				break;
 			
+			case Mode::InFrameset:
+				break;
+			
+			case Mode::AfterFrameset:
+				break;
+			
 			case Mode::AfterAfterBody:
 				switch (token->type) {
 					case Token::Type::Comment:
@@ -660,6 +666,9 @@ const Document &TreeConstructor::construct(Queue<shared_ptr<Token>> &tokens) {
 						mode = Mode::InBody;
 						continue;
 				}
+				break;
+			
+			case Mode::AfterAfterFrameseet:
 				break;
 		}
 		

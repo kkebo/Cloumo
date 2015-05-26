@@ -2,8 +2,7 @@
  * キーボード
  */
 
-#ifndef _KEYBOARD_H_
-#define _KEYBOARD_H_
+#pragma once
 
 #include <Queue.h>
 
@@ -32,5 +31,3 @@ public:
 	static void Decode(unsigned char code);
 	static void wait();
 };
-
-#endif

@@ -2,8 +2,7 @@
  * 起動情報
  */
 
-#ifndef _ASMHEAD_H_
-#define _ASMHEAD_H_
+#pragma once
 
 const int ADDRESS_BOOTINFO  = 0x00000ff0;
 const int ADDRESS_DISK_IMAGE = 0x00100000;
@@ -17,5 +16,3 @@ struct BootInfo {
 	short scrny;
 	unsigned char *vram;
 };
-
-#endif

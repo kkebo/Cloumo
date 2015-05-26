@@ -1,5 +1,4 @@
-#ifndef _HTMLTREECONSTRUCTOR_H_
-#define _HTMLTREECONSTRUCTOR_H_
+#pragma once
 
 #include <Queue.h>
 #include <SmartPointer.h>
@@ -16,5 +15,3 @@ namespace HTML {
 		void parseError();
 	};
 }
-
-#endif

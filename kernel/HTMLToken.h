@@ -1,5 +1,4 @@
-#ifndef _HTMLTOKEN_H_
-#define _HTMLTOKEN_H_
+#pragma once
 
 #include <List.h>
 #include <pistring.h>
@@ -9,7 +8,12 @@ namespace HTML {
 	class Token {
 	private:
 		// for StartTag and EndTag
-		struct Attribute;
+		struct Attribute {
+			string name;
+			string value;
+			
+			Attribute(string _name, string _value);
+		};
 		bool selfClosingFlag = false;
 		List<shared_ptr<Attribute>> attributes;
 	
@@ -33,5 +37,3 @@ namespace HTML {
 		void appendAttributeValue(char c);
 	};
 }
-
-#endif

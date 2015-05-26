@@ -2,8 +2,7 @@
  * FAT12
  */
 
-#ifndef _FAT12_H_
-#define _FAT12_H_
+#pragma once
 
 class FAT12 {
 public:
@@ -25,5 +24,3 @@ public:
 	static void loadFile(int clustno, int size, char *buf, char *img);
 	static unsigned char *loadFile2(int clustno, int &psize);
 };
-
-#endif

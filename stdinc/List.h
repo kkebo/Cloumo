@@ -1,5 +1,4 @@
-#ifndef _LIST_H_
-#define _LIST_H_
+#pragma once
 
 template <typename T>
 class List {
@@ -49,5 +48,3 @@ public:
 		}
 	}
 };
-
-#endif

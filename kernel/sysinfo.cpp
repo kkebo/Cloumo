@@ -26,14 +26,13 @@ void showSysInfo(int benchScore) {
 	// Task List
 	SheetCtl::window[0]->drawString("level priority flag task name", Point(2 + 1, 2 + 16 * 4 + 1), 0);
 	int j = 0;
-	str.reserve(20);
+	char s[20];
 	for (auto &&level : TaskSwitcher::level) {
 		for (int i = 0; i < level.running; ++i) {
 			Task &task = *level.tasks[i];
 			if (task.running) {
-				sprintf(str.c_str(), "%5d %8d %4s ", task.level, task.priority, task.running ? "(oo)" : "(__)");
-				str = str.c_str(); // サイズの数え直し
-				str += task.name;
+				sprintf(s, "%5d %8d %4s ", task.level, task.priority, task.running ? "(oo)" : "(__)");
+				str = string(s) + task.name;
 				SheetCtl::window[0]->drawString(str, Point(2 + 1, 2 + 16 * 5 + j * 16 + 2), 0);
 				++j;
 			}

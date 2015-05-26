@@ -2,8 +2,7 @@
  * メモリ
  */
 
-#ifndef _MEMORY_H_
-#define _MEMORY_H_
+#pragma once
 
 #include <stddef.h>
 
@@ -32,10 +31,3 @@ extern "C" {
 	void *malloc4k(unsigned int);
 	bool free4k(void *);
 }
-
-void *operator new(size_t) noexcept;
-void *operator new[](size_t) noexcept;
-void operator delete(void *);
-void operator delete[](void *);
-
-#endif

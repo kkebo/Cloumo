@@ -6,7 +6,7 @@
 #include "kernel/graphic.h"
 #include "kernel/int.h"
 #include "kernel/jpeg.h"
-#include "kernel/language.h"
+//#include "kernel/language.h"
 #include "kernel/memory.h"
 #include "kernel/multitask.h"
 #include "kernel/sysinfo.h"

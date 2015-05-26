@@ -2,8 +2,7 @@
  * ブラウザー
  */
 
-#ifndef _BROWSER_H_
-#define _BROWSER_H_
+#pragma once
 
 #include <SmartPointer.h>
 
@@ -20,5 +19,3 @@ public:
 	void Scroll(int data);
 	void Mapping();
 };
-
-#endif
