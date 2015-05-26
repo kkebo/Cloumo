@@ -1,4 +1,6 @@
 #include "../headers.h"
+#include "../kernel/HTMLTokenizer.h"
+#include "../kernel/HTMLTreeConstructor.h"
 
 unsigned char KeyboardController::asciiTable[0x80] = {
 	0,   0,   '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '^', 0/*0x08*/, 0,

@@ -9,7 +9,7 @@ SECTIONS {
         LONG(SIZEOF(.data))   /* 16 : Size of .data */
         LONG(LOADADDR(.data)) /* 20 : Address of .data */
         LONG(0xE9000000)      /* 24 : 0xE9000000 (jump) */
-        LONG(_main - 0x20)    /* 28 : Entry address - 0x20 */
+        LONG(main - 0x20)    /* 28 : Entry address - 0x20 */
         LONG((ADDR(.bss) + SIZEOF(.bss) + 0xf) & ~ 0xf)       /* 32 : heap space (malloc) start address */
     }
 

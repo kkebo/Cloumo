@@ -4,7 +4,7 @@
 
 #include "../headers.h"
 
-extern "C" void _main() {
+int main() {
 	/* 初期化 */
 	MemoryInit();
 	DescriptorInit();

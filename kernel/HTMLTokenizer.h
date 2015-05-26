@@ -3,6 +3,7 @@
 #include <Queue.h>
 #include <pistring.h>
 #include <SmartPointer.h>
+#include "HTMLToken.h"
 
 namespace HTML {
 	class Tokenizer {

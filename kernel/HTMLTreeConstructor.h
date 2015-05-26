@@ -2,6 +2,8 @@
 
 #include <Queue.h>
 #include <SmartPointer.h>
+#include "HTMLToken.h"
+#include "HTMLNode.h"
 
 namespace HTML {
 	class TreeConstructor {
