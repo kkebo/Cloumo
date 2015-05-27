@@ -170,7 +170,6 @@ public:
 	static Point mouseCursorPos;
 
 	friend class Sheet;
-	friend class Mouse; // 一時的．分離するべき
 	friend void DateTimeMain(); // 一時的．分離するべき
 	friend void showSysInfo(int benchScore); // 一時的．分離するべき
 	static void init();

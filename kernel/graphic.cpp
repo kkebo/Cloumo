@@ -708,14 +708,8 @@ void SheetCtl::init() {
 		for (;;) {
 			Cli();
 			if (task.queue->isempty()) {
-				if (mouseCursorPos.x >= 0) {
-					Sti();
-					mouseCursorSheet->moveTo(mouseCursorPos + Point(-8, -8));
-					mouseCursorPos.x = -1;
-				} else {
-					task.sleep();
-					Sti();
-				}
+				task.sleep();
+				Sti();
 			} else {
 				int data = task.queue->pop();
 				Sti();
@@ -737,7 +731,7 @@ void SheetCtl::init() {
 							break;
 						
 						case 0x09: // TAB
-							if (KeyboardController::alt) {
+							if (KeyboardController::alt && SheetCtl::numOfTab >= 2) {
 								// タブ切り替え
 								int newActive = SheetCtl::activeTab + 1;
 								if (newActive >= SheetCtl::numOfTab) newActive = 0;
@@ -793,7 +787,7 @@ void SheetCtl::init() {
 								string source(reinterpret_cast<char *>(htmlFile->read().get()), htmlFile->size);
 								HTML::Tokenizer tokenizer;
 								Queue<shared_ptr<HTML::Token>> &tokens = tokenizer.tokenize(source.c_str());
-								for (int i = 0; !tokens.isempty(); ++i) {
+								for (int i = 0; !tokens.isempty() && 1 + i * 16 + 16 < SheetCtl::back->frame.size.height - 1; ++i) {
 									string str;
 									shared_ptr<HTML::Token> token(tokens.pop());
 									switch (token->type) {
@@ -907,7 +901,7 @@ void SheetCtl::init() {
 					// from Mouse Driver
 					switch (data) {
 						case 256: // move
-							// ignore
+							mouseCursorSheet->moveTo(mouseCursorPos + Point(-8, -8));
 							break;
 						
 						case 257: // left click
