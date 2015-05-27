@@ -520,23 +520,24 @@ void Sheet::changeColor(const Rectangle &range, unsigned int col0, unsigned int 
 }
 
 int SheetCtl::_top = -1;
-const int &SheetCtl::top = SheetCtl::_top;
+const int &SheetCtl::top = _top;
 int SheetCtl::caretPosition = 2;
 unsigned int SheetCtl::caretColor = 0;
 Timer *SheetCtl::caretTimer;
 string *SheetCtl::tboxString;
 SheetCtl::VRAM SheetCtl::vram;
 Size SheetCtl::_resolution(0, 0);
-const Size &SheetCtl::resolution = SheetCtl::_resolution;
+const Size &SheetCtl::resolution = _resolution;
 unsigned char *SheetCtl::map;
 TaskQueue *SheetCtl::queue;
 Sheet *SheetCtl::back;
 Sheet *SheetCtl::contextMenu;
 Sheet *SheetCtl::window[kMaxTabs];
-int SheetCtl::numOfTab = 1;
-int SheetCtl::activeTab = 0;
+int SheetCtl::numOfTab = 0;
+int SheetCtl::activeTab = -1;
 Sheet *SheetCtl::sheets[kMaxSheets];
 int SheetCtl::color;
+const int &SheetCtl::colorDepth = color;
 File *SheetCtl::font;
 Point SheetCtl::mouseCursorPos(-1, 0);
 Sheet *SheetCtl::mouseCursorSheet;
@@ -595,21 +596,8 @@ void SheetCtl::init() {
 		
 		for (int i = 0; i < SheetCtl::numOfTab; ++i) {
 			if (i != SheetCtl::activeTab && 35 + 23 * i <= pos.y && pos.y < 33 + 16 + 8 + 23 * i) {
-				// 選択したタブ
-				Rectangle selectedTabRange(2, 35 + 23 * i, SheetCtl::back->frame.size.width - 2, 22);
-				SheetCtl::back->changeColor(selectedTabRange, kPassiveTabColor, kActiveTabColor);
-				SheetCtl::back->changeColor(selectedTabRange, kPassiveTextColor, kActiveTextColor);
-				SheetCtl::back->refresh(selectedTabRange);
-				// アクティブだったタブ
-				Rectangle prevTabRange(2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back->frame.size.width - 2, 22);
-				SheetCtl::back->changeColor(prevTabRange, kActiveTabColor, kPassiveTabColor);
-				SheetCtl::back->changeColor(prevTabRange, kActiveTextColor, kPassiveTextColor);
-				SheetCtl::back->refresh(prevTabRange);
-				
-				SheetCtl::window[SheetCtl::activeTab]->upDown(-1);
-				SheetCtl::window[i]->upDown(1);
-				
-				SheetCtl::activeTab = i;
+				switchTab(i);
+				break;
 			}
 		}
 	});
@@ -620,8 +608,8 @@ void SheetCtl::init() {
 	// 更新ボタン枠
 	back->drawPicture("btn_r.bmp", Point(59, 4), 0xff00ff);
 	// タブ
-	back->drawString("system info", Point(6, 39), kActiveTextColor);
-	back->changeColor(Rectangle(2, 35, back->frame.size.width - 2, 22), kBackgroundColor, kActiveTabColor);
+	//back->drawString("system info", Point(6, 39), kActiveTextColor);
+	//back->changeColor(Rectangle(2, 35, back->frame.size.width - 2, 22), kBackgroundColor, kActiveTabColor);
 	// キーマップスイッチ
 	back->drawRect(Rectangle(42, back->frame.size.height - 20 - 46, 66, 22), 0xffffff);
 	//back->drawLine(Line(50 + 24, back->frame.size.height - 20 - 45, 50 + 24, back->frame.size.height - 20 - 25), 0xffffff);
@@ -634,13 +622,13 @@ void SheetCtl::init() {
 	back->upDown(0);
 
 	// tabs
-	window[0] = new Sheet(Size(resolution.width - back->frame.size.width, resolution.height), false);
+	/*window[0] = new Sheet(Size(resolution.width - back->frame.size.width, resolution.height), false);
 	window[0]->fillRect(window[0]->frame, 0xffffff);
 	window[0]->drawRect(window[0]->frame, 0);
-	window[0]->moveTo(Point(back->frame.size.width, 0));
+	window[0]->moveTo(Point(back->frame.size.width, 0));*/
 
 	// system info タブを全面へ
-	window[0]->upDown(1);
+	//window[0]->upDown(1);
 
 	// マウスポインタ描画
 	mouseCursorPos = Point(-1, 0);
@@ -731,26 +719,9 @@ void SheetCtl::init() {
 							break;
 						
 						case 0x09: // TAB
-							if (KeyboardController::alt && SheetCtl::numOfTab >= 2) {
+							if (KeyboardController::alt) {
 								// タブ切り替え
-								int newActive = SheetCtl::activeTab + 1;
-								if (newActive >= SheetCtl::numOfTab) newActive = 0;
-								
-								// 次のタブ
-								Rectangle nextTabRange(2, 35 + 23 * newActive, SheetCtl::back->frame.size.width - 2, 22);
-								SheetCtl::back->changeColor(nextTabRange, kPassiveTabColor, kActiveTabColor);
-								SheetCtl::back->changeColor(nextTabRange, kPassiveTextColor, kActiveTextColor);
-								SheetCtl::back->refresh(nextTabRange);
-								// アクティブだったタブ
-								Rectangle prevTabRange(2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back->frame.size.width - 2, 22);
-								SheetCtl::back->changeColor(prevTabRange, kActiveTabColor, kPassiveTabColor);
-								SheetCtl::back->changeColor(prevTabRange, kActiveTextColor, kPassiveTextColor);
-								SheetCtl::back->refresh(prevTabRange);
-								
-								SheetCtl::window[SheetCtl::activeTab]->upDown(-1);
-								SheetCtl::window[newActive]->upDown(1);
-								
-								SheetCtl::activeTab = newActive;
+								switchTab();
 							}
 							break;
 						
@@ -769,84 +740,56 @@ void SheetCtl::init() {
 								// ファイルが存在した
 								filename = "file:///" + filename;
 								// タブ表示
-								Rectangle newTabRange(2, 35 + 23 * SheetCtl::numOfTab, SheetCtl::back->frame.size.width - 2, 22);
-								SheetCtl::back->drawString(filename, Point(6, 39 + 23 * SheetCtl::numOfTab), kActiveTextColor);
-								SheetCtl::back->changeColor(newTabRange, kBackgroundColor, kActiveTabColor);
-								SheetCtl::back->refresh(newTabRange);
-								// アクティブだったタブ
-								Rectangle prevTabRange(2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back->frame.size.width - 2, 22);
-								SheetCtl::back->changeColor(prevTabRange, kActiveTabColor, kPassiveTabColor);
-								SheetCtl::back->changeColor(prevTabRange, kActiveTextColor, kPassiveTextColor);
-								SheetCtl::back->refresh(prevTabRange);
-								// ページ表示
-								SheetCtl::window[SheetCtl::numOfTab] = new Sheet(Size(SheetCtl::resolution.width - SheetCtl::back->frame.size.width, SheetCtl::resolution.height), false);
-								SheetCtl::window[SheetCtl::numOfTab]->fillRect(SheetCtl::window[SheetCtl::numOfTab]->frame, 0xffffff);
-								SheetCtl::window[SheetCtl::numOfTab]->drawRect(SheetCtl::window[SheetCtl::numOfTab]->frame, 0);
-								SheetCtl::window[SheetCtl::numOfTab]->moveTo(Point(SheetCtl::back->frame.size.width, 0));
-								// レンダリング
-								string source(reinterpret_cast<char *>(htmlFile->read().get()), htmlFile->size);
-								HTML::Tokenizer tokenizer;
-								Queue<shared_ptr<HTML::Token>> &tokens = tokenizer.tokenize(source.c_str());
-								for (int i = 0; !tokens.isempty() && 1 + i * 16 + 16 < SheetCtl::back->frame.size.height - 1; ++i) {
-									string str;
-									shared_ptr<HTML::Token> token(tokens.pop());
-									switch (token->type) {
-										case HTML::Token::Type::Character:
-											str = "Character Token";
-											break;
-											
-										case HTML::Token::Type::StartTag:
-											str = "StartTag Token";
-											break;
-											
-										case HTML::Token::Type::EndTag:
-											str = "EndTag Token";
-											break;
-											
-										case HTML::Token::Type::DOCTYPE:
-											str = "DOCTYPE Token";
-											break;
-											
-										case HTML::Token::Type::Comment:
-											str = "Comment Token";
-											break;
-											
-										case HTML::Token::Type::EndOfFile:
-											str = "EndOfFile Token";
-											break;
+								auto sht = addTab(filename);
+								if (sht) {
+									// レンダリング
+									string source(reinterpret_cast<char *>(htmlFile->read().get()), htmlFile->size);
+									HTML::Tokenizer tokenizer;
+									Queue<shared_ptr<HTML::Token>> &tokens = tokenizer.tokenize(source.c_str());
+									for (int i = 0; !tokens.isempty() && 1 + i * 16 + 16 < SheetCtl::back->frame.size.height - 1; ++i) {
+										string str;
+										shared_ptr<HTML::Token> token(tokens.pop());
+										switch (token->type) {
+											case HTML::Token::Type::Character:
+												str = "Character Token";
+												break;
+												
+											case HTML::Token::Type::StartTag:
+												str = "StartTag Token";
+												break;
+												
+											case HTML::Token::Type::EndTag:
+												str = "EndTag Token";
+												break;
+												
+											case HTML::Token::Type::DOCTYPE:
+												str = "DOCTYPE Token";
+												break;
+												
+											case HTML::Token::Type::Comment:
+												str = "Comment Token";
+												break;
+												
+											case HTML::Token::Type::EndOfFile:
+												str = "EndOfFile Token";
+												break;
+										}
+										str += " (data='" + token->data + "')";
+										sht->drawString(str, Point(1, 1 + i * 16), 0);
 									}
-									str += " (data='" + token->data + "')";
-									SheetCtl::window[SheetCtl::numOfTab]->drawString(str, Point(1, 1 + i * 16), 0);
+									sht->refresh(Rectangle(Point(0, 0), sht->frame.size));
 								}
-								SheetCtl::window[SheetCtl::activeTab]->upDown(-1);
-								SheetCtl::window[SheetCtl::numOfTab]->upDown(1);
-								SheetCtl::activeTab = SheetCtl::numOfTab;
-								++SheetCtl::numOfTab;
 							} else {
 								// 一致するファイルなし
 								filename = "file:///" + filename;
 								// タブ表示
-								Rectangle newTabRange(2, 35 + 23 * SheetCtl::numOfTab, SheetCtl::back->frame.size.width - 2, 22);
-								SheetCtl::back->drawString(filename, Point(6, 39 + 23 * SheetCtl::numOfTab), kActiveTextColor);
-								SheetCtl::back->changeColor(newTabRange, kBackgroundColor, kActiveTabColor);
-								SheetCtl::back->refresh(newTabRange);
-								// アクティブだったタブ
-								Rectangle prevTabRange(2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back->frame.size.width - 2, 22);
-								SheetCtl::back->changeColor(prevTabRange, kActiveTabColor, kPassiveTabColor);
-								SheetCtl::back->changeColor(prevTabRange, kActiveTextColor, kPassiveTextColor);
-								SheetCtl::back->refresh(prevTabRange);
-								// ページ表示
-								SheetCtl::window[SheetCtl::numOfTab] = new Sheet(Size(SheetCtl::resolution.width - SheetCtl::back->frame.size.width, SheetCtl::resolution.height), false);
-								SheetCtl::window[SheetCtl::numOfTab]->fillRect(SheetCtl::window[SheetCtl::numOfTab]->frame, 0xffffff);
-								SheetCtl::window[SheetCtl::numOfTab]->drawRect(SheetCtl::window[SheetCtl::numOfTab]->frame, 0);
-								SheetCtl::window[SheetCtl::numOfTab]->moveTo(Point(SheetCtl::back->frame.size.width, 0));
-								// レンダリング
-								SheetCtl::window[SheetCtl::numOfTab]->drawString("File not found", Point(1, 1), 0);
-								SheetCtl::window[SheetCtl::numOfTab]->drawString("Can't find the file at '" + filename + "'", Point(1, 1 + 16), 0);
-								SheetCtl::window[SheetCtl::activeTab]->upDown(-1);
-								SheetCtl::window[SheetCtl::numOfTab]->upDown(1);
-								SheetCtl::activeTab = SheetCtl::numOfTab;
-								++SheetCtl::numOfTab;
+								auto sht = addTab(filename);
+								if (sht) {
+									// レンダリング
+									sht->drawString("File not found", Point(1, 1), 0);
+									sht->drawString("Can't find the file at '" + filename + "'", Point(1, 1 + 16), 0);
+									sht->refresh(Rectangle(Point(0, 0), sht->frame.size));
+								}
 							}
 							
 							*SheetCtl::tboxString = "";
@@ -939,6 +882,65 @@ void SheetCtl::init() {
 		}
 	});
 	queue = guiTask->queue;
+}
+
+// Open a new tab
+Sheet *SheetCtl::addTab(string tabName) {
+	if (numOfTab + 1 <= kMaxTabs) { // タブがこれ以上開けるか
+		// 新しいタブのページ用のシートを確保
+		Sheet *&sht = window[SheetCtl::numOfTab];
+		sht = new Sheet(Size(SheetCtl::resolution.width - SheetCtl::back->frame.size.width, SheetCtl::resolution.height), false);
+		
+		// 基本デザイン
+		sht->fillRect(sht->frame, 0xffffff);
+		sht->drawRect(sht->frame, 0);
+		sht->moveTo(Point(back->frame.size.width, 0));
+		
+		// タブ作成
+		Rectangle newTabRange(2, 35 + 23 * numOfTab, back->frame.size.width - 2, 22);
+		back->drawString(tabName, Point(6, 39 + 23 * numOfTab), kActiveTextColor);
+		back->changeColor(newTabRange, kBackgroundColor, kActiveTabColor);
+		back->refresh(newTabRange);
+		
+		// タブ切り替え
+		switchTab(numOfTab);
+		
+		// タブの個数を増やす
+		++numOfTab;
+		
+		return sht;
+	}
+	return nullptr;
+}
+
+// タブ切り替え
+void SheetCtl::switchTab(int index) {
+	if (index == -1) {
+		// タブが1つ以下だったら終了
+		if (numOfTab <= 1) return;
+		// 次のタブを選ばせる
+		index = activeTab + 1;
+		if (index >= SheetCtl::numOfTab) index = 0;
+	}
+	
+	// 新しくアクティブになるタブ
+	Rectangle nextTabRange(2, 35 + 23 * index, SheetCtl::back->frame.size.width - 2, 22);
+	SheetCtl::back->changeColor(nextTabRange, kPassiveTabColor, kActiveTabColor);
+	SheetCtl::back->changeColor(nextTabRange, kPassiveTextColor, kActiveTextColor);
+	SheetCtl::back->refresh(nextTabRange);
+	
+	// アクティブだったタブ
+	if (activeTab >= 0) {
+		Rectangle prevTabRange(2, 35 + 23 * SheetCtl::activeTab, SheetCtl::back->frame.size.width - 2, 22);
+		SheetCtl::back->changeColor(prevTabRange, kActiveTabColor, kPassiveTabColor);
+		SheetCtl::back->changeColor(prevTabRange, kActiveTextColor, kPassiveTextColor);
+		SheetCtl::back->refresh(prevTabRange);
+	}
+	
+	SheetCtl::window[index]->upDown(1);
+	SheetCtl::window[SheetCtl::activeTab]->upDown(-1);
+	
+	SheetCtl::activeTab = index;
 }
 
 // 指定範囲の変更をmapに適用

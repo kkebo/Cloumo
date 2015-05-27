@@ -7,7 +7,6 @@ void DateTimeMain() {
 	unsigned char now[7] = {};
 	bool timechk = false;
 	char s[9];
-	Rectangle rewriteRange(2, SheetCtl::back->frame.size.height - 18, 8 * 8, 16);
 	
 	// 現在時刻取得
 	static unsigned char adr[7] = { 0x00, 0x02, 0x04, 0x07, 0x08, 0x09, 0x32 };
@@ -35,13 +34,16 @@ void DateTimeMain() {
 	timer->set(100); // 1秒おき
 
 	// バーに時刻を表示
+	Sheet dateTimeSheet(Size(8 * 8, 16), true);
+	dateTimeSheet.fillRect(dateTimeSheet.frame, kTransColor);
 	if (now[2] >= 12) {
 		sprintf(s, "%02d:%02d PM", now[2] - 12, now[1]);
 	} else {
 		sprintf(s, "%02d:%02d AM", now[2], now[1]);
 	}
-	SheetCtl::back->drawString(s, rewriteRange.offset, 0xffffff);
-	SheetCtl::back->refresh(rewriteRange);
+	dateTimeSheet.drawString(s, Point(0, 0), 0xffffff);
+	dateTimeSheet.moveTo(Point(2, SheetCtl::resolution.height - 18));
+	dateTimeSheet.upDown(SheetCtl::top);
 	
 	for (;;) {
 		Cli();
@@ -53,9 +55,9 @@ void DateTimeMain() {
 				} else {
 					sprintf(s, "%02d:%02d AM", now[2], now[1]);
 				}
-				SheetCtl::back->fillRect(rewriteRange, Rgb(0, 84, 255));
-				SheetCtl::back->drawString(s, rewriteRange.offset, 0xffffff);
-				SheetCtl::back->refresh(rewriteRange);
+				dateTimeSheet.fillRect(Rectangle(Point(0, 0), dateTimeSheet.frame.size), kTransColor);
+				dateTimeSheet.drawString(s, Point(0, 0), 0xffffff);
+				dateTimeSheet.refresh(Rectangle(Point(0, 0), dateTimeSheet.frame.size));
 				timechk = false;
 			} else {
 				task->sleep();

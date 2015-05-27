@@ -164,15 +164,16 @@ private:
 public:
 	static const int &top;
 	static const Size &resolution;
+	static const int &colorDepth;
 	
 	// for GUI Task
 	static TaskQueue *queue;
 	static Point mouseCursorPos;
 
 	friend class Sheet;
-	friend void DateTimeMain(); // 一時的．分離するべき
-	friend void showSysInfo(int benchScore); // 一時的．分離するべき
 	static void init();
+	static Sheet *addTab(string tabName);
+	static void switchTab(int index = -1);
 };
 
 // 赤緑青をあわせてunsigned intで出力
