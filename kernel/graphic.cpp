@@ -525,7 +525,7 @@ int SheetCtl::caretPosition = 2;
 unsigned int SheetCtl::caretColor = 0;
 Timer *SheetCtl::caretTimer;
 string *SheetCtl::tboxString;
-unsigned char *SheetCtl::vram;
+SheetCtl::VRAM SheetCtl::vram;
 Size SheetCtl::_resolution(0, 0);
 const Size &SheetCtl::resolution = SheetCtl::_resolution;
 unsigned char *SheetCtl::map;
@@ -563,7 +563,7 @@ const char *SheetCtl::mouseCursor[] = {
 void SheetCtl::init() {
 	/* データメンバ初期化 */
 	BootInfo *binfo = (BootInfo *)ADDRESS_BOOTINFO;
-	vram        = binfo->vram;
+	vram.p16    = reinterpret_cast<unsigned short *>(binfo->vram);
 	_resolution = Size(binfo->scrnx, binfo->scrny);
 	color       = binfo->vmode;
 	map         = new unsigned char[resolution.getArea()];
@@ -1010,7 +1010,7 @@ void SheetCtl::refreshSub(const Rectangle &range, int h1) {
 				for (int bx = bx0; bx < bx1; ++bx) {
 					rgb = sht.buf[by * sht.frame.size.width + bx];
 					if (map[(sht.frame.offset.y + by) * resolution.width + sht.frame.offset.x + bx] == sid) {
-						((unsigned int *)vram)[((sht.frame.offset.y + by) * resolution.width + (sht.frame.offset.x + bx))]
+						vram.p32[((sht.frame.offset.y + by) * resolution.width + (sht.frame.offset.x + bx))]
 							= (sid <= 1) ? rgb
 							           : MixRgb(rgb, backrgb[(sht.frame.offset.y + by - vy0) * (vx1 - vx0) + (sht.frame.offset.x + bx - vx0)]);
 					} else if ((unsigned char)(rgb >> 24) != 255) {
@@ -1025,13 +1025,12 @@ void SheetCtl::refreshSub(const Rectangle &range, int h1) {
 				for (int bx = bx0; bx < bx1; ++bx) {
 					rgb = sht.buf[by * sht.frame.size.width + bx];
 					if (map[(sht.frame.offset.y + by) * resolution.width + sht.frame.offset.x + bx] == sid) {
-						unsigned char *vram24 = (unsigned char *)(vram + ((sht.frame.offset.y + by) * resolution.width + (sht.frame.offset.x + bx)) * 3);
 						if (sid > 1) {
 							rgb = MixRgb(rgb, backrgb[(sht.frame.offset.y + by - vy0) * (vx1 - vx0) + (sht.frame.offset.x + bx - vx0)]);
 						}
-						vram24[0] = (unsigned char)rgb;
-						vram24[1] = (unsigned char)(rgb >> 8);
-						vram24[2] = (unsigned char)(rgb >> 16);
+						vram.p24[(sht.frame.offset.y + by) * resolution.width + (sht.frame.offset.x + bx)][0] = (unsigned char)rgb;
+						vram.p24[(sht.frame.offset.y + by) * resolution.width + (sht.frame.offset.x + bx)][1] = (unsigned char)(rgb >> 8);
+						vram.p24[(sht.frame.offset.y + by) * resolution.width + (sht.frame.offset.x + bx)][2] = (unsigned char)(rgb >> 16);
 					} else if ((unsigned char)(rgb >> 24) != 255) {
 						backrgb[(sht.frame.offset.y + by - vy0) * (vx1 - vx0) + (sht.frame.offset.x + bx - vx0)]
 						= (sid <= 1) ? rgb
@@ -1044,7 +1043,7 @@ void SheetCtl::refreshSub(const Rectangle &range, int h1) {
 				for (int bx = bx0; bx < bx1; ++bx) {
 					rgb = sht.buf[by * sht.frame.size.width + bx];
 					if (map[(sht.frame.offset.y + by) * resolution.width + sht.frame.offset.x + bx] == sid) {
-						((unsigned short *)vram)[(sht.frame.offset.y + by) * resolution.width + (sht.frame.offset.x + bx)]
+						vram.p16[(sht.frame.offset.y + by) * resolution.width + (sht.frame.offset.x + bx)]
 						              = (sid <= 1) ?
 						            		  ((((unsigned char) (rgb >> 16) << 8) & 0xf800)
 								                 | (((unsigned char) (rgb >> 8) << 3) & 0x07e0)

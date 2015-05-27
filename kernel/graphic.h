@@ -131,7 +131,11 @@ class File;
 
 class SheetCtl {
 private:
-	static unsigned char *vram;
+	static union VRAM {
+		unsigned short *p16;
+		unsigned char (*p24)[3];
+		unsigned int *p32;
+	} vram;
 	static unsigned char *map;
 	static File *font;
 	static Sheet *sheets[];
