@@ -8,7 +8,6 @@
 
 const int kMaxSheets = 256;
 const int kMaxTabs = 20;
-constexpr const int kTransColor = 255 << 24;
 
 enum class GradientDirection { LeftToRight, TopToBottom };
 enum class Encoding { SJIS, UTF8, EUCJP };
@@ -173,6 +172,7 @@ public:
 	friend class Sheet;
 	static void init();
 	static Sheet *addTab(string tabName);
+	static void closeTab(int index);
 	static void switchTab(int index = -1);
 };
 
@@ -197,8 +197,9 @@ constexpr unsigned int GetGrad(int p0, int p1, int p, unsigned int c0, unsigned 
 	        | ((unsigned char) c0 + ((unsigned char) c1 - (unsigned char) c0) * (p - p0) / (p1 - p0)));
 }
 
-constexpr const auto kBackgroundColor = Rgb(0, 84, 255);
+const int kTransColor = 0xff000000;
+const auto kBackgroundColor = 0x263238;//Rgb(0, 84, 255);
 const auto kActiveTabColor  = 0xffffff;
 const auto kActiveTextColor = 0;
-constexpr const auto kPassiveTabColor = Rgb(127, 169, 255);
-constexpr const auto kPassiveTextColor = Rgb(0, 42, 127);
+const auto kPassiveTabColor = 0x96a2a8;//Rgb(127, 169, 255);
+const auto kPassiveTextColor = 0x13191c;//Rgb(0, 42, 127);

@@ -22,7 +22,6 @@ int main() {
 	new Task("日付と時刻タスク", 2, 1, 128, &DateTimeMain);
 	new Task("Japanese 106/109 Keyboard Driver", 2, 2, 128, &KeyboardController::Main);
 	new Task("マウスドライバ", 1, 1, 128, &Mouse::Main);
-	new Task("システム情報タスク", 2, 1, 128, &SysinfoMain);
 	/*new Task((char *)kBrowserTaskName, 2, 2, 128, [] {
 		Task *task = TaskSwitcher::getNowTask();
 		Browser *browser = new Browser("index.htm");
