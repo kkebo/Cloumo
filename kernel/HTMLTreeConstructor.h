@@ -13,7 +13,7 @@ namespace HTML {
 	
 	public:
 		TreeConstructor() {}
-		const Document &construct(Queue<shared_ptr<Token>> &tokens);
+		Document &construct(Queue<shared_ptr<Token>> &tokens);
 		void parseError();
 	};
 }

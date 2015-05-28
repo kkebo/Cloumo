@@ -6,10 +6,13 @@
 
 namespace HTML {
 	class Node {
-	protected:
-		List<shared_ptr<Node>> children;
-	
 	public:
+		List<shared_ptr<Node>> children;
+		
+		virtual ~Node() {}
+		virtual string getData() {
+			return "";
+		}
 		void appendChild(const shared_ptr<Node> &node);
 	};
 	
@@ -20,10 +23,13 @@ namespace HTML {
 		string className;
 	
 	public:
-		const string &tagName = _tagName;
+		//const string &tagName = _tagName;
 	
 		//Element() {}
 		Element(const string &name);
+		string getData() {
+			return "<" + _tagName + ">";
+		}
 	};
 	
 	class TextNode : public Node {
@@ -31,6 +37,9 @@ namespace HTML {
 		string wholeText;
 		
 		TextNode(string str) : wholeText(str) {}
+		string getData() {
+			return wholeText;
+		}
 	};
 	
 	class DocumentType : public Node {
@@ -41,16 +50,27 @@ namespace HTML {
 		
 		DocumentType(const string &n) : name(n) {}
 		DocumentType(const string &n, const string &p, const string &s) : name(n), publicId(p), systemId(s) {}
+		string getData() {
+			return "<!doctype " + name + ">";
+		}
 	};
 	
 	class Comment : public Node {
 	public:
 		Comment(string data = "");
+		
+		string getData() {
+			return "<!-- コメント -->";
+		}
 	};
 	
 	class Document : public Node {
 	public:
 		//DocumentType doctype;
 		//Element documentElement;
+		
+		string getData() {
+			return "Document ノード";
+		}
 	};
 }

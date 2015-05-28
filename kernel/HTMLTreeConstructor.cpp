@@ -29,7 +29,7 @@ enum class TreeConstructor::Mode {
 	AfterAfterFrameseet
 };
 
-const Document &TreeConstructor::construct(Queue<shared_ptr<Token>> &tokens) {
+Document &TreeConstructor::construct(Queue<shared_ptr<Token>> &tokens) {
 	Mode mode = Mode::Initial;
 	unique_ptr<Token> token;
 	Stack<shared_ptr<Node>> openTags(256); // stack of open elements

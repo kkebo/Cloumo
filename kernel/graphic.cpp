@@ -560,6 +560,13 @@ const char *SheetCtl::mouseCursor[] = {
 	"*****OOOOOO*****"
 };
 
+void rPrintNode(shared_ptr<HTML::Node> &pnode, Sheet &sht, int &i, int x0) {
+	sht.drawString(pnode->getData(), Point(1 + x0, 17 + i++ * 16), 0);
+	for (auto &&node : pnode->children) {
+		rPrintNode(node, sht, i, x0 + 8);
+	}
+}
+
 // シートコントロールを初期化
 void SheetCtl::init() {
 	/* データメンバ初期化 */
@@ -738,7 +745,7 @@ void SheetCtl::init() {
 										string source(reinterpret_cast<char *>(htmlFile->read().get()), htmlFile->size);
 										HTML::Tokenizer tokenizer;
 										Queue<shared_ptr<HTML::Token>> &tokens = tokenizer.tokenize(source.c_str());
-										for (int i = 0; !tokens.isempty() && 1 + i * 16 + 16 < back->frame.size.height - 1; ++i) {
+										/*for (int i = 0; !tokens.isempty() && 1 + i * 16 + 16 < back->frame.size.height - 1; ++i) {
 											string str;
 											shared_ptr<HTML::Token> token(tokens.pop());
 											switch (token->type) {
@@ -768,6 +775,19 @@ void SheetCtl::init() {
 											}
 											str += " (data='" + token->data + "')";
 											sht->drawString(str, Point(1, 1 + i * 16), 0);
+										}*/
+										HTML::TreeConstructor constructor;
+										HTML::Document &document = constructor.construct(tokens);
+										sht->drawString("パース結果", Point(1, 1), 0);
+										int i = 0;
+										/*std::function<void(shared_ptr<HTML::Node> &)> rPrintNode = [&](shared_ptr<HTML::Node> &pnode) {
+											sht->drawString(pnode->getData(), Point(1, 17 + i * 16), 0);
+											for (auto &&node : pnode->children) {
+												rPrintNode(node);
+											}
+										};*/
+										for (auto &&node : document.children) {
+											rPrintNode(node, *sht, i, 0);
 										}
 										sht->refresh(Rectangle(Point(0, 0), sht->frame.size));
 									}
