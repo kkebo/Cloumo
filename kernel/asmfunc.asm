@@ -3,6 +3,7 @@
 	global Hlt
 	global Cli, Sti
 	global Input8, Output8
+	global Output16
 	global LoadEflags, StoreEflags
 	global LoadGdtr, LoadIdtr
 	global LoadCr0, StoreCr0
@@ -41,6 +42,12 @@ Output8:
 	MOV	EDX,[ESP+4]	; port
 	MOV	AL,[ESP+8]	; data
 	OUT	DX,AL
+	RET
+
+Output16:
+	MOV	EDX,[ESP+4]	; port
+	MOV	AX,[ESP+8]	; data
+	OUT	DX,AX
 	RET
 
 LoadEflags:

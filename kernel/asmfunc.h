@@ -9,7 +9,8 @@ extern "C" {
 	void Sti();
 
 	int Input8(int);
-	void Output8(int, int);
+	void Output8(int port, int data);
+	void Output16(int port, int data);
 
 	void AsmIntHandler07();
 	void AsmIntHandler20();
