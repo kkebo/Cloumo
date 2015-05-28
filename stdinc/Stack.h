@@ -7,25 +7,28 @@
 template <typename T>
 class Stack {
 protected:
-	T *buf_;
-	int tail_ = 0, size_;
+	T *buf;
+	int tail = 0, size;
 
 public:
-	Stack(int size) : buf_(new T[size]), size_(size) {}
+	Stack(int size_) : buf(new T[size_]), size(size_) {}
 	virtual ~Stack() {
-		delete[] buf_;
+		delete[] buf;
 	}
 	bool push(const T &data) {
-		if (tail_ == size_) { // stack is full
+		if (tail == size) { // stack is full
 			return false;
 		}
-		buf_[tail_++] = data;
+		buf[tail++] = data;
 		return true;
 	}
 	T pop() {
-		return buf_[--tail_];
+		return buf[--tail];
+	}
+	T &top() {
+		return buf[tail - 1];
 	}
 	bool isempty() const {
-		return tail_ == 0;
+		return tail == 0;
 	}
 };
