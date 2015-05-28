@@ -4,14 +4,14 @@
 #include "HTMLTokenizer.h"
 #include "HTMLTreeConstructor.h"
 
-Sheet::Sheet(const Size &size, bool _nonRect, void (*click)(const Point &)) :
+Sheet::Sheet(const Size &size, bool _nonRect) :
 	_frame(size),
 	nonRect(_nonRect),
-	buf(new unsigned int[size.getArea()]),
-	onClick(click) {}
+	buf(new unsigned int[size.getArea()]) {}
 
 Sheet::~Sheet() {
 	if (height >= 0) upDown(-1);
+	if (onClosed) onClosed();
 	delete[] buf;
 }
 
@@ -575,7 +575,8 @@ void SheetCtl::init() {
 	font->open();
 
 	/* サイドバー */
-	back = new Sheet(resolution, false, &onClickBack);
+	back = new Sheet(resolution, false);
+	back->onClick = &onClickBack;
 	// 背景色
 	back->fillRect(Rectangle(0, 0, 150, back->frame.size.height), kBackgroundColor);
 	back->gradRect(Rectangle(150, 0, back->frame.size.width - 150, back->frame.size.height / 2), 0x0d2c51, 0x68a3c3, GradientDirection::TopToBottom);
@@ -885,7 +886,8 @@ void SheetCtl::reInit() {
 	
 	// back の確保し直し
 	delete back;
-	back = new Sheet(resolution, false, &onClickBack);
+	back = new Sheet(resolution, false);
+	back->onClick = &onClickBack;
 	// 背景色
 	back->fillRect(Rectangle(0, 0, 150, back->frame.size.height), kBackgroundColor);
 	back->gradRect(Rectangle(150, 0, back->frame.size.width - 150, back->frame.size.height / 2), 0x0d2c51, 0x68a3c3, GradientDirection::TopToBottom);

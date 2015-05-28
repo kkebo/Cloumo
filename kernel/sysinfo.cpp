@@ -2,6 +2,8 @@
 #include <pistring.h>
 #include "../headers.h"
 
+Task *sysInfoTask;
+
 void showSysInfo(Sheet *sht, int benchScore) {
 	string str;
 	auto memTotal = MemoryTotal();
@@ -50,8 +52,13 @@ void showSysInfo(Sheet *sht, int benchScore) {
 
 void SysinfoMain() {
 	Task *task = TaskSwitcher::getNowTask();
+	sysInfoTask = task;
 	int count = 0, count0 = 0;
 	Sheet *sht = SheetCtl::addTab("system info");
+	sht->onClosed = [] {
+		// delete sysInfoTask;
+		// どうにかシステム情報タスクを終了できないだろうか？
+	};
 	
 	Timer *timer = new Timer(task->queue);
 	timer->set(100);

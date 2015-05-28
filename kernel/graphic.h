@@ -100,10 +100,11 @@ public:
 	unsigned int *buf;
 	const Rectangle &frame = _frame;
 	const int &height = _height;
-	void (*onClick)(const Point &pos);
+	void (*onClick)(const Point &pos) = nullptr;
+	void (*onClosed)() = nullptr;
 
 	friend class SheetCtl;
-	Sheet(const Size &size, bool _nonRect = false, void (*click)(const Point &) = nullptr);
+	Sheet(const Size &size, bool _nonRect = false);
 	virtual ~Sheet();
 	void upDown(int height);
 	void refresh(Rectangle range) const;
