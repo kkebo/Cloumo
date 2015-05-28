@@ -13,7 +13,7 @@ namespace HTML {
 		virtual string getData() {
 			return "";
 		}
-		void appendChild(const shared_ptr<Node> &node);
+		const shared_ptr<Node> &appendChild(const shared_ptr<Node> &node);
 	};
 	
 	class Element : public Node {

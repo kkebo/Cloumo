@@ -172,7 +172,7 @@ Document &TreeConstructor::construct(Queue<shared_ptr<Token>> &tokens) {
 						} else if (token->data == "head") {
 							// Insert an HTML element for the token.
 							shared_ptr<Node> elem(new Element(token->data));
-							document.appendChild(elem);
+							openTags.top()->appendChild(elem);
 							openTags.push(elem);
 							
 							// Set the head element pointer to the newly created head element.
@@ -276,7 +276,7 @@ Document &TreeConstructor::construct(Queue<shared_ptr<Token>> &tokens) {
 						if (token->data == "html") {
 							
 						} else if (token->data == "body") {
-							document.appendChild(shared_ptr<Node>(new Element(token->data)));
+							openTags.push(openTags.top()->appendChild(shared_ptr<Node>(new Element(token->data))));
 							
 							// Set the frameset-ok flag to "not ok".
 							
@@ -388,14 +388,27 @@ Document &TreeConstructor::construct(Queue<shared_ptr<Token>> &tokens) {
 						|| token->data == "section"
 						|| token->data == "summary"
 						|| token->data == "ul") {
-							
+							// If the stack of open elements does not have an element in scope that is an HTML element with
+							// the same tag name as that of the token, then this is a parse error; ignore the token.
+
+							// Otherwise, run these steps:
+							// 1. Generate implied end tags.
+							// 2. If the current node is not an HTML element with the same tag name as that of the token, then this is a parse error.
+							// 3. Pop elements from the stack of open elements until an HTML element with the same tag name as the token has been popped from the stack.
 						} else if (token->data == "h1"
 						|| token->data == "h2"
 						|| token->data == "h3"
 						|| token->data == "h4"
 						|| token->data == "h5"
 						|| token->data == "h6") {
-							
+							openTags.push(openTags.top()->appendChild(shared_ptr<Node>(new Element(token->data))));
+							// If the stack of open elements does not have an element in scope that is an HTML element and
+							// whose tag name is one of "h1", "h2", "h3", "h4", "h5", or "h6", then this is a parse error; ignore the token.
+
+							// Otherwise, run these steps:
+							// 1. Generate implied end tags.
+							// 2. If the current node is not an HTML element with the same tag name as that of the token, then this is a parse error.
+							// 3. Pop elements from the stack of open elements until an HTML element whose tag name is one of "h1", "h2", "h3", "h4", "h5", or "h6" has been popped from the stack.
 						} else if (token->data == "pre" || token->data == "listing") {
 							
 						} else if (token->data == "form") {
