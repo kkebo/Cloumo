@@ -730,10 +730,16 @@ void SheetCtl::init() {
 								} else if (url.compare("about:sysinfo") == 0) {
 									new Task("システム情報タスク", 2, 1, 128, &SysinfoMain);
 								} else if (url.compare("about:version") == 0) {
-									Sheet *sht = addTab("About");
+									auto sht = addTab("About");
 									if (sht) {
 										sht->drawString("Cloumo build ???", Point(1, 1), 0);
 										sht->drawString("今日の一言: 早くウェブアプリ動かしたい．", Point(1, 1 + 16), 0);
+										sht->refresh(Rectangle(Point(0, 0), sht->frame.size));
+									}
+								} else {
+									auto sht = addTab(url);
+									if (sht) {
+										sht->drawString(url + " is invalid", Point(1, 1), 0);
 										sht->refresh(Rectangle(Point(0, 0), sht->frame.size));
 									}
 								}
@@ -896,7 +902,7 @@ void SheetCtl::init() {
 
 // Open a new tab
 Sheet *SheetCtl::addTab(string tabName) {
-	if (numOfTab + 1 <= kMaxTabs) { // タブがこれ以上開けるか
+	if (numOfTab + 1 <= kMaxTabs && 35 + 23 * numOfTab + 22 < back->frame.size.height - 20 - 46) { // タブがこれ以上開けるか
 		// 新しいタブのページ用のシートを確保
 		Sheet *&sht = window[numOfTab];
 		sht = new Sheet(Size(resolution.width - 150, resolution.height), false);
