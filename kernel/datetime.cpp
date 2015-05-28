@@ -48,6 +48,10 @@ void DateTimeMain() {
 	for (;;) {
 		Cli();
 		if (task->queue->isempty()) {
+			// 解像度が変更されていたら位置を修正
+			if (dateTimeSheet.frame.offset.y != SheetCtl::resolution.height - 18) {
+				dateTimeSheet.moveTo(Point(2, SheetCtl::resolution.height - 18));
+			}
 			if (timechk) {
 				Sti();
 				if (now[2] >= 12) {

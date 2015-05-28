@@ -2,7 +2,8 @@ OBJS = \
 	mouse.o \
 	keyboard.o \
 	sound.o \
-	FAT12.o
+	FAT12.o \
+	EmuVGA.o
 DEPS = $(OBJS:%.o=%.d)
 
 ifeq ($(OS),Windows_NT)

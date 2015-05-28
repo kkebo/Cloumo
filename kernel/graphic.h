@@ -157,6 +157,7 @@ private:
 	static Timer *caretTimer;
 	static string *tboxString;
 
+	static void onClickBack(const Point &pos);
 	static void refreshMap(const Rectangle &range, int);
 	static void refreshSub(const Rectangle &range, int);
 
@@ -171,6 +172,7 @@ public:
 
 	friend class Sheet;
 	static void init();
+	static void reInit();
 	static Sheet *addTab(string tabName);
 	static void closeTab(int index);
 	static void switchTab(int index = -1);

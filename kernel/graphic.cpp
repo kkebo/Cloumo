@@ -575,37 +575,7 @@ void SheetCtl::init() {
 	font->open();
 
 	/* サイドバー */
-	back = new Sheet(resolution, false, [](const Point &pos) {
-		if (43 <= pos.x && pos.x <= 74 && back->frame.size.height - 20 - 45 <= pos.y && pos.y <= back->frame.size.height - 45) {
-			// JP 選択
-			KeyboardController::switchToJIS();
-			back->changeColor(Rectangle(43, back->frame.size.height - 20 - 45, 32, 20), 0xfffffe, 0);
-			back->changeColor(Rectangle(43, back->frame.size.height - 20 - 45, 32, 20), kBackgroundColor, 0xffffff);
-			back->changeColor(Rectangle(74, back->frame.size.height - 20 - 45, 33, 20), 0, 0xfffffe);
-			back->changeColor(Rectangle(74, back->frame.size.height - 20 - 45, 33, 20), 0xffffff, kBackgroundColor);
-			back->refresh(Rectangle(43, back->frame.size.height - 20 - 45, 64, 20));
-		} else if (75 <= pos.x && pos.x <= 107 && back->frame.size.height - 20 - 45 <= pos.y && pos.y <= back->frame.size.height - 45) {
-			// US 選択
-			KeyboardController::switchToUS();
-			back->changeColor(Rectangle(74, back->frame.size.height - 20 - 45, 33, 20), 0xfffffe, 0);
-			back->changeColor(Rectangle(74, back->frame.size.height - 20 - 45, 33, 20), kBackgroundColor, 0xffffff);
-			back->changeColor(Rectangle(43, back->frame.size.height - 20 - 45, 32, 20), 0, 0xfffffe);
-			back->changeColor(Rectangle(43, back->frame.size.height - 20 - 45, 32, 20), 0xffffff, kBackgroundColor);
-			back->refresh(Rectangle(43, back->frame.size.height - 20 - 45, 64, 20));
-		}
-		
-		for (int i = 0; i < numOfTab; ++i) {
-			if (35 + 23 * i <= pos.y && pos.y < 33 + 16 + 8 + 23 * i) {
-				if (2 <= pos.x && pos.x <= 2 + 22) {
-					closeTab(i);
-					break;
-				} else if (i != activeTab && 2 <= pos.x) {
-					switchTab(i);
-					break;
-				}
-			}
-		}
-	});
+	back = new Sheet(resolution, false, &onClickBack);
 	// 背景色
 	back->fillRect(Rectangle(0, 0, 150, back->frame.size.height), kBackgroundColor);
 	back->gradRect(Rectangle(150, 0, back->frame.size.width - 150, back->frame.size.height / 2), 0x0d2c51, 0x68a3c3, GradientDirection::TopToBottom);
@@ -736,6 +706,12 @@ void SheetCtl::init() {
 										sht->drawString("今日の一言: 早くウェブアプリ動かしたい．", Point(1, 1 + 16), 0);
 										sht->refresh(Rectangle(Point(0, 0), sht->frame.size));
 									}
+								} else if (url.compare("about:emuvga") == 0) {
+									initEmuVGA(1440, 768, 32);
+									_resolution = Size(1440, 768);
+									color = 32;
+									vram.p16 = reinterpret_cast<unsigned short *>(0xe0000000);
+									reInit();
 								} else {
 									auto sht = addTab(url);
 									if (sht) {
@@ -900,6 +876,35 @@ void SheetCtl::init() {
 	queue = guiTask->queue;
 }
 
+// 再初期化
+void SheetCtl::reInit() {
+	// タブ全部閉じる
+	while (numOfTab > 0) {
+		closeTab(0);
+	}
+	
+	// back の確保し直し
+	delete back;
+	back = new Sheet(resolution, false, &onClickBack);
+	// 背景色
+	back->fillRect(Rectangle(0, 0, 150, back->frame.size.height), kBackgroundColor);
+	back->gradRect(Rectangle(150, 0, back->frame.size.width - 150, back->frame.size.height / 2), 0x0d2c51, 0x68a3c3, GradientDirection::TopToBottom);
+	back->gradRect(Rectangle(150, back->frame.size.height / 2, back->frame.size.width - 150, back->frame.size.height / 2), 0x68a3c3, 0xffab5b, GradientDirection::TopToBottom);
+	// 戻る・進むボタン枠
+	back->drawPicture("b_f.bmp", Point(4, 4), 0xff00ff);
+	// 更新ボタン枠
+	back->drawPicture("btn_r.bmp", Point(59, 4), 0xff00ff);
+	// キーマップスイッチ
+	back->drawRect(Rectangle(42, back->frame.size.height - 20 - 46, 66, 22), 0xffffff);
+	back->fillRect(Rectangle(43, back->frame.size.height - 20 - 45, 32, 20), 0xffffff);
+	back->drawString("JP", Point(50, back->frame.size.height - 20 - 43), 0);
+	back->drawString("US", Point(50 + 32, back->frame.size.height - 20 - 43), 0xfffffe);
+	// 検索窓
+	back->fillRect(Rectangle(2, back->frame.size.height - 20 - 22, 150 - 2 - 2, 22), 0xffffff);
+	// 表示設定
+	back->upDown(0);
+}
+
 // Open a new tab
 Sheet *SheetCtl::addTab(string tabName) {
 	if (numOfTab + 1 <= kMaxTabs && 35 + 23 * numOfTab + 22 < back->frame.size.height - 20 - 46) { // タブがこれ以上開けるか
@@ -933,10 +938,14 @@ void SheetCtl::closeTab(int index) {
 	
 	if (activeTab == index) {
 		if (numOfTab > 1) {
-			// アクティブタブでかつ他のタブがあれば，次のタブへ切り替える
-			switchTab();
+			// アクティブタブでかつ他のタブがあれば，他のタブへ切り替える
+			if (numOfTab - 1 == index) {
+				switchTab(index - 1);
+			} else {
+				switchTab();
+			}
 		} else {
-			// 最後のタブなら，activeTab を -1 へ
+			// 最後の1つのタブなら，activeTab を -1 へ
 			activeTab = -1;
 		}
 	} else if (activeTab > index) {
@@ -998,6 +1007,38 @@ void SheetCtl::switchTab(int index) {
 	window[activeTab]->upDown(-1);
 	
 	activeTab = index;
+}
+
+void SheetCtl::onClickBack(const Point &pos) {
+	if (43 <= pos.x && pos.x <= 74 && back->frame.size.height - 20 - 45 <= pos.y && pos.y <= back->frame.size.height - 45) {
+		// JP 選択
+		KeyboardController::switchToJIS();
+		back->changeColor(Rectangle(43, back->frame.size.height - 20 - 45, 32, 20), 0xfffffe, 0);
+		back->changeColor(Rectangle(43, back->frame.size.height - 20 - 45, 32, 20), kBackgroundColor, 0xffffff);
+		back->changeColor(Rectangle(74, back->frame.size.height - 20 - 45, 33, 20), 0, 0xfffffe);
+		back->changeColor(Rectangle(74, back->frame.size.height - 20 - 45, 33, 20), 0xffffff, kBackgroundColor);
+		back->refresh(Rectangle(43, back->frame.size.height - 20 - 45, 64, 20));
+	} else if (75 <= pos.x && pos.x <= 107 && back->frame.size.height - 20 - 45 <= pos.y && pos.y <= back->frame.size.height - 45) {
+		// US 選択
+		KeyboardController::switchToUS();
+		back->changeColor(Rectangle(74, back->frame.size.height - 20 - 45, 33, 20), 0xfffffe, 0);
+		back->changeColor(Rectangle(74, back->frame.size.height - 20 - 45, 33, 20), kBackgroundColor, 0xffffff);
+		back->changeColor(Rectangle(43, back->frame.size.height - 20 - 45, 32, 20), 0, 0xfffffe);
+		back->changeColor(Rectangle(43, back->frame.size.height - 20 - 45, 32, 20), 0xffffff, kBackgroundColor);
+		back->refresh(Rectangle(43, back->frame.size.height - 20 - 45, 64, 20));
+	}
+	
+	for (int i = 0; i < numOfTab; ++i) {
+		if (35 + 23 * i <= pos.y && pos.y < 33 + 16 + 8 + 23 * i) {
+			if (2 <= pos.x && pos.x <= 2 + 22) {
+				closeTab(i);
+				break;
+			} else if (i != activeTab && 2 <= pos.x) {
+				switchTab(i);
+				break;
+			}
+		}
+	}
 }
 
 // 指定範囲の変更をmapに適用

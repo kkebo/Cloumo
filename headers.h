@@ -18,4 +18,5 @@
 #include "driver/keyboard.h"
 #include "driver/mouse.h"
 #include "driver/sound.h"
+#include "driver/EmuVGA.h"
 //#include "kernel/browser.h"

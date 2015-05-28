@@ -19,7 +19,8 @@ OBJS = \
 	driver/FAT12.o \
 	driver/keyboard.o \
 	driver/mouse.o \
-	driver/sound.o
+	driver/sound.o \
+	driver/EmuVGA.o
 
 LIBS = golibc/golibc.a mylibcpp/mylibcpp.a
 
