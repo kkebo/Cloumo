@@ -26,289 +26,67 @@ VRAM	equ		0x0ff8			; グラフィックバッファの開始番地
 		cmp		ax,0x0200
 		jb		_loop
 
-; テスト用
-;		jmp		scrn1024_32
-
-; 1600x1200 32bit
+; 1600x1200 32/24bit
 		mov		cx,0x11F
-		mov		ax,0x4f01
-		int		0x10
-		cmp		ax,0x004f
-		jne		scrn1440_32
+		mov		dl,32
+		call	vbe_video
+		cmp		ax,1
+		je		keystatus
+		mov		dl,24
+		call	vbe_video
+		cmp		ax,1
+		je		keystatus
 
-		cmp		byte [es:di+0x19],32
-		jne		scrn1600_24			; try 24-bit
-		jmp		scrn1600_32.next	; ok
-scrn1600_24:
-		cmp		byte [es:di+0x19],24
-		jne		scrn1440_32
-scrn1600_32.next:
-		cmp		byte [es:di+0x1b],6
-		jne		scrn1440_32
-		mov		ax,[es:di+0x00]
-		and		ax,0x0080
-		jz		scrn1440_32
-
-		mov		ax,0x4f02
-		mov		bx,0x411F
-		int		0x10
-		jmp		keystatus
-
-scrn1440_32:
-; 1440x900 32bit
+; 1440x900 32/24bit
 		mov		cx,0x163
-		mov		ax,0x4f01
-		int		0x10
-		cmp		ax,0x004f
-		jne		scrn1280_32
+		mov		dl,32
+		call	vbe_video
+		cmp		ax,1
+		je		keystatus
+		mov		dl,24
+		call	vbe_video
+		cmp		ax,1
+		je		keystatus
 
-		cmp		byte [es:di+0x19],32
-		jne		scrn1440_24			; try 24-bit
-		jmp		scrn1440_32.next	; ok
-scrn1440_24:
-		cmp		byte [es:di+0x19],24
-		jne		scrn1280_32
-scrn1440_32.next:
-		cmp		byte [es:di+0x1b],6
-		jne		scrn1280_32
-		mov		ax,[es:di+0x00]
-		and		ax,0x0080
-		jz		scrn1280_32
-
-		mov		ax,0x4f02
-		mov		bx,0x4163
-		int		0x10
-		jmp		keystatus
-
-scrn1280_32:
-; 1280x1024 32bit
+; 1280x1024, 1024x768, 800x600, 640x480 32/24bit
 		mov		cx,0x11B
-		mov		ax,0x4f01
-		int		0x10
-		cmp		ax,0x004f
-		jne		scrn1024_32
+try_vbe3224:
+		mov		dl,32
+		call	vbe_video
+		cmp		ax,1
+		je		keystatus
+		mov		dl,24
+		call	vbe_video
+		cmp		ax,1
+		je		keystatus
+		sub		cx,3
+		cmp		cx,0x112
+		jae		try_vbe3224
 
-		cmp		byte [es:di+0x19],32
-		jne		scrn1280_24			; try 24-bit
-		jmp		scrn1280_32.next	; ok
-scrn1280_24:
-		cmp		byte [es:di+0x19],24
-		jne		scrn1024_32
-scrn1280_32.next:
-		cmp		byte [es:di+0x1b],6
-		jne		scrn1024_32
-		mov		ax,[es:di+0x00]
-		and		ax,0x0080
-		jz		scrn1024_32
-
-		mov		ax,0x4f02
-		mov		bx,0x411B
-		int		0x10
-		jmp		keystatus
-
-scrn1024_32:
-; 1024x768 32bit
-		mov		cx,0x118
-		mov		ax,0x4f01
-		int		0x10
-		cmp		ax,0x004f
-		jne		scrn800_32
-
-		cmp		byte [es:di+0x19],32
-		jne		scrn1024_24			; try 24-bit
-		jmp		scrn1024_32.next	; ok
-scrn1024_24:
-		cmp		byte [es:di+0x19],24
-		jne		scrn800_32
-scrn1024_32.next:
-		cmp		byte [es:di+0x1b],6
-		jne		scrn800_32
-		mov		ax,[es:di+0x00]
-		and		ax,0x0080
-		jz		scrn800_32
-
-		mov		ax,0x4f02
-		mov		bx,0x4118
-		int		0x10
-		jmp		keystatus
-
-scrn800_32:
-; 800x600 32bit
-		mov		cx,0x115
-		mov		ax,0x4f01
-		int		0x10
-		cmp		ax,0x004f
-		jne		scrn640_32
-
-		cmp		byte [es:di+0x19],32
-		jne		scrn800_24			; try 24-bit
-		jmp		scrn800_32.next		; ok
-scrn800_24:
-		cmp		byte [es:di+0x19],24
-		jne		scrn640_32
-scrn800_32.next:
-		cmp		byte [es:di+0x1b],6
-		jne		scrn640_32
-		mov		ax,[es:di+0x00]
-		and		ax,0x0080
-		jz		scrn640_32
-
-		mov		ax,0x4f02
-		mov		bx,0x4115
-		int		0x10
-		jmp		keystatus
-
-scrn640_32:
-; 640x480 32bit
-		mov		cx,0x112
-		mov		ax,0x4f01
-		int		0x10
-		cmp		ax,0x004f
-		jne		scrn1280_16
-
-		cmp		byte [es:di+0x19],32
-		jne		scrn640_24			; try 24-bit
-		jmp		scrn640_32.next		; ok
-scrn640_24:
-		cmp		byte [es:di+0x19],24
-		jne		scrn1280_16
-scrn640_32.next:
-		cmp		byte [es:di+0x1b],6
-		jne		scrn1280_16
-		mov		ax,[es:di+0x00]
-		and		ax,0x0080
-		jz		scrn1280_16
-
-		mov		ax,0x4f02
-		mov		bx,0x4112
-		int		0x10
-		jmp		keystatus
-
-scrn1600_16:
 ; 1600x1200 16bit
 		mov		cx,0x11E
-		mov		ax,0x4f01
-		int		0x10
-		cmp		ax,0x004f
-		jne		scrn1440_16
+		mov		dl,16
+		call	vbe_video
+		cmp		ax,1
+		je		keystatus
 
-		cmp		byte [es:di+0x19],16
-		jne		scrn1440_16
-		cmp		byte [es:di+0x1b],6
-		jne		scrn1440_16
-		mov		ax,[es:di+0x00]
-		and		ax,0x0080
-		jz		scrn1440_16
-
-		mov		ax,0x4f02
-		mov		bx,0x411E
-		int		0x10
-		jmp		keystatus
-
-scrn1440_16:
 ; 1440x900 16bit
 		mov		cx,0x162
-		mov		ax,0x4f01
-		int		0x10
-		cmp		ax,0x004f
-		jne		scrn1280_16
+		mov		dl,16
+		call	vbe_video
+		cmp		ax,1
+		je		keystatus
 
-		cmp		byte [es:di+0x19],16
-		jne		scrn1280_16
-		cmp		byte [es:di+0x1b],6
-		jne		scrn1280_16
-		mov		ax,[es:di+0x00]
-		and		ax,0x0080
-		jz		scrn1280_16
-
-		mov		ax,0x4f02
-		mov		bx,0x4162
-		int		0x10
-		jmp		keystatus
-
-scrn1280_16:
-; 1280x1024 16bit
+; 1280x1024, 1024x768, 800x600, 640x480 16bit
 		mov		cx,0x11A
-		mov		ax,0x4f01
-		int		0x10
-		cmp		ax,0x004f
-		jne		scrn1024_16
-
-		cmp		byte [es:di+0x19],16
-		jne		scrn1024_16
-		cmp		byte [es:di+0x1b],6
-		jne		scrn1024_16
-		mov		ax,[es:di+0x00]
-		and		ax,0x0080
-		jz		scrn1024_16
-
-		mov		ax,0x4f02
-		mov		bx,0x411A
-		int		0x10
-		jmp		keystatus
-
-scrn1024_16:
-; 1024x768 16bit
-		mov		cx,0x117
-		mov		ax,0x4f01
-		int		0x10
-		cmp		ax,0x004f
-		jne		scrn800_16
-
-		cmp		byte [es:di+0x19],16
-		jne		scrn800_16
-		cmp		byte [es:di+0x1b],6
-		jne		scrn800_16
-		mov		ax,[es:di+0x00]
-		and		ax,0x0080
-		jz		scrn800_16
-
-		mov		ax,0x4f02
-		mov		bx,0x4117
-		int		0x10
-		jmp		keystatus
-
-scrn800_16:
-; 800x600 16bit
-		mov		cx,0x114
-		mov		ax,0x4f01
-		int		0x10
-		cmp		ax,0x004f
-		jne		scrn640_16
-
-		cmp		byte [es:di+0x19],16
-		jne		scrn640_16
-		cmp		byte [es:di+0x1b],6
-		jne		scrn640_16
-		mov		ax,[es:di+0x00]
-		and		ax,0x0080
-		jz		scrn640_16
-
-		mov		ax,0x4f02
-		mov		bx,0x4114
-		int		0x10
-		jmp		keystatus
-
-scrn640_16:
-; 640x480 16bit
-		mov		cx,0x111
-		mov		ax,0x4f01
-		int		0x10
-		cmp		ax,0x004f
-		jne		_loop
-
-		cmp		byte [es:di+0x19],16
-		jne		_loop
-		cmp		byte [es:di+0x1b],6
-		jne		_loop
-		mov		ax,[es:di+0x00]
-		and		ax,0x0080
-		jz		_loop
-
-		mov		ax,0x4f02
-		mov		bx,0x4111
-		int		0x10
-		jmp		keystatus
+try_vbe16:
+		mov		dl,16
+		call	vbe_video
+		cmp		ax,1
+		je		keystatus
+		sub		cx,3
+		cmp		cx,0x111
+		jae		try_vbe16
 
 _loop:
 		mov		si,msg_dame
@@ -412,6 +190,30 @@ pipelineflush:
 skip:
 		mov		esp,[ebx+12]	; スタック初期値
 		jmp		dword 2*8:0x0000001b	; Code Segment Selector
+
+vbe_video:
+		mov		ax,0x4f01
+		int		0x10
+		cmp		ax,0x004f
+		jne		vbe_failure
+
+		cmp		byte [es:di+0x19],dl
+		jne		vbe_failure
+		cmp		byte [es:di+0x1b],6
+		jne		vbe_failure
+		mov		ax,[es:di+0x00]
+		and		ax,0x0080
+		jz		vbe_failure
+
+		mov		ax,0x4f02
+		mov		bx,0x4000
+		add		bx,cx
+		int		0x10
+		mov		ax,1
+		ret
+vbe_failure:
+		mov		ax,0
+		ret
 
 waitkbdout:
 		in		al,0x64
