@@ -7,7 +7,7 @@
 #include <pistring.h>
 
 const int kMaxSheets = 256;
-const int kMaxTabs = 20;
+const int kMaxTabs = 100;
 
 enum class GradientDirection { LeftToRight, TopToBottom };
 enum class Encoding { SJIS, UTF8, EUCJP };
