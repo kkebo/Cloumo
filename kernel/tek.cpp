@@ -52,7 +52,7 @@ static int TekDecMain5(int *work, unsigned char *src, int osiz, unsigned char *q
 
 static int TekLzRestoreTek5(int srcsiz, unsigned char *src, int outsiz, unsigned char *outbuf)
 {
-	int wrksiz, lc, lp, pb, flags, *work, prop0, fl;
+	int wrksiz, lc, lp, pb, flags = 0, *work, prop0, fl;
 
 	if ((fl = (prop0 = *src) & 0x0f) == 0x01) /* 0001 */
 		flags |= -1;
