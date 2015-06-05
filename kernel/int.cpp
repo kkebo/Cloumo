@@ -30,7 +30,7 @@ void PICInit() {
 }
 
 // オーバーフロー例外
-void IntHandler04(int *esp) {
+int IntHandler04(int *esp) {
 	BootInfo *binfo = (BootInfo *)ADDRESS_BOOTINFO;
 	
 	if (binfo->vmode == 32) {
@@ -47,9 +47,7 @@ void IntHandler04(int *esp) {
 		}
 	}
 	
-	for (;;) {
-		Hlt();
-	}
+	return 1;
 }
 
 // FPU
@@ -68,7 +66,7 @@ void IntHandler07(int *esp) {
 }
 
 // 一般保護例外
-void IntHandler0d(int *esp) {
+int IntHandler0d(int *esp) {
 	BootInfo *binfo = (BootInfo *)ADDRESS_BOOTINFO;
 	
 	if (binfo->vmode == 32) {
@@ -85,9 +83,7 @@ void IntHandler0d(int *esp) {
 		}
 	}
 	
-	for (;;) {
-		Hlt();
-	}
+	return 1;
 }
 
 // PIT割り込み

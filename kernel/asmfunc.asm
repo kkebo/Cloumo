@@ -113,16 +113,18 @@ AsmIntHandler04:
 	PUSH	ES
 	PUSH	DS
 	PUSHAD
-	MOV	 EAX,ESP
+	MOV		EAX,ESP
+	push	ss
 	PUSH	EAX
-	MOV	 AX,SS
-	MOV	 DS,AX
-	MOV	 ES,AX
+	MOV		AX,SS
+	MOV		DS,AX
+	MOV		ES,AX
 	CALL	IntHandler04
-	POP	 EAX
+	add		esp,8
 	POPAD
-	POP	 DS
-	POP	 ES
+	POP		DS
+	POP		ES
+	add		esp,4
 	IRETD
 
 AsmIntHandler07:
@@ -145,16 +147,18 @@ AsmIntHandler0d:
 	PUSH	ES
 	PUSH	DS
 	PUSHAD
-	MOV	 EAX,ESP
+	MOV		EAX,ESP
+	push	ss
 	PUSH	EAX
-	MOV	 AX,SS
-	MOV	 DS,AX
-	MOV	 ES,AX
+	MOV		AX,SS
+	MOV		DS,AX
+	MOV		ES,AX
 	CALL	IntHandler0d
-	POP	 EAX
+	add		esp,8
 	POPAD
-	POP	 DS
-	POP	 ES
+	POP		DS
+	POP		ES
+	add		esp,4
 	IRETD
 
 AsmIntHandler20:
