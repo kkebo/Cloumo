@@ -11,20 +11,16 @@ protected:
 		
 		Node() = default;
 		Node(T newData, Node *p = nullptr, Node *n = nullptr) : data(newData), prev(p), next(n) {}
-	} *dummy, *dummyTail;
-	// dummy の prev が head で，next が tail
+	} *head = nullptr, *tail = nullptr;
 	
 public:
 	const int &length = _length;
 
-	List() : dummy(new Node), dummyTail(new Node) {
-		dummy->prev = dummy->next = dummyTail;
-		dummyTail->prev = dummy;
-	}
+	List() = default;
 	
 	virtual ~List() {
-		// dummy から順に解放
-		for (Node *p = dummy; p != nullptr; ) {
+		// head から tail まで順に解放
+		for (Node *p = head; p != nullptr; ) {
 			Node *q = p;
 			p = p->next;
 			delete q;
@@ -32,30 +28,26 @@ public:
 	}
 	
 	bool isEmpty() const {
-		return dummy->prev == nullptr;
+		return head == nullptr;
 	}
 	
 	T &getFirst() const {
-		return dummy->prev->data;
+		return head->data;
 	}
 	
 	T &getLast() const {
-		return dummy->next->data;
+		return tail->data;
 	}
 	
 	void append(const T &data) {
-		Node *node = new Node(data, dummy->next);
-		if (dummy->prev == dummyTail) {
-			// 空だったとき head も tail も node
-			dummy->prev = dummy->next = node;
-			node->next = dummyTail;
-			dummyTail->prev = node;
-		} else {
-			// tail の次を node にして tail も node
-			dummy->next = dummy->next->next = node;
-			node->next = dummyTail;
-			dummyTail->prev = node;
+		Node *node = new Node(data, tail);
+		if (head == nullptr) {
+			head = node;
 		}
+		if (tail != nullptr) {
+			tail->next = node;
+		}
+		tail = node;
 		++_length;
 	}
 	
@@ -66,25 +58,25 @@ public:
 	public:
 		friend class List;
 		Iterator &operator ++() {
-			if (node->next) {
+			if (node) {
 				node = node->next;
 			}
 			return *this;
 		}
 		Iterator &operator ++(int) {
-			if (node->next) {
+			if (node) {
 				node = node->next;
 			}
 			return *this;
 		}
 		Iterator &operator --() {
-			if (node->prev) {
+			if (node) {
 				node = node->prev;
 			}
 			return *this;
 		}
 		Iterator &operator --(int) {
-			if (node->prev) {
+			if (node) {
 				node = node->prev;
 			}
 			return *this;
@@ -99,13 +91,13 @@ public:
 	
 	Iterator begin() {
 		Iterator it;
-		it.node = dummy->prev;
+		it.node = head;
 		return it;
 	}
 	
 	Iterator end() {
 		Iterator it;
-		it.node = dummyTail;
+		it.node = nullptr;
 		return it;
 	}
 };

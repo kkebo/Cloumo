@@ -12,7 +12,7 @@ Sheet::Sheet(const Size &size, bool _nonRect) :
 Sheet::~Sheet() {
 	if (height >= 0) upDown(-1);
 	if (onClosed) onClosed();
-	delete[] buf;
+	delete buf;
 }
 
 // シートの高さを変更
@@ -574,6 +574,13 @@ void SheetCtl::init() {
 	vram.p16    = reinterpret_cast<unsigned short *>(binfo->vram);
 	_resolution = Size(binfo->scrnx, binfo->scrny);
 	color       = binfo->vmode;
+	
+	// デバッグ用
+	initEmuVGA(1366, 768, 32);
+	_resolution = Size(1366, 768);
+	color = 32;
+	vram.p16 = reinterpret_cast<unsigned short *>(0xe0000000);
+	
 	map         = new unsigned char[resolution.getArea()];
 	tboxString  = new string();
 
@@ -715,8 +722,8 @@ void SheetCtl::init() {
 										sht->refresh(Rectangle(Point(0, 0), sht->frame.size));
 									}
 								} else if (url.compare("about:emuvga") == 0) {
-									initEmuVGA(1440, 768, 32);
-									_resolution = Size(1440, 768);
+									initEmuVGA(1366, 768, 32);
+									_resolution = Size(1366, 768);
 									color = 32;
 									vram.p16 = reinterpret_cast<unsigned short *>(0xe0000000);
 									reInit();
@@ -970,7 +977,9 @@ void SheetCtl::closeTab(int index) {
 			// 最後の1つのタブなら，activeTab を -1 へ
 			activeTab = -1;
 		}
-	} else if (activeTab > index) {
+	}
+	
+	if (activeTab > index) {
 		--activeTab;
 	}
 	

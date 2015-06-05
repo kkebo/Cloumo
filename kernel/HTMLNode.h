@@ -48,7 +48,7 @@ namespace HTML {
 		string publicId = "";
 		string systemId = "";
 		
-		DocumentType(const string &n) : name(n) {}
+		explicit DocumentType(const string &n) : name(n) {}
 		DocumentType(const string &n, const string &p, const string &s) : name(n), publicId(p), systemId(s) {}
 		string getData() {
 			return "<!doctype " + name + ">";
@@ -57,7 +57,7 @@ namespace HTML {
 	
 	class Comment : public Node {
 	public:
-		Comment(string data = "");
+		explicit Comment(string data = "");
 		
 		string getData() {
 			return "<!-- コメント -->";

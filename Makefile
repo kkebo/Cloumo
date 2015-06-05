@@ -106,6 +106,7 @@ refresh:
 
 clean:
 	$(DEL) kernel.map
+	$(DEL) kernel.bin
 	$(DEL) os.sys
 	$(DEL) cloumo.img
 	$(MAKE) -C kernel clean

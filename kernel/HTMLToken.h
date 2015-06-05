@@ -26,8 +26,7 @@ namespace HTML {
 		string data;
 		
 		// for all types
-		Token(Type tokenType);
-		Type getType();
+		explicit Token(Type tokenType);
 		
 		// for StartTag and EndTag
 		void setSelfClosingFlag();

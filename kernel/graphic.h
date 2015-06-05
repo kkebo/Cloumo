@@ -87,7 +87,7 @@ struct Circle {
 	int radius;
 	
 	Circle(const Point &p, int rad) : center(p), radius(rad) {}
-	Circle(int rad) : Circle(Point(0, 0), rad) {}
+	explicit Circle(int rad) : Circle(Point(0, 0), rad) {}
 };
 
 class Sheet {

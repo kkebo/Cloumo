@@ -11,9 +11,9 @@ protected:
 	int tail = 0, size;
 
 public:
-	Stack(int size_) : buf(new T[size_]), size(size_) {}
+	explicit Stack(int size_) : buf(new T[size_]), size(size_) {}
 	virtual ~Stack() {
-		delete[] buf;
+		delete buf;
 	}
 	bool push(const T &data) {
 		if (tail == size) { // stack is full

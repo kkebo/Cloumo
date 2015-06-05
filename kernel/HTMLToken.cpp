@@ -6,10 +6,6 @@ Token::Attribute::Attribute(string _name, string _value) : name(_name), value(_v
 
 Token::Token(Type tokenType) : type(tokenType) {}
 
-Token::Type Token::getType() {
-	return type;
-}
-
 void Token::setSelfClosingFlag() {
 	selfClosingFlag = true;
 }

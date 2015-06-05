@@ -14,7 +14,7 @@ public:
 	const int &size = _size;
 	
 	File() = default;
-	File(const string &name_) : _name(name_) {}
+	explicit File(const string &name_) : _name(name_) {}
 	bool open();
 	bool open(const string &fileName);
 	inline const shared_ptr<unsigned char> &read() {

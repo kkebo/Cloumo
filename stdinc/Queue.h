@@ -9,28 +9,28 @@
 template <typename T>
 class Queue {
 protected:
-	T *buf_;
-	int head_ = 0, tail_ = 0, size_;
+	T *buf;
+	int head = 0, tail = 0, size;
 
 public:
-	Queue(int size) : buf_(new T[size + 1]), size_(size) {}
+	explicit Queue(int size_) : buf(new T[size + 1]), size(size_) {}
 	virtual ~Queue() {
-		delete[] buf_;
+		delete buf;
 	}
 	bool push(const T &data) {
-		if ((tail_ + 1) % size_ == head_) { // queue is full
+		if ((tail + 1) % size == head) { // queue is full
 			return false;
 		}
-		buf_[tail_] = data;
-		tail_ = (tail_ + 1) % size_;
+		buf[tail] = data;
+		tail = (tail + 1) % size;
 		return true;
 	}
 	T pop() {
-		T data = buf_[head_];
-		head_ = (head_ + 1) % size_;
+		T data = buf[head];
+		head = (head + 1) % size;
 		return data;
 	}
 	bool isempty() const {
-		return head_ == tail_;
+		return head == tail;
 	}
 };
