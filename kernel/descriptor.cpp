@@ -20,7 +20,9 @@ void DescriptorInit() {
 	LoadIdtr(kLimitIdt, kAdrIdt);
 
 	/* IDTの設定 */
+	SetGateDescriptor(idt + 0x04, (int)&AsmIntHandler04, 2 * 8, kArIntGate32);
 	SetGateDescriptor(idt + 0x07, (int)&AsmIntHandler07, 2 * 8, kArIntGate32);
+	SetGateDescriptor(idt + 0x0d, (int)&AsmIntHandler0d, 2 * 8, kArIntGate32);
 	SetGateDescriptor(idt + 0x20, (int)&AsmIntHandler20, 2 * 8, kArIntGate32);
 	SetGateDescriptor(idt + 0x21, (int)&AsmIntHandler21, 2 * 8, kArIntGate32);
 	SetGateDescriptor(idt + 0x27, (int)&AsmIntHandler27, 2 * 8, kArIntGate32);

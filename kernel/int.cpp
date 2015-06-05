@@ -29,6 +29,29 @@ void PICInit() {
 	Output8(kPic1Imr, 0xff);
 }
 
+// オーバーフロー例外
+void IntHandler04(int *esp) {
+	BootInfo *binfo = (BootInfo *)ADDRESS_BOOTINFO;
+	
+	if (binfo->vmode == 32) {
+		for (int i = 0; i < binfo->scrnx * binfo->scrny; ++i) {
+			((unsigned int *)binfo->vram)[i] = 0;
+		}
+	} else if (binfo->vmode == 24) {
+		for (int i = 0; i < binfo->scrnx * binfo->scrny * 3; ++i) {
+			((unsigned char *)binfo->vram)[i] = 0;
+		}
+	} else {
+		for (int i = 0; i < binfo->scrnx * binfo->scrny; ++i) {
+			((unsigned short *)binfo->vram)[i] = 0;
+		}
+	}
+	
+	for (;;) {
+		Hlt();
+	}
+}
+
 // FPU
 void IntHandler07(int *esp) {
 	Task *now = TaskSwitcher::getNowTask();
@@ -41,6 +64,29 @@ void IntHandler07(int *esp) {
 		int *p = (int *)now->fpu;
 		asm volatile("frstor %0" : "=m"(p));
 		TaskSwitcher::taskFPU = now;
+	}
+}
+
+// 一般保護例外
+void IntHandler0d(int *esp) {
+	BootInfo *binfo = (BootInfo *)ADDRESS_BOOTINFO;
+	
+	if (binfo->vmode == 32) {
+		for (int i = 0; i < binfo->scrnx * binfo->scrny; ++i) {
+			((unsigned int *)binfo->vram)[i] = 0xffffff;
+		}
+	} else if (binfo->vmode == 24) {
+		for (int i = 0; i < binfo->scrnx * binfo->scrny * 3; ++i) {
+			((unsigned char *)binfo->vram)[i] = 0xff;
+		}
+	} else {
+		for (int i = 0; i < binfo->scrnx * binfo->scrny; ++i) {
+			((unsigned short *)binfo->vram)[i] = 0xffff;
+		}
+	}
+	
+	for (;;) {
+		Hlt();
 	}
 }
 

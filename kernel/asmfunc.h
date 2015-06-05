@@ -15,7 +15,9 @@ extern "C" {
 	int Input32(int port);
 	void Output32(int port, int data);
 
+	void AsmIntHandler04();
 	void AsmIntHandler07();
+	void AsmIntHandler0d();
 	void AsmIntHandler20();
 	void AsmIntHandler21();
 	void AsmIntHandler27();
