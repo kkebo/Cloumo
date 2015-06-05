@@ -31,12 +31,12 @@ enum class TreeConstructor::Mode {
 
 Document &TreeConstructor::construct(Queue<shared_ptr<Token>> &tokens) {
 	Mode mode = Mode::Initial;
-	unique_ptr<Token> token;
+	shared_ptr<Token> token;
 	Stack<shared_ptr<Node>> openTags(256); // stack of open elements
 	bool scripting = false; // scripting flag
 	
 	if (tokens.isempty()) return document;
-	token.reset(tokens.pop());
+	token = tokens.pop();
 	
 	// token 取り出し
 	do {
@@ -685,7 +685,7 @@ Document &TreeConstructor::construct(Queue<shared_ptr<Token>> &tokens) {
 				break;
 		}
 		
-		token.reset(tokens.pop());
+		token = tokens.pop();
 	} while (!tokens.isempty());
 	
 	return document;

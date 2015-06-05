@@ -67,7 +67,7 @@ unsigned char *FAT12::loadFile2(int clustno, int &psize) {
 		if (tekSize > 0) {
 			unsigned char *buf2 = new unsigned char[tekSize];
 			TekDecomp(buf, buf2, tekSize);
-			delete buf;
+			delete[] buf;
 			psize = tekSize;
 			return buf2;
 		}

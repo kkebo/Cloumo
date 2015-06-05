@@ -13,7 +13,7 @@ protected:
 public:
 	explicit Stack(int size_) : buf(new T[size_]), size(size_) {}
 	virtual ~Stack() {
-		delete buf;
+		delete[] buf;
 	}
 	bool push(const T &data) {
 		if (tail == size) { // stack is full

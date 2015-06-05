@@ -15,7 +15,7 @@ protected:
 public:
 	explicit Queue(int size_) : buf(new T[size + 1]), size(size_) {}
 	virtual ~Queue() {
-		delete buf;
+		delete[] buf;
 	}
 	bool push(const T &data) {
 		if ((tail + 1) % size == head) { // queue is full

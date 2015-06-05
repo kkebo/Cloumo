@@ -12,7 +12,7 @@ Sheet::Sheet(const Size &size, bool _nonRect) :
 Sheet::~Sheet() {
 	if (height >= 0) upDown(-1);
 	if (onClosed) onClosed();
-	delete buf;
+	delete[] buf;
 }
 
 // シートの高さを変更
