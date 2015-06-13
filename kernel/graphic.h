@@ -128,6 +128,7 @@ public:
 
 class Task;
 class File;
+class Tab;
 
 class SheetCtl {
 private:
@@ -145,7 +146,7 @@ private:
 	
 	// for GUI Task
 	static Sheet *back;
-	static Sheet *window[];
+	static Tab *tabs[];
 	static int numOfTab;
 	static int activeTab;
 	static const char *mouseCursor[];
@@ -158,6 +159,7 @@ private:
 	static Timer *caretTimer;
 	static string *tboxString;
 
+	static void guiTaskMain();
 	static void onClickBack(const Point &pos);
 	static void refreshMap(const Rectangle &range, int);
 	static void refreshSub(const Rectangle &range, int);
@@ -172,11 +174,10 @@ public:
 	static Point mouseCursorPos;
 
 	friend class Sheet;
+	friend class Tab; // TODO: back に依存させないようにして切り離したい
 	static void init();
 	static void reInit();
-	static Sheet *addTab(string tabName);
-	static void closeTab(int index);
-	static void switchTab(int index = -1);
+	static void blueScreen(const char *str);
 };
 
 // 赤緑青をあわせてunsigned intで出力

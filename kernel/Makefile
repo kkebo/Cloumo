@@ -15,7 +15,8 @@ OBJS = \
 	HTMLTokenizer.o \
 	HTMLNode.o \
 	HTMLTreeConstructor.o \
-	File.o
+	File.o \
+	Tab.o
 DEPS = $(OBJS:%.o=%.d)
 
 ifeq ($(OS),Windows_NT)

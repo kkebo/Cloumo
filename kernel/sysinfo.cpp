@@ -2,8 +2,6 @@
 #include <pistring.h>
 #include "../headers.h"
 
-Task *sysInfoTask;
-
 void showSysInfo(Sheet *sht, int benchScore) {
 	string str;
 	auto memTotal = MemoryTotal();
@@ -34,7 +32,7 @@ void showSysInfo(Sheet *sht, int benchScore) {
 			Task &task = *level.tasks[i];
 			if (task.running) {
 				sprintf(s, "%5d %8d %4s ", task.level, task.priority, task.running ? "(oo)" : "(__)");
-				str = string(s) + task.name;
+				str = s + task.name;
 				sht->drawString(str, Point(2 + 1, 2 + 16 * 5 + j * 16 + 2), 0);
 				++j;
 			}
@@ -50,15 +48,10 @@ void showSysInfo(Sheet *sht, int benchScore) {
 	sht->refresh(clearRange);
 }
 
-void SysinfoMain() {
+void SysinfoMain(Tab *tab) {
 	Task *task = TaskSwitcher::getNowTask();
-	sysInfoTask = task;
 	int count = 0, count0 = 0;
-	Sheet *sht = SheetCtl::addTab("system info");
-	sht->onClosed = [] {
-		// delete sysInfoTask;
-		// どうにかシステム情報タスクを終了できないだろうか？
-	};
+	Sheet *sht = tab->sheet;
 	
 	Timer *timer = new Timer(task->queue);
 	timer->set(100);

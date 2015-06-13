@@ -1,3 +1,6 @@
 #pragma once
 
-void SysinfoMain();
+class Sheet;
+class Tab;
+
+void SysinfoMain(Tab *);

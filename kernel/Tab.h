@@ -1,6 +1,20 @@
 #pragma once
 
+#include <pistring.h>
+
 class Tab {
 private:
-	Sheet *
+	Task *task = nullptr;
+	int index;
+	
+	Tab(const string &tabName);
+
+public:
+	Sheet *sheet;
+	string name;
+	
+	Tab(const string &tabName, void (*mainLoop)(Tab *));
+	Tab(const string &tabName, int queueSize, void (*mainLoop)(Tab *));
+	~Tab();
+	void active();
 };
