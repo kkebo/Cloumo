@@ -31,21 +31,7 @@ void PICInit() {
 
 // オーバーフロー例外
 int IntHandler04(int *esp) {
-	BootInfo *binfo = (BootInfo *)ADDRESS_BOOTINFO;
-	
-	if (binfo->vmode == 32) {
-		for (int i = 0; i < binfo->scrnx * binfo->scrny; ++i) {
-			((unsigned int *)binfo->vram)[i] = 0;
-		}
-	} else if (binfo->vmode == 24) {
-		for (int i = 0; i < binfo->scrnx * binfo->scrny * 3; ++i) {
-			((unsigned char *)binfo->vram)[i] = 0;
-		}
-	} else {
-		for (int i = 0; i < binfo->scrnx * binfo->scrny; ++i) {
-			((unsigned short *)binfo->vram)[i] = 0;
-		}
-	}
+	SheetCtl::blueScreen("Overflow!");
 	
 	return 1;
 }
@@ -67,21 +53,7 @@ void IntHandler07(int *esp) {
 
 // 一般保護例外
 int IntHandler0d(int *esp) {
-	BootInfo *binfo = (BootInfo *)ADDRESS_BOOTINFO;
-	
-	if (binfo->vmode == 32) {
-		for (int i = 0; i < binfo->scrnx * binfo->scrny; ++i) {
-			((unsigned int *)binfo->vram)[i] = 0xffffff;
-		}
-	} else if (binfo->vmode == 24) {
-		for (int i = 0; i < binfo->scrnx * binfo->scrny * 3; ++i) {
-			((unsigned char *)binfo->vram)[i] = 0xff;
-		}
-	} else {
-		for (int i = 0; i < binfo->scrnx * binfo->scrny; ++i) {
-			((unsigned short *)binfo->vram)[i] = 0xffff;
-		}
-	}
+	SheetCtl::blueScreen("General Protection Fault!");
 	
 	return 1;
 }
