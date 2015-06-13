@@ -746,7 +746,7 @@ void SheetCtl::guiTaskMain() {
 							// file URI scheme
 							if (url.compare(0, 8, "file:///") != 0) {
 								// "file:///" を追加
-								url.insert("file:///", 0);
+								url.insert(0, "file:///");
 							}
 							new Tab(url, [](Tab *tab) {
 								string url = tab->name;
@@ -759,7 +759,7 @@ void SheetCtl::guiTaskMain() {
 									
 									// トークン化
 									HTML::Tokenizer tokenizer;
-									Queue<shared_ptr<HTML::Token>> &tokens = tokenizer.tokenize(source.c_str());
+									Queue<shared_ptr<HTML::Token>> &tokens = tokenizer.tokenize(source);
 									
 									// ツリー構築
 									HTML::TreeConstructor constructor;

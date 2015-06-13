@@ -10,7 +10,6 @@ namespace HTML {
 	private:
 		enum class State;
 		Queue<shared_ptr<Token>> tokens;
-		string buffer;
 		
 		void emitCharacterToken(char c);
 		void emitEOFToken();
@@ -19,7 +18,7 @@ namespace HTML {
 	
 	public:
 		Tokenizer();
-		Queue<shared_ptr<Token>> &tokenize(const char *inputStream);
+		Queue<shared_ptr<Token>> &tokenize(const string &inputStream);
 	};
 }
 

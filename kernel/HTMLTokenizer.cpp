@@ -1,4 +1,3 @@
-#include <string.h>
 #include "HTMLTokenizer.h"
 
 using namespace HTML;
@@ -76,16 +75,24 @@ enum class Tokenizer::State {
 
 Tokenizer::Tokenizer() : tokens(128) {}
 
-Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
+Queue<shared_ptr<Token>> &Tokenizer::tokenize(const string &inputStream) {
 	State state = State::Data; // Data state
 	unique_ptr<Token> token;
 
-	for (int i = 0;;) {
-		char nextInputCharacter = inputStream[i];
-		
+	auto it = inputStream.begin();
+	int i = 0;
+	bool endFlag = false;
+	while (!endFlag) {
 		switch (state) {
 			case State::Data: // Data state
-				switch (nextInputCharacter) {
+				if (it == inputStream.end()) {
+					// EOF
+					// Emit the end-of-file token.
+					emitEOFToken();
+					endFlag = true;
+					continue;
+				}
+				switch (*it) {
 					case '&':
 						// Switch to the character reference in data state.
 						state = State::CharacterReferenceInData;
@@ -96,14 +103,9 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 						state = State::TagOpen;
 						break;
 
-					case 0: // EOF
-						// Emit the end-of-file token.
-						emitEOFToken();
-						break;
-
 					default:
 						// Emit the current input character as a character token.
-						emitCharacterToken(nextInputCharacter);
+						emitCharacterToken(*it);
 						break;
 				}
 				break;
@@ -127,7 +129,7 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 				break;
 
 			case State::TagOpen: // Tag open state
-				switch (nextInputCharacter) {
+				switch (*it) {
 					case '!':
 						// Switch to the markup declaration open state.
 						state = State::MarkupDeclarationOpen;
@@ -147,9 +149,7 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 
 					default:
 						// ASCII letter
-						if ('A' <= nextInputCharacter && nextInputCharacter <= 'Z')
-							nextInputCharacter += 0x20;
-						if ('a' <= nextInputCharacter && nextInputCharacter <= 'z') {
+						if (('A' <= *it && *it <= 'Z') || ('a' <= *it && *it <= 'z')) {
 							// Create a new start tag token.
 							token.reset(new Token(Token::Type::StartTag));
 							state = State::TagName;
@@ -158,29 +158,28 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 
 						// Emit a U+003C LESS-THAN SIGN character token and reconsume the current input character in the data state.
 						parseError();
-						buffer += '<';
+						emitCharacterToken('<');
 						state = State::Data;
 						continue;
 				}
 				break;
 
 			case State::EndTagOpen: // End tag open state
-				if (nextInputCharacter == 0) {
+				if (it == inputStream.end()) {
 					// Parse error. Emit a U+003C LESS-THAN SIGN character token and a U+002F SOLIDUS character token. Reconsume the EOF character in the data state.
 					parseError();
-					buffer += "</";
+					emitCharacterToken('<');
+					emitCharacterToken('/');
 					state = State::Data;
 					continue;
-				} else if (nextInputCharacter == '>') {
+				} else if (*it == '>') {
 					parseError();
 					state = State::Data;
 				} else {
-					if ('A' <= nextInputCharacter && nextInputCharacter <= 'Z')
-						nextInputCharacter += 0x20;
-					if ('a' <= nextInputCharacter && nextInputCharacter <= 'z') {
+					if (('A' <= *it && *it <= 'Z') || ('a' <= *it && *it <= 'z')) {
 						// Create a new end tag token, set its tag name to the current input character, then switch to the tag name state. (Don't emit the token yet; further details will be filled in before it is emitted.)
 						token.reset(new Token(Token::Type::EndTag));
-						token->data = nextInputCharacter;
+						token->data = ('A' <= *it && *it <= 'Z') ? *it + 0x20 : *it;
 						state = State::TagName;
 						break;
 					} else {
@@ -191,7 +190,13 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 				break;
 
 			case State::TagName: // Tag name state
-				switch (nextInputCharacter) {
+				if (it == inputStream.end()) {
+					// EOF
+					parseError();
+					state = State::Data;
+					continue;
+				}
+				switch (*it) {
 					case 0x0009: // Tab
 					case 0x000a: // LF
 					case 0x000c: // FF
@@ -220,16 +225,20 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 						break;
 
 					default:
-						if ('A' <= nextInputCharacter && nextInputCharacter <= 'Z')
-							nextInputCharacter += 0x0020;
 						// Append the current input character to the current tag token's tag name.
-						token->data += nextInputCharacter;
+						token->data += ('A' <= *it && *it <= 'Z') ? *it + 0x20 : *it;
 						break;
 				}
 				break;
 
 			case State::BeforeAttributeName: // Before attribute name state
-				switch (nextInputCharacter) {
+				if (it == inputStream.end()) {
+					// EOF
+					parseError();
+					state = State::Data;
+					continue;
+				}
+				switch (*it) {
 					case 0x09:
 					case 0x0a:
 					case 0x0c:
@@ -247,22 +256,15 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 						emitToken(token);
 						break;
 					
-					case 0: // EOF
-						parseError();
-						state = State::Data;
-						continue;
-					
 					case '"':
 					case '\'':
 					case '<':
 					case '=':
 						parseError();
 					default:
-						if ('A' <= nextInputCharacter && nextInputCharacter <= 'Z')
-							nextInputCharacter += 0x0020;
 						// Start a new attribute in the current tag token.
 						// Set that attribute's name to the current input character, and its value to the empty string.
-						token->appendAttribute(nextInputCharacter);
+						token->appendAttribute(('A' <= *it && *it <= 'Z') ? *it + 0x20 : *it);
 						// Switch to the attribute name state.
 						state = State::AttributeName;
 						break;
@@ -270,7 +272,13 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 				break;
 			
 			case State::AttributeName:
-				switch (nextInputCharacter) {
+				if (it == inputStream.end()) {
+					// EOF
+					parseError();
+					state = State::Data;
+					continue;
+				}
+				switch (*it) {
 					case 0x09:
 					case 0x0a:
 					case 0x0c:
@@ -291,25 +299,24 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 						emitToken(token);
 						break;
 					
-					case 0: // EOF
-						parseError();
-						state = State::Data;
-						continue;
-					
 					case '"':
 					case '\'':
 					case '<':
 						parseError();
 					default:
-						if ('A' <= nextInputCharacter && nextInputCharacter <= 'Z')
-							nextInputCharacter += 0x0020;
-						token->appendAttributeName(nextInputCharacter);
+						token->appendAttributeName(('A' <= *it && *it <= 'Z') ? *it + 0x20 : *it);
 						break;
 				}
 				break;
 			
 			case State::AfterAttributeName:
-				switch (nextInputCharacter) {
+				if (it == inputStream.end()) {
+					// EOF
+					parseError();
+					state = State::Data;
+					continue;
+				}
+				switch (*it) {
 					case 0x09:
 					case 0x0a:
 					case 0x0c:
@@ -330,21 +337,14 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 						emitToken(token);
 						break;
 					
-					case 0: // EOF
-						parseError();
-						state = State::Data;
-						continue;
-					
 					case '"':
 					case '\'':
 					case '<':
 						parseError();
 					default:
-						if ('A' <= nextInputCharacter && nextInputCharacter <= 'Z')
-							nextInputCharacter += 0x0020;
 						// Start a new attribute in the current tag token.
 						// Set that attribute's name to the current input character, and its value to the empty string.
-						token->appendAttribute(nextInputCharacter);
+						token->appendAttribute(('A' <= *it && *it <= 'Z') ? *it + 0x20 : *it);
 						// Switch to the attribute name state.
 						state = State::AttributeName;
 						break;
@@ -352,7 +352,13 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 				break;
 			
 			case State::BeforeAttributeValue:
-				switch (nextInputCharacter) {
+				if (it == inputStream.end()) {
+					// EOF
+					parseError();
+					state = State::Data;
+					continue;
+				}
+				switch (*it) {
 					case 0x09:
 					case 0x0a:
 					case 0x0c:
@@ -378,11 +384,6 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 						emitToken(token);
 						break;
 					
-					case 0: // EOF
-						parseError();
-						state = State::Data;
-						continue;
-					
 					case '<':
 					case '=':
 					case '`':
@@ -394,7 +395,13 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 				break;
 			
 			case State::AttributeValueDoubleQuoted:
-				switch (nextInputCharacter) {
+				if (it == inputStream.end()) {
+					// EOF
+					parseError();
+					state = State::Data;
+					continue;
+				}
+				switch (*it) {
 					case '"':
 						state = State::AfterAttributeValueQuoted;
 						break;
@@ -404,19 +411,20 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 						// with the additional allowed character being U+0022 QUOTATION MARK (").
 						break;
 					
-					case 0: // EOF
-						parseError();
-						state = State::Data;
-						continue;
-					
 					default:
-						token->appendAttributeValue(nextInputCharacter);
+						token->appendAttributeValue(*it);
 						break;
 				}
 				break;
 			
 			case State::AttributeValueSingleQuoted:
-				switch (nextInputCharacter) {
+				if (it == inputStream.end()) {
+					// EOF
+					parseError();
+					state = State::Data;
+					continue;
+				}
+				switch (*it) {
 					case '\'':
 						state = State::AfterAttributeValueQuoted;
 						break;
@@ -426,19 +434,20 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 						// with the additional allowed character being U+0027 APOSTROPHE (').
 						break;
 					
-					case 0: // EOF
-						parseError();
-						state = State::Data;
-						continue;
-					
 					default:
-						token->appendAttributeValue(nextInputCharacter);
+						token->appendAttributeValue(*it);
 						break;
 				}
 				break;
 			
 			case State::AttributeValueUnquoted:
-				switch (nextInputCharacter) {
+				if (it == inputStream.end()) {
+					// EOF
+					parseError();
+					state = State::Data;
+					continue;
+				}
+				switch (*it) {
 					case 0x09:
 					case 0x0a:
 					case 0x0c:
@@ -456,11 +465,6 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 						emitToken(token);
 						break;
 					
-					case 0: // EOF
-						parseError();
-						state = State::Data;
-						continue;
-					
 					case '"':
 					case '\'':
 					case '<':
@@ -468,7 +472,7 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 					case '`':
 						parseError();
 					default:
-						token->appendAttributeValue(nextInputCharacter);
+						token->appendAttributeValue(*it);
 						break;
 				}
 				break;
@@ -477,7 +481,13 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 				break;
 			
 			case State::AfterAttributeValueQuoted:
-				switch (nextInputCharacter) {
+				if (it == inputStream.end()) {
+					// EOF
+					parseError();
+					state = State::Data;
+					continue;
+				}
+				switch (*it) {
 					case 0x09:
 					case 0x0a:
 					case 0x0c:
@@ -494,11 +504,6 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 						emitToken(token);
 						break;
 					
-					case 0: // EOF
-						parseError();
-						state = State::Data;
-						continue;
-					
 					default:
 						parseError();
 						state = State::BeforeAttributeName;
@@ -507,11 +512,11 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 				break;
 
 			case State::SelfClosingStartTag: // Self-closing start tag state
-				if (nextInputCharacter == 0) { // EOF
+				if (it == inputStream.end()) { // EOF
 					parseError();
 					state = State::Data;
 					continue;
-				} else if (nextInputCharacter == '>') {
+				} else if (*it == '>') {
 					// Set the self-closing flag of the current tag token. Switch to the data state. Emit the current tag token.
 					token->setSelfClosingFlag();
 					state = State::Data;
@@ -524,13 +529,13 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 				break;
 			
 			case State::MarkupDeclarationOpen:
-				if (strncmp(inputStream + i, "--", 2) == 0) {
+				if (inputStream.compare(i, 2, "--") == 0) {
 					// create a comment token whose data is the empty string, and switch to the comment start state.
 					token.reset(new Token(Token::Type::Comment));
 					i += 2;
 					state = State::CommentStart;
 					continue;
-				} else if (strncmpi(inputStream + i, "DOCTYPE", 7) == 0) {
+				} else if (inputStream.comparei(i, 7, "DOCTYPE") == 0) {
 					i += 7;
 					state = State::DOCTYPE;
 					continue;
@@ -545,7 +550,14 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 				break;
 			
 			case State::CommentStart:
-				switch (nextInputCharacter) {
+				if (it == inputStream.end()) {
+					// EOF
+					parseError();
+					emitToken(token);
+					state = State::Data;
+					continue;
+				}
+				switch (*it) {
 					case '-':
 						state = State::CommentStartDash;
 						break;
@@ -556,12 +568,6 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 						emitToken(token);
 						break;
 					
-					case 0: // EOF
-						parseError();
-						emitToken(token);
-						state = State::Data;
-						continue;
-					
 					default:
 						state = State::Comment;
 						continue;
@@ -569,7 +575,14 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 				break;
 			
 			case State::CommentStartDash:
-				switch (nextInputCharacter) {
+				if (it == inputStream.end()) {
+					// EOF
+					parseError();
+					emitToken(token);
+					state = State::Data;
+					continue;
+				}
+				switch (*it) {
 					case '-':
 						state = State::CommentEnd;
 						break;
@@ -580,12 +593,6 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 						emitToken(token);
 						break;
 					
-					case 0: // EOF
-						parseError();
-						emitToken(token);
-						state = State::Data;
-						continue;
-					
 					default:
 						token->data += '-';
 						state = State::Comment;
@@ -594,26 +601,26 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 				break;
 			
 			case State::Comment:
-				if (nextInputCharacter == '-') {
-					state = State::CommentEndDash;
-				} else if (nextInputCharacter == 0) { // EOF
+				if (it == inputStream.end()) { // EOF
 					parseError();
 					emitToken(token);
 					state = State::Data;
 					continue;
+				} else if (*it == '-') {
+					state = State::CommentEndDash;
 				} else {
-					token->data += nextInputCharacter;
+					token->data += *it;
 				}
 				break;
 			
 			case State::CommentEndDash:
-				if (nextInputCharacter == '-') {
-					state = State::CommentEnd;
-				} else if (nextInputCharacter == 0) { // EOF
+				if (it == inputStream.end()) { // EOF
 					parseError();
 					emitToken(token);
 					state = State::Data;
 					continue;
+				} else if (*it == '-') {
+					state = State::CommentEnd;
 				} else {
 					token->data += '-';
 					state = State::Comment;
@@ -622,7 +629,14 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 				break;
 			
 			case State::CommentEnd:
-				switch (nextInputCharacter) {
+				if (it == inputStream.end()) {
+					// EOF
+					parseError();
+					emitToken(token);
+					state = State::Data;
+					continue;
+				}
+				switch (*it) {
 					case '>':
 						state = State::Data;
 						emitToken(token);
@@ -638,12 +652,6 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 						token->data += '-';
 						break;
 					
-					case 0: // EOF
-						parseError();
-						emitToken(token);
-						state = State::Data;
-						continue;
-					
 					default:
 						parseError();
 						state = State::Comment;
@@ -652,7 +660,14 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 				break;
 			
 			case State::CommentEndBang:
-				switch (nextInputCharacter) {
+				if (it == inputStream.end()) {
+					// EOF
+					parseError();
+					emitToken(token);
+					state = State::Data;
+					continue;
+				}
+				switch (*it) {
 					case '-':
 						token->data += "-!";
 						state = State::CommentEndDash;
@@ -663,12 +678,6 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 						emitToken(token);
 						break;
 					
-					case 0: // EOF
-						parseError();
-						emitToken(token);
-						state = State::Data;
-						continue;
-					
 					default:
 						token->data += "-!";
 						state = State::Comment;
@@ -677,21 +686,22 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 				break;
 			
 			case State::DOCTYPE:
-				switch (nextInputCharacter) {
+				if (it == inputStream.end()) {
+					// EOF
+					// Parse error. Create a new DOCTYPE token. Set its force-quirks flag to on. Emit the token. Reconsume the EOF character in the data state.
+					parseError();
+					token.reset(new Token(Token::Type::DOCTYPE));
+					// force-quirks flag to on
+					state = State::Data;
+					continue;
+				}
+				switch (*it) {
 					case '\t':
 					case 0x0a:
 					case 0x0c:
 					case ' ':
 						state = State::BeforeDOCTYPEName;
 						break;
-					
-					case 0:
-						// Parse error. Create a new DOCTYPE token. Set its force-quirks flag to on. Emit the token. Reconsume the EOF character in the data state.
-						parseError();
-						token.reset(new Token(Token::Type::DOCTYPE));
-						// force-quirks flag to on
-						state = State::Data;
-						continue;
 					
 					default:
 						parseError();
@@ -701,7 +711,16 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 				break;
 			
 			case State::BeforeDOCTYPEName:
-				switch (nextInputCharacter) {
+				if (it == inputStream.end()) {
+					// EOF
+					parseError();
+					state = State::Data;
+					token.reset(new Token(Token::Type::DOCTYPE));
+					// set forse-quirks flag to on
+					emitToken(token);
+					continue;
+				}
+				switch (*it) {
 					case '\t':
 					case 0x0a:
 					case 0x0c:
@@ -709,7 +728,7 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 						// ignore
 						break;
 					
-					case 0:
+					case 0: // NULL
 						// Parse error. Set the token's name to a U+FFFD REPLACEMENT CHARACTER character. Switch to the DOCTYPE name state.
 						parseError();
 						token->data += "\ufffd";
@@ -721,18 +740,24 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 						break;
 					
 					default:
-						if ('A' <= nextInputCharacter && nextInputCharacter <= 'Z')
-							nextInputCharacter += 0x0020;
 						// create a new DOCTYPE token
 						token.reset(new Token(Token::Type::DOCTYPE));
-						token->data += nextInputCharacter;
+						token->data += ('A' <= *it && *it <= 'Z') ? *it + 0x20 : *it;
 						state = State::DOCTYPEName;
 						break;
 				}
 				break;
 			
 			case State::DOCTYPEName:
-				switch (nextInputCharacter) {
+				if (it == inputStream.end()) {
+					// EOF
+					// Set the DOCTYPE token's force-quirks flag to on. Emit that DOCTYPE token. Reconsume the EOF character in the data state.
+					// set force-quirks flag to on.
+					emitToken(token);
+					state = State::Data;
+					continue;
+				}
+				switch (*it) {
 					case '\t':
 					case 0x0a:
 					case 0x0c:
@@ -746,23 +771,22 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 						emitToken(token);
 						break;
 					
-					case 0: // EOF
-						// Set the DOCTYPE token's force-quirks flag to on. Emit that DOCTYPE token. Reconsume the EOF character in the data state.
-						// force-quirks flag to on.
-						emitToken(token);
-						state = State::Data;
-						continue;
-					
 					default:
-						if ('A' <= nextInputCharacter && nextInputCharacter <= 'Z')
-							nextInputCharacter += 0x0020;
-						token->data += nextInputCharacter;
+						token->data += ('A' <= *it && *it <= 'Z') ? *it + 0x20 : *it;
 						break;
 				}
 				break;
 			
 			case State::AfterDOCTYPEName:
-				switch (nextInputCharacter) {
+				if (it == inputStream.end()) {
+					// EOF
+					parseError();
+					// set force-quirks flag to on
+					emitToken(token);
+					state = State::Data;
+					continue;
+				}
+				switch (*it) {
 					case '\t':
 					case 0x0a:
 					case 0x0c:
@@ -775,20 +799,13 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 						emitToken(token);
 						break;
 					
-					case 0: // EOF
-						parseError();
-						// force-quirks flag to on
-						emitToken(token);
-						state = State::Data;
-						continue;
-					
 					default:
-						if (strncmpi(inputStream + i, "public", 6) == 0) {
+						if (inputStream.comparei(i, 6, "public") == 0) {
 							// consume those characters and switch to the after DOCTYPE public keyword state.
 							i += 6;
 							state = State::AfterDOCTYPEPublicKeyword;
 							continue;
-						} else if (strncmpi(inputStream + i, "system", 6) == 0) {
+						} else if (inputStream.comparei(i, 6, "system") == 0) {
 							// consume those characters and switch to the after DOCTYPE system keyword state.
 							i += 6;
 							state = State::AfterDOCTYPESystemKeyword;
@@ -803,7 +820,15 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 				break;
 			
 			case State::AfterDOCTYPEPublicKeyword:
-				switch (nextInputCharacter) {
+				if (it == inputStream.end()) {
+					// EOF
+					parseError();
+					// force-quirks flag to on
+					emitToken(token);
+					state = State::Data;
+					continue;
+				}
+				switch (*it) {
 					case 0x09:
 					case 0x0a:
 					case 0x0c:
@@ -832,13 +857,6 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 						emitToken(token);
 						break;
 					
-					case 0: // EOF
-						parseError();
-						// force-quirks flag to on
-						emitToken(token);
-						state = State::Data;
-						continue;
-					
 					default:
 						parseError();
 						// force-quirks flag to on
@@ -848,7 +866,15 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 				break;
 			
 			case State::BeforeDOCTYPEPublicIdentifier:
-				switch (nextInputCharacter) {
+				if (it == inputStream.end()) {
+					// EOF
+					parseError();
+					// force-quirks flag to on
+					emitToken(token);
+					state = State::Data;
+					continue;
+				}
+				switch (*it) {
 					case 0x09:
 					case 0x0a:
 					case 0x0c:
@@ -877,13 +903,6 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 						emitToken(token);
 						break;
 					
-					case 0: // EOF
-						parseError();
-						// force-quirks flag to on
-						emitToken(token);
-						state = State::Data;
-						continue;
-					
 					default:
 						parseError();
 						// force-quirks flag to on
@@ -893,7 +912,15 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 				break;
 			
 			case State::DOCTYPEPublicIdentifierDoubleQuoted:
-				switch (nextInputCharacter) {
+				if (it == inputStream.end()) {
+					// EOF
+					parseError();
+					// force-quirks flag to on
+					emitToken(token);
+					state = State::Data;
+					continue;
+				}
+				switch (*it) {
 					case '"':
 						state = State::AfterDOCTYPEPublicIdentifier;
 						break;
@@ -905,13 +932,6 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 						emitToken(token);
 						break;
 					
-					case 0: // EOF
-						parseError();
-						// force-quirks flag to on
-						emitToken(token);
-						state = State::Data;
-						continue;
-					
 					default:
 						// Append the current input character to the current DOCTYPE token's public identifier.
 						break;
@@ -919,7 +939,15 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 				break;
 			
 			case State::DOCTYPEPublicIdentifierSingleQuoted:
-				switch (nextInputCharacter) {
+				if (it == inputStream.end()) {
+					// EOF
+					parseError();
+					// force-quirks flag to on
+					emitToken(token);
+					state = State::Data;
+					continue;
+				}
+				switch (*it) {
 					case '\'':
 						state = State::AfterDOCTYPEPublicIdentifier;
 						break;
@@ -931,13 +959,6 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 						emitToken(token);
 						break;
 					
-					case 0: // EOF
-						parseError();
-						// force-quirks flag to on
-						emitToken(token);
-						state = State::Data;
-						continue;
-					
 					default:
 						// Append the current input character to the current DOCTYPE token's public identifier.
 						break;
@@ -945,7 +966,15 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 				break;
 			
 			case State::AfterDOCTYPEPublicIdentifier:
-				switch (nextInputCharacter) {
+				if (it == inputStream.end()) {
+					// EOF
+					parseError();
+					// force-quirks flag to on
+					emitToken(token);
+					state = State::Data;
+					continue;
+				}
+				switch (*it) {
 					case 0x09:
 					case 0x0a:
 					case 0x0c:
@@ -972,13 +1001,6 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 						emitToken(token);
 						break;
 					
-					case 0: // EOF
-						parseError();
-						// force-quirks flag to on
-						emitToken(token);
-						state = State::Data;
-						continue;
-					
 					default:
 						parseError();
 						// force-quirks flag to on
@@ -988,7 +1010,15 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 				break;
 			
 			case State::BetweenDOCTYPEPublicAndSystemIdentifiers:
-				switch (nextInputCharacter) {
+				if (it == inputStream.end()) {
+					// EOF
+					parseError();
+					// force-quirks flag to on
+					emitToken(token);
+					state = State::Data;
+					continue;
+				}
+				switch (*it) {
 					case 0x09:
 					case 0x0a:
 					case 0x0c:
@@ -1015,13 +1045,6 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 						emitToken(token);
 						break;
 					
-					case 0: // EOF
-						parseError();
-						// force-quirks flag to on
-						emitToken(token);
-						state = State::Data;
-						continue;
-					
 					default:
 						parseError();
 						// force-quirks flag to on
@@ -1031,7 +1054,15 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 				break;
 			
 			case State::AfterDOCTYPESystemKeyword:
-				switch (nextInputCharacter) {
+				if (it == inputStream.end()) {
+					// EOF
+					parseError();
+					// force-quirks flag to on
+					emitToken(token);
+					state = State::Data;
+					continue;
+				}
+				switch (*it) {
 					case 0x09:
 					case 0x0a:
 					case 0x0c:
@@ -1058,13 +1089,6 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 						emitToken(token);
 						break;
 					
-					case 0: // EOF
-						parseError();
-						// force-quirks flag to on
-						emitToken(token);
-						state = State::Data;
-						continue;
-					
 					default:
 						parseError();
 						// force-quirks flag to on
@@ -1074,7 +1098,15 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 				break;
 			
 			case State::BeforeDOCTYPESystemIdentifier:
-				switch (nextInputCharacter) {
+				if (it == inputStream.end()) {
+					// EOF
+					parseError();
+					// force-quirks flag to on
+					emitToken(token);
+					state = State::Data;
+					continue;
+				}
+				switch (*it) {
 					case 0x09:
 					case 0x0a:
 					case 0x0c:
@@ -1101,13 +1133,6 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 						emitToken(token);
 						break;
 					
-					case 0: // EOF
-						parseError();
-						// force-quirks flag to on
-						emitToken(token);
-						state = State::Data;
-						continue;
-					
 					default:
 						parseError();
 						// force-quirks flag to on
@@ -1117,7 +1142,15 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 				break;
 			
 			case State::DOCTYPESystemIdentifierDoubleQuoted:
-				switch (nextInputCharacter) {
+				if (it == inputStream.end()) {
+					// EOF
+					parseError();
+					// force-quirks flag to on
+					emitToken(token);
+					state = State::Data;
+					continue;
+				}
+				switch (*it) {
 					case '"':
 						state = State::AfterDOCTYPESystemIdentifier;
 						break;
@@ -1129,13 +1162,6 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 						emitToken(token);
 						break;
 					
-					case 0: // EOF
-						parseError();
-						// force-quirks flag to on
-						emitToken(token);
-						state = State::Data;
-						continue;
-					
 					default:
 						// Append the current input character to the current DOCTYPE token's system identifier.
 						break;
@@ -1143,7 +1169,15 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 				break;
 			
 			case State::DOCTYPESystemIdentifierSingleQuoted:
-				switch (nextInputCharacter) {
+				if (it == inputStream.end()) {
+					// EOF
+					parseError();
+					// force-quirks flag to on
+					emitToken(token);
+					state = State::Data;
+					continue;
+				}
+				switch (*it) {
 					case '\'':
 						state = State::AfterDOCTYPESystemIdentifier;
 						break;
@@ -1155,13 +1189,6 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 						emitToken(token);
 						break;
 					
-					case 0: // EOF
-						parseError();
-						// force-quirks flag to on
-						emitToken(token);
-						state = State::Data;
-						continue;
-					
 					default:
 						// Append the current input character to the current DOCTYPE token's system identifier.
 						break;
@@ -1169,7 +1196,15 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 				break;
 			
 			case State::AfterDOCTYPESystemIdentifier:
-				switch (nextInputCharacter) {
+				if (it == inputStream.end()) {
+					// EOF
+					parseError();
+					// force-quirks flag to on
+					emitToken(token);
+					state = State::Data;
+					continue;
+				}
+				switch (*it) {
 					case 0x09:
 					case 0x0a:
 					case 0x0c:
@@ -1182,13 +1217,6 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 						emitToken(token);
 						break;
 					
-					case 0: // EOF
-						parseError();
-						// force-quirks flag to on
-						emitToken(token);
-						state = State::Data;
-						continue;
-					
 					default:
 						parseError();
 						state = State::BogusDOCTYPE;
@@ -1198,13 +1226,13 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 				break;
 			
 			case State::BogusDOCTYPE:
-				if (nextInputCharacter == '>') {
-					state = State::Data;
-					emitToken(token);
-				} else if (nextInputCharacter == 0) { // EOF
+				if (it == inputStream.end()) { // EOF
 					emitToken(token);
 					state = State::Data;
 					continue;
+				} else if (*it == '>') {
+					state = State::Data;
+					emitToken(token);
 				} else {
 					// ignore
 				}
@@ -1214,10 +1242,14 @@ Queue<shared_ptr<Token>> &Tokenizer::tokenize(const char *inputStream) {
 				break;
 		}
 		
-		if (nextInputCharacter == 0) { // EOF
-			break;
+		// TODO: 本来はこれがなくても無限ループは起こらないはずなので，解決したら外す
+		if (it == inputStream.end()) {
+			// EOF
+			endFlag = true;
+			continue;
 		}
 		
+		++it;
 		++i;
 	}
 	
