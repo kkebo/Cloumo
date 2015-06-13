@@ -103,7 +103,7 @@ void KeyboardController::Decode(unsigned char code) {
 			_alt = true;
 			break;
 		
-		case 0xe8: // Alt released
+		case 0xb8: // Alt released
 			_alt = false;
 			break;
 
