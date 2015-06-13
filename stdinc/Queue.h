@@ -13,7 +13,7 @@ protected:
 	int head = 0, tail = 0, size;
 
 public:
-	explicit Queue(int size_) : buf(new T[size + 1]), size(size_) {}
+	explicit Queue(int size_) : buf(new T[size_ + 1]), size(size_) {}
 	virtual ~Queue() {
 		delete[] buf;
 	}
