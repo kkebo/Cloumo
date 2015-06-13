@@ -100,7 +100,8 @@ public:
 	unsigned int *buf;
 	const Rectangle &frame = _frame;
 	const int &height = _height;
-	void (*onClick)(const Point &pos) = nullptr;
+	Tab *tab = nullptr;
+	void (*onClick)(const Point &pos, Sheet &sht) = nullptr;
 	void (*onClosed)() = nullptr;
 
 	friend class SheetCtl;
@@ -160,7 +161,7 @@ private:
 	static string *tboxString;
 
 	static void guiTaskMain();
-	static void onClickBack(const Point &pos);
+	static void onClickBack(const Point &pos, Sheet &sht);
 	static void refreshMap(const Rectangle &range, int);
 	static void refreshSub(const Rectangle &range, int);
 
@@ -174,7 +175,7 @@ public:
 	static Point mouseCursorPos;
 
 	friend class Sheet;
-	friend class Tab; // TODO: back に依存させないようにして切り離したい
+	friend class Tab;
 	static void init();
 	static void reInit();
 	static void blueScreen(const char *str);

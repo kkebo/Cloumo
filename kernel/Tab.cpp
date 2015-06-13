@@ -1,6 +1,6 @@
 #include "../headers.h"
 
-Tab::Tab(const string &tabName) : index(SheetCtl::numOfTab++), sheet(new Sheet(Size(SheetCtl::resolution.width - 150, SheetCtl::resolution.height), false)), name(tabName) {
+Tab::Tab(const string &tabName) : index(SheetCtl::numOfTab++), tabBar(new Sheet(Size(150 - 2, 22), true)), sheet(new Sheet(Size(SheetCtl::resolution.width - 150, SheetCtl::resolution.height), false)), name(tabName) {
 	// タブ一覧に登録
 	SheetCtl::tabs[index] = this;
 	
@@ -9,13 +9,25 @@ Tab::Tab(const string &tabName) : index(SheetCtl::numOfTab++), sheet(new Sheet(S
 	sheet->drawRect(sheet->frame, 0);
 	sheet->moveTo(Point(150, 0));
 	
-	// タブ作成
+	// タブバー初期化の続き
+	tabBar->tab = this;
+	tabBar->onClick = [](const Point &pos, Sheet &sht) {
+		if (2 <= pos.x && pos.x <= 2 + 22) {
+			// 閉じる
+			delete sht.tab;
+		} else if (sht.tab->index != SheetCtl::activeTab && 2 <= pos.x) {
+			// アクティブ化
+			sht.tab->active();
+		}
+	};
 	Rectangle newTabRange(2, 35 + 23 * index, 150 - 2, 22);
-	SheetCtl::back->drawLine(Line(9, 7 + 35 + 23 * index, 17, 15 + 35 + 23 * index), kActiveTextColor);
-	SheetCtl::back->drawLine(Line(9, 15 + 35 + 23 * index, 17, 7 + 35 + 23 * index), kActiveTextColor);
-	SheetCtl::back->drawString(tabName, Point(6 + 22, 39 + 23 * index), kActiveTextColor);
-	SheetCtl::back->changeColor(newTabRange, kBackgroundColor, kActiveTabColor);
-	SheetCtl::back->refresh(newTabRange);
+	tabBar->fillRect(tabBar->frame, kActiveTabColor);
+	tabBar->borderRadius(true, false, true, false);
+	tabBar->drawLine(Line(7, 7, 15, 15), kActiveTextColor);
+	tabBar->drawLine(Line(7, 15, 15, 7), kActiveTextColor);
+	tabBar->drawString(string(tabName, 0, 15), Point(4 + 22, 4), kActiveTextColor);
+	tabBar->moveTo(Point(2, 35 + 23 * index));
+	tabBar->upDown(SheetCtl::top);
 	
 	// タブ切り替え
 	active();
@@ -31,6 +43,7 @@ Tab::Tab(const string &tabName, int queueSize, void (*mainLoop)(Tab *)) : Tab(ta
 }
 
 Tab::~Tab() {
+	// アクティブタブの調整
 	if (SheetCtl::activeTab == index) {
 		if (SheetCtl::numOfTab > 1) {
 			// アクティブタブでかつ他のタブがあれば，他のタブへ切り替える
@@ -38,42 +51,31 @@ Tab::~Tab() {
 				SheetCtl::tabs[index - 1]->active();
 			} else {
 				// 次のタブを選ばせる
-				int newIndex = (SheetCtl::activeTab + 1) % SheetCtl::numOfTab;
-				SheetCtl::tabs[newIndex]->active();
+				SheetCtl::tabs[(SheetCtl::activeTab + 1) % SheetCtl::numOfTab]->active();
 			}
 		} else {
 			// 最後の1つのタブなら，SheetCtl::activeTab を -1 へ
 			SheetCtl::activeTab = -1;
 		}
 	}
-	
 	if (SheetCtl::activeTab > index) {
 		--SheetCtl::activeTab;
 	}
 	
+	// タブを閉じる
+	delete tabBar;
+	
+	// タブをずらす
 	for (int i = index; i < SheetCtl::numOfTab - 1; ++i) {
-		// tabs をずらす
 		SheetCtl::tabs[i] = SheetCtl::tabs[i + 1];
 		--SheetCtl::tabs[i]->index;
-		
-		// タブバーをずらす
-		for (int y = 35 + 23 * i; y < 35 + 23 * i + 22; ++y) {
-			for (int x = 2; x < 150; ++x) {
-				SheetCtl::back->buf[y * SheetCtl::back->frame.size.width + x] = SheetCtl::back->buf[(y + 23) * SheetCtl::back->frame.size.width + x];
-			}
-		}
+		SheetCtl::tabs[i]->tabBar->moveTo(Point(SheetCtl::tabs[i]->tabBar->frame.offset.x, SheetCtl::tabs[i]->tabBar->frame.offset.y - 23));
 	}
-	
-	// 最後の1つタブバーを消す
-	SheetCtl::back->fillRect(Rectangle(2, 35 + 23 * (SheetCtl::numOfTab - 1), 150 - 2, 22), kBackgroundColor);
-	
-	// リフレッシュ
-	SheetCtl::back->refresh(Rectangle(2, 35 + 23 * index, 150 - 2, 23 * (SheetCtl::numOfTab - index + 1) - 1));
 	
 	// タブの個数を減らす
 	--SheetCtl::numOfTab;
 	
-	// 解放
+	// その他の解放
 	delete sheet;
 	if (timer) delete timer;
 	if (task) delete task;
@@ -82,19 +84,19 @@ Tab::~Tab() {
 void Tab::active() {
 	if (SheetCtl::activeTab == index) return;
 	
+	Rectangle tabRect(0, 0, tabBar->frame.size.width, tabBar->frame.size.height);
+	
 	// 新しくアクティブになるタブ
-	Rectangle nextTabRange(2, 35 + 23 * index, 150 - 2, 22);
-	SheetCtl::back->changeColor(nextTabRange, kPassiveTabColor, kActiveTabColor);
-	SheetCtl::back->changeColor(nextTabRange, kPassiveTextColor, kActiveTextColor);
-	SheetCtl::back->refresh(nextTabRange);
-	SheetCtl::tabs[index]->sheet->upDown(SheetCtl::top);
+	tabBar->changeColor(tabRect, kPassiveTabColor, kActiveTabColor);
+	tabBar->changeColor(tabRect, kPassiveTextColor, kActiveTextColor);
+	tabBar->refresh(tabRect);
+	sheet->upDown(SheetCtl::top);
 	
 	// アクティブだったタブ
 	if (SheetCtl::activeTab >= 0) {
-		Rectangle prevTabRange(2, 35 + 23 * SheetCtl::activeTab, 150 - 2, 22);
-		SheetCtl::back->changeColor(prevTabRange, kActiveTabColor, kPassiveTabColor);
-		SheetCtl::back->changeColor(prevTabRange, kActiveTextColor, kPassiveTextColor);
-		SheetCtl::back->refresh(prevTabRange);
+		SheetCtl::tabs[SheetCtl::activeTab]->tabBar->changeColor(tabRect, kActiveTabColor, kPassiveTabColor);
+		SheetCtl::tabs[SheetCtl::activeTab]->tabBar->changeColor(tabRect, kActiveTextColor, kPassiveTextColor);
+		SheetCtl::tabs[SheetCtl::activeTab]->tabBar->refresh(tabRect);
 		SheetCtl::tabs[SheetCtl::activeTab]->sheet->upDown(-1);
 	}
 	

@@ -6,6 +6,7 @@ class Tab {
 private:
 	Task *task = nullptr;
 	int index;
+	Sheet *tabBar;
 	
 	Tab(const string &tabName);
 

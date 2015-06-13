@@ -848,7 +848,7 @@ void SheetCtl::guiTaskMain() {
 						for (int i = top - 1; i >= 0; --i) {
 							Sheet &sht = *sheets[i];
 							if (sht.onClick && sht.frame.contains(mouseCursorPos)) {
-								sht.onClick(mouseCursorPos);
+								sht.onClick(mouseCursorPos, sht);
 								break;
 							}
 						}
@@ -903,35 +903,23 @@ void SheetCtl::reInit() {
 	back->upDown(0);
 }
 
-void SheetCtl::onClickBack(const Point &pos) {
-	if (43 <= pos.x && pos.x <= 74 && back->frame.size.height - 20 - 45 <= pos.y && pos.y <= back->frame.size.height - 45) {
+void SheetCtl::onClickBack(const Point &pos, Sheet &sht) {
+	if (43 <= pos.x && pos.x <= 74 && sht.frame.size.height - 20 - 45 <= pos.y && pos.y <= sht.frame.size.height - 45) {
 		// JP 選択
 		KeyboardController::switchToJIS();
-		back->changeColor(Rectangle(43, back->frame.size.height - 20 - 45, 32, 20), 0xfffffe, 0);
-		back->changeColor(Rectangle(43, back->frame.size.height - 20 - 45, 32, 20), kBackgroundColor, 0xffffff);
-		back->changeColor(Rectangle(74, back->frame.size.height - 20 - 45, 33, 20), 0, 0xfffffe);
-		back->changeColor(Rectangle(74, back->frame.size.height - 20 - 45, 33, 20), 0xffffff, kBackgroundColor);
-		back->refresh(Rectangle(43, back->frame.size.height - 20 - 45, 64, 20));
-	} else if (75 <= pos.x && pos.x <= 107 && back->frame.size.height - 20 - 45 <= pos.y && pos.y <= back->frame.size.height - 45) {
+		sht.changeColor(Rectangle(43, sht.frame.size.height - 20 - 45, 32, 20), 0xfffffe, 0);
+		sht.changeColor(Rectangle(43, sht.frame.size.height - 20 - 45, 32, 20), kBackgroundColor, 0xffffff);
+		sht.changeColor(Rectangle(74, sht.frame.size.height - 20 - 45, 33, 20), 0, 0xfffffe);
+		sht.changeColor(Rectangle(74, sht.frame.size.height - 20 - 45, 33, 20), 0xffffff, kBackgroundColor);
+		sht.refresh(Rectangle(43, sht.frame.size.height - 20 - 45, 64, 20));
+	} else if (75 <= pos.x && pos.x <= 107 && sht.frame.size.height - 20 - 45 <= pos.y && pos.y <= sht.frame.size.height - 45) {
 		// US 選択
 		KeyboardController::switchToUS();
-		back->changeColor(Rectangle(74, back->frame.size.height - 20 - 45, 33, 20), 0xfffffe, 0);
-		back->changeColor(Rectangle(74, back->frame.size.height - 20 - 45, 33, 20), kBackgroundColor, 0xffffff);
-		back->changeColor(Rectangle(43, back->frame.size.height - 20 - 45, 32, 20), 0, 0xfffffe);
-		back->changeColor(Rectangle(43, back->frame.size.height - 20 - 45, 32, 20), 0xffffff, kBackgroundColor);
-		back->refresh(Rectangle(43, back->frame.size.height - 20 - 45, 64, 20));
-	}
-	
-	for (int i = 0; i < numOfTab; ++i) {
-		if (35 + 23 * i <= pos.y && pos.y < 33 + 16 + 8 + 23 * i) {
-			if (2 <= pos.x && pos.x <= 2 + 22) {
-				delete tabs[i];
-				break;
-			} else if (i != activeTab && 2 <= pos.x) {
-				tabs[i]->active();
-				break;
-			}
-		}
+		sht.changeColor(Rectangle(74, sht.frame.size.height - 20 - 45, 33, 20), 0xfffffe, 0);
+		sht.changeColor(Rectangle(74, sht.frame.size.height - 20 - 45, 33, 20), kBackgroundColor, 0xffffff);
+		sht.changeColor(Rectangle(43, sht.frame.size.height - 20 - 45, 32, 20), 0, 0xfffffe);
+		sht.changeColor(Rectangle(43, sht.frame.size.height - 20 - 45, 32, 20), 0xffffff, kBackgroundColor);
+		sht.refresh(Rectangle(43, sht.frame.size.height - 20 - 45, 64, 20));
 	}
 }
 
