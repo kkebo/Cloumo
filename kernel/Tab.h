@@ -11,6 +11,7 @@ private:
 
 public:
 	Sheet *sheet;
+	Timer *timer = nullptr;
 	string name;
 	
 	Tab(const string &tabName, void (*mainLoop)(Tab *));

@@ -54,6 +54,7 @@ Tab::~Tab() {
 	for (int i = index; i < SheetCtl::numOfTab - 1; ++i) {
 		// tabs をずらす
 		SheetCtl::tabs[i] = SheetCtl::tabs[i + 1];
+		--SheetCtl::tabs[i]->index;
 		
 		// タブバーをずらす
 		for (int y = 35 + 23 * i; y < 35 + 23 * i + 22; ++y) {
@@ -74,6 +75,7 @@ Tab::~Tab() {
 	
 	// 解放
 	delete sheet;
+	if (timer) delete timer;
 	if (task) delete task;
 }
 

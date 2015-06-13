@@ -53,7 +53,11 @@ void SysinfoMain(Tab *tab) {
 	int count = 0, count0 = 0;
 	Sheet *sht = tab->sheet;
 	
+	// タイマー作成
 	Timer *timer = new Timer(task->queue);
+	// タブが閉じられた時消えるように
+	tab->timer = timer;
+	// タイマーセット (1s)
 	timer->set(100);
 	
 	showSysInfo(sht, 0);
