@@ -90,6 +90,7 @@ struct string{
 		//find the nth occurrence of str starting at x going backwards
 		unsigned rfindstr(const char* str,unsigned s,unsigned x,unsigned n) const;
 		int comparestr(const char* str,unsigned first,unsigned last,unsigned start,unsigned end) const;
+		int compareistr(const char* str,unsigned first,unsigned last,unsigned start,unsigned end) const;
 	//constants
 		//maximum unsigned integer
 		const static unsigned maxint=~0;
@@ -146,7 +147,7 @@ struct string{
 				if (datalen + 1 > datasize) {
 					resizedata(minbuffsize);
 				}
-				data[datalen + 1] = '\0';
+				data[datalen] = '\0';
 			}
 			return data;}
 		inline char& operator[](unsigned x){
@@ -164,9 +165,9 @@ struct string{
 		string& operator+=(const char* str);
 		string& operator+=(const string& str);
 		void clear();
-		unsigned insert(const char c,unsigned pos);
-		unsigned insert(const char* str,unsigned pos);
-		unsigned insert(const string& str,unsigned pos);
+		unsigned insert(unsigned pos,unsigned n,const char c);
+		unsigned insert(unsigned pos,const char* str);
+		unsigned insert(unsigned pos,const string& str);
 		//count
 		unsigned count(const char c) const;
 		unsigned count(const char* str) const;
@@ -200,6 +201,13 @@ struct string{
 		int compare(unsigned pos1,unsigned n1,const char* s) const;
 		int compare(unsigned pos1,unsigned n1,const string& str,unsigned pos2,unsigned n2) const;
 		int compare(unsigned pos1,unsigned n1,const char* s,unsigned n2) const;
+		//comparei
+		int comparei(const char* str) const;
+		int comparei(const string& str) const;
+		int comparei(unsigned pos1,unsigned n1,const string& str) const;
+		int comparei(unsigned pos1,unsigned n1,const char* s) const;
+		int comparei(unsigned pos1,unsigned n1,const string& str,unsigned pos2,unsigned n2) const;
+		int comparei(unsigned pos1,unsigned n1,const char* s,unsigned n2) const;
 		//iterator functions
 		struct iterator{
 			private:

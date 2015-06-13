@@ -40,12 +40,12 @@ void* string::memmove(void* dst,const void* src,unsigned len){
 	unsigned n=0;
 	//if dst is potentially overlapping src
 	if(d>s){
-		d+=len;
-		s+=len;
+		d+=len-1;
+		s+=len-1;
 		while(n<len){
 			*d=*s;
-			++d;
-			++s;
+			--d;
+			--s;
 			++n;}}
 	else{
 		while(n<len){
@@ -128,6 +128,20 @@ int string::comparestr(const char* str,unsigned first,unsigned last,unsigned sta
 	if(pos==last+1){
 		return 0;}
 	return data[pos]-str[spos];}
+int string::compareistr(const char* str,unsigned first,unsigned last,unsigned start,unsigned end) const{
+	unsigned pos=first;
+	unsigned spos=start;
+	char c1 = data[pos], c2 = str[spos];
+	if ('A' <= c1 && c1 <= 'Z') c1 += 0x20;
+	if ('A' <= c2 && c2 <= 'Z') c2 += 0x20;
+	while(pos<=last && spos<=end && c1==c2){
+		c1 = data[++pos];
+		c2 = str[++spos];
+		if ('A' <= c1 && c1 <= 'Z') c1 += 0x20;
+		if ('A' <= c2 && c2 <= 'Z') c2 += 0x20;}
+	if(pos==last+1){
+		return 0;}
+	return c1-c2;}
 string::string(){
 	data=new char[minbuffsize];
 	data[0]=0;
@@ -145,7 +159,7 @@ string::string(const char *str, size_t len) {
 	datasize = len + minbuffsize;
 	datalen = len;
 }
-string::string (size_t n, char c) {
+string::string(size_t n, char c) {
 	size_t i;
 	data = new char[n + minbuffsize];
 	for (i = 0; i < n; ++i) {
@@ -204,22 +218,24 @@ string& string::operator+=(const string& str){
 	return *this;}
 void string::clear(){
 	data[0]=0;}
-unsigned string::insert(const char c,unsigned pos){
-	if(datalen+2>datasize){
-		resizedata(minbuffsize);}
-	memmove(data+pos+1,data+pos,datalen-pos);
-	data[pos]=c;
-	++datalen;
+unsigned string::insert(unsigned pos,unsigned n,const char c){
+	if(datalen+n+1>datasize){
+		resizedata(n<<1);}
+	memmove(data+pos+n,data+pos,datalen-pos);
+	for (unsigned i = 0; i < n; ++i) {
+		data[pos+i]=c;
+	}
+	datalen+=n;
 	return datalen;}
-unsigned string::insert(const char* str,unsigned pos){
+unsigned string::insert(unsigned pos,const char* str){
 	unsigned s=strlen(str);
 	if(datalen+s+1>datasize){
-		resizedata(s<<2);}
+		resizedata(s<<1);}
 	memmove(data+pos+s,data+pos,datalen-pos);
 	memcpy(data+pos,str,s);
 	datalen+=s;
 	return datalen;}
-unsigned string::insert(const string& str,unsigned pos){
+unsigned string::insert(unsigned pos,const string& str){
 	if(datalen+str.datalen+1>datasize){
 		resizedata(str.datalen<<1);}
 	memmove(data+pos+str.datalen,data+pos,datalen-pos);
@@ -316,6 +332,18 @@ int string::compare(unsigned pos1,unsigned n1,const string& str,unsigned pos2,un
 	return comparestr(str.data,pos1,pos1+n1-1,pos2,pos2+n2-1);}
 int string::compare(unsigned pos1,unsigned n1,const char* s,unsigned n2) const{
 	return comparestr(s,pos1,pos1+n1-1,0,n2-1);}
+int string::comparei(const char* str) const{
+	return compareistr(str,0,datalen-1,0,strlen(str)-1);}
+int string::comparei(const string& str) const{
+	return compareistr(str.data,0,datalen-1,0,str.datalen-1);}
+int string::comparei(unsigned pos1,unsigned n1,const string& str) const{
+	return compareistr(str.data,pos1,pos1+n1-1,0,str.datalen-1);}
+int string::comparei(unsigned pos1,unsigned n1,const char* s) const{
+	return compareistr(s,pos1,pos1+n1-1,0,strlen(s)-1);}
+int string::comparei(unsigned pos1,unsigned n1,const string& str,unsigned pos2,unsigned n2) const{
+	return compareistr(str.data,pos1,pos1+n1-1,pos2,pos2+n2-1);}
+int string::comparei(unsigned pos1,unsigned n1,const char* s,unsigned n2) const{
+	return compareistr(s,pos1,pos1+n1-1,0,n2-1);}
 //iterator functions
 string::iterator& string::iterator::operator++(){
 	++x;
