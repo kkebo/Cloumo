@@ -39,55 +39,6 @@ Task::Task() {
 	tss.ss0 = 0;
 }
 
-Task::Task(const char *name_, int level_, int priority_, void (*mainLoop)()) : _name(name_) {
-	// GDT に登録
-	selector = (kTaskGDT0 + TaskSwitcher::taskCount) * 8;
-	SetSegmentDescriptor((SegmentDescriptor *)kAdrGdt + kTaskGDT0 + TaskSwitcher::taskCount, 103, (int)&tss, kArTss32);
-	++TaskSwitcher::taskCount;
-	
-	// 64KB のスタック確保
-	stack = reinterpret_cast<int>(malloc4k(64 * 1024));
-	
-	// Task State Segment の設定
-	tss.eip = reinterpret_cast<int>(mainLoop);
-	tss.eflags = 0x00000202;
-	tss.eax = 0;
-	tss.ecx = 0;
-	tss.edx = 0;
-	tss.ebx = 0;
-	tss.esp = stack + 64 * 1024 - 12;
-	tss.ebp = 0;
-	tss.esi = 0;
-	tss.edi = 0;
-	tss.es = 1 * 8;//0
-	tss.cs = 2 * 8;
-	tss.ss = 1 * 8;
-	tss.ds = 1 * 8;//0
-	tss.fs = 1 * 8;//0
-	tss.gs = 1 * 8;//0
-	tss.ldtr = 0;
-	tss.iomap = 0x40000000;
-	tss.ss0 = 0;
-	
-	// run
-	run(level_, priority_);
-	
-	/*stack = (int)malloc4k(64 * 1024);
-	tss.esp = stack + 64 * 1024 - 12;
-	tss.eip = mainLoop;
-	tss.es = 1 * 8;
-	tss.cs = 2 * 8;
-	tss.ss = 1 * 8;
-	tss.ds = 1 * 8;
-	tss.fs = 1 * 8;
-	tss.gs = 1 * 8;
-	run(level_, priority_);*/
-}
-
-Task::Task(const char *name_, int level_, int priority_, int queueSize, void (*mainLoop)()) : Task(name_, level_, priority_, mainLoop) {
-	queue = new TaskQueue(queueSize, this);
-}
-
 Task::~Task() {
 	sleep();
 	delete queue;
