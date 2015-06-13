@@ -174,6 +174,23 @@ string::string(const string& str){
 	memcpy(data,str.data,str.datalen+1);
 	datasize=str.datasize;
 	datalen=str.datalen;}
+string::string(const string& str, unsigned pos, unsigned len){
+	if (pos > str.datalen) {
+		data = new char[minbuffsize];
+		data[0] = 0;
+		datasize = minbuffsize;
+		datalen = 0;
+	} else {
+		if (pos + len > str.datalen) {
+			len = str.datalen - pos;
+		}
+		
+		data = new char[str.datasize - pos];
+		memcpy(data, str.data + pos, len + 1);
+		datasize = str.datasize - pos;
+		datalen = len;
+	}
+}
 string::~string(){
 	delete[] data;}
 string& string::operator=(const char c){

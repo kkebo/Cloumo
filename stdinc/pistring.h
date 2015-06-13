@@ -138,6 +138,7 @@ struct string{
 		string(const char *str, size_t len);
 		string(size_t n, char c);
 		string(const string& str);
+		string(const string& str, unsigned pos, unsigned len);
 		~string();
 		inline operator const char*() const{
 			return data;}
