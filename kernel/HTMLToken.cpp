@@ -15,13 +15,13 @@ bool Token::isSelfClosing() {
 }
 
 void Token::appendAttribute(char c) {
-	attributes.append(shared_ptr<Attribute>(new Attribute(string(1, c), "")));
+	attributes.push_back(shared_ptr<Attribute>(new Attribute(string(1, c), "")));
 }
 
 void Token::appendAttributeName(char c) {
-	attributes.getLast()->name += c;
+	attributes.back()->name += c;
 }
 
 void Token::appendAttributeValue(char c) {
-	attributes.getLast()->value += c;
+	attributes.back()->value += c;
 }

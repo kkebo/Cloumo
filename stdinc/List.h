@@ -27,19 +27,112 @@ public:
 		}
 	}
 	
-	bool isEmpty() const {
+	struct iterator {
+	private:
+		Node *node;
+	
+	public:
+		friend class List;
+		iterator &operator ++() {
+			if (node) {
+				node = node->next;
+			}
+			return *this;
+		}
+		iterator &operator ++(int) {
+			if (node) {
+				node = node->next;
+			}
+			return *this;
+		}
+		iterator &operator --() {
+			if (node) {
+				node = node->prev;
+			}
+			return *this;
+		}
+		iterator &operator --(int) {
+			if (node) {
+				node = node->prev;
+			}
+			return *this;
+		}
+		bool operator!=(const iterator &it) {
+			return node != it.node;
+		}
+		T &operator *() {
+			return node->data;
+		}
+	};
+	struct const_iterator {
+	private:
+		const Node *node;
+	
+	public:
+		friend class List;
+		const_iterator &operator ++() {
+			if (node) {
+				node = node->next;
+			}
+			return *this;
+		}
+		const_iterator &operator ++(int) {
+			if (node) {
+				node = node->next;
+			}
+			return *this;
+		}
+		const_iterator &operator --() {
+			if (node) {
+				node = node->prev;
+			}
+			return *this;
+		}
+		const_iterator &operator --(int) {
+			if (node) {
+				node = node->prev;
+			}
+			return *this;
+		}
+		bool operator!=(const iterator &it) {
+			return node != it.node;
+		}
+		const T &operator *() {
+			return node->data;
+		}
+	};
+	
+	bool empty() const {
 		return head == nullptr;
 	}
 	
-	T &getFirst() const {
+	T &front() {
 		return head->data;
 	}
 	
-	T &getLast() const {
+	T &back() {
 		return tail->data;
 	}
 	
-	void append(const T &data) {
+	void push_front(const T &data) {
+		Node *node = new Node(data, nullptr, head);
+		if (tail == nullptr) {
+			tail = node;
+		}
+		if (head != nullptr) {
+			head->prev = node;
+		}
+		head = node;
+		++_length;
+	}
+	
+	void pop_front() {
+		head = head->next;
+		delete head->prev;
+		head->prev = nullptr;
+	}
+	
+	void push_back(const T &data) {
 		Node *node = new Node(data, tail);
 		if (head == nullptr) {
 			head = node;
@@ -51,52 +144,80 @@ public:
 		++_length;
 	}
 	
-	struct Iterator {
-	private:
-		Node *node;
+	void pop_back() {
+		tail = tail->prev;
+		delete tail->next;
+		tail->next = nullptr;
+	}
 	
-	public:
-		friend class List;
-		Iterator &operator ++() {
-			if (node) {
-				node = node->next;
-			}
-			return *this;
+	void insert(const_iterator pos, const T &data) {
+		Node *p = new Node(data, pos.node->prev, pos.node);
+		if (p->prev != nullptr) {
+			p->prev->next = p;
 		}
-		Iterator &operator ++(int) {
-			if (node) {
-				node = node->next;
-			}
-			return *this;
+		if (p->next != nullptr) {
+			p->next->prev = p;
 		}
-		Iterator &operator --() {
-			if (node) {
-				node = node->prev;
-			}
-			return *this;
-		}
-		Iterator &operator --(int) {
-			if (node) {
-				node = node->prev;
-			}
-			return *this;
-		}
-		bool operator!=(const Iterator &it) {
-			return node != it.node;
-		}
-		T &operator *() {
-			return node->data;
-		}
-	};
+	}
 	
-	Iterator begin() {
-		Iterator it;
+	void erase(const_iterator pos) {
+		Node *p = const_cast<Node *>(pos.node);
+		if (p->prev != nullptr) {
+			p->prev->next = p->next;
+		}
+		if (p->next != nullptr) {
+			p->next->prev = p->prev;
+		}
+		delete p;
+	}
+	
+	void erase(const_iterator first, const_iterator last) {
+		if (first.node->prev != nullptr) {
+			first.node->prev->next = last.node->next;
+		}
+		if (last.node->next != nullptr) {
+			last.node->next->prev = first.node->prev;
+		}
+		for (const_iterator it = first; it != last; ++it) {
+			delete const_cast<Node *>(it.node);
+		}
+	}
+	
+	void remove(const T &data) {
+		for (Node *p = head; p; p = p->next) {
+			if (p->data == data) {
+				if (p->prev != nullptr) {
+					p->prev->next = p->next;
+				}
+				if (p->next != nullptr) {
+					p->next->prev = p->prev;
+				}
+				delete p;
+				break;
+			}
+		}
+	}
+	
+	iterator begin() {
+		iterator it;
 		it.node = head;
 		return it;
 	}
 	
-	Iterator end() {
-		Iterator it;
+	iterator end() {
+		iterator it;
+		it.node = nullptr;
+		return it;
+	}
+	
+	const_iterator begin() const {
+		const_iterator it;
+		it.node = head;
+		return it;
+	}
+	
+	const_iterator end() const {
+		const_iterator it;
 		it.node = nullptr;
 		return it;
 	}
