@@ -94,7 +94,7 @@ public:
 			}
 			return *this;
 		}
-		bool operator!=(const iterator &it) {
+		bool operator!=(const const_iterator &it) {
 			return node != it.node;
 		}
 		const T &operator *() {
@@ -184,16 +184,15 @@ public:
 	}
 	
 	void remove(const T &data) {
-		for (Node *p = head; p; p = p->next) {
-			if (p->data == data) {
-				if (p->prev != nullptr) {
-					p->prev->next = p->next;
+		for (iterator it = begin(); it != end(); ++it) {
+			if (it.node->data == data) {
+				if (it.node->prev != nullptr) {
+					it.node->prev->next = it.node->next;
 				}
-				if (p->next != nullptr) {
-					p->next->prev = p->prev;
+				if (it.node->next != nullptr) {
+					it.node->next->prev = it.node->prev;
 				}
-				delete p;
-				break;
+				delete it.node;
 			}
 		}
 	}

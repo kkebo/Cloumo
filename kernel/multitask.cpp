@@ -37,9 +37,13 @@ Task::Task() {
 	tss.ldtr = 0;
 	tss.iomap = 0x40000000;
 	tss.ss0 = 0;
+	
+	// add this pointer to the list of tasks
+	TaskSwitcher::_taskList.push_back(this);
 }
 
 Task::~Task() {
+	TaskSwitcher::_taskList.remove(this);
 	sleep();
 	delete queue;
 	free4k(reinterpret_cast<void *>(stack));
@@ -76,6 +80,8 @@ void Task::sleep() {
 
 int       TaskSwitcher::nowLevel     = 0;
 bool      TaskSwitcher::levelChanged = false;
+List<Task *> TaskSwitcher::_taskList;
+const List<Task *> &TaskSwitcher::taskList = _taskList;
 TaskLevel TaskSwitcher::_level[MAX_TASKLEVELS];
 const TaskLevel (&TaskSwitcher::level)[MAX_TASKLEVELS] = _level;
 Task      *TaskSwitcher::taskFPU     = nullptr;

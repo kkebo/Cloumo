@@ -7,6 +7,7 @@
 #include <stddef.h>
 #include <pistring.h>
 #include <Queue.h>
+#include <List.h>
 
 const int kTaskGDT0 = 3;
 const int kMaxTasksLevel = 100;
@@ -35,6 +36,7 @@ class TaskSwitcher {
 private:
 	static int nowLevel;
 	static bool levelChanged; // 次回タスクスイッチ時にレベルも変えたほうがいいか
+	static List<Task *> _taskList;
 	static TaskLevel _level[];
 	static Task *taskFPU;
 	static Timer *timer;
@@ -47,6 +49,7 @@ private:
 
 public:
 	static const TaskLevel (&level)[MAX_TASKLEVELS];
+	static const List<Task *> &taskList;
 
 	friend class Task;
 	friend void IntHandler07(int *esp); // FPU
@@ -125,19 +128,11 @@ public:
 			*((int *)(tss.esp + 4 * (i + 1))) = args[i];
 		}
 		
+		// add this pointer to the list of tasks
+		TaskSwitcher::_taskList.push_back(this);
+		
 		// run
 		run(level_, priority_);
-		
-		/*stack = (int)malloc4k(64 * 1024);
-		tss.esp = stack + 64 * 1024 - 12;
-		tss.eip = mainLoop;
-		tss.es = 1 * 8;
-		tss.cs = 2 * 8;
-		tss.ss = 1 * 8;
-		tss.ds = 1 * 8;
-		tss.fs = 1 * 8;
-		tss.gs = 1 * 8;
-		run(level_, priority_);*/
 	}
 	template <typename ...Args>
 	Task(const char *name_, int level_, int priority_, int queueSize, void (*mainLoop)(Args...), int args[] = {}) : Task(name_, level_, priority_, mainLoop, args) {
