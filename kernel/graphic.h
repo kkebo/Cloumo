@@ -93,13 +93,13 @@ struct Circle {
 class Sheet {
 private:
 	Rectangle _frame = Rectangle(0, 0);
-	int _height = -1;
+	int _zIndex = -1;
 	bool nonRect;
 
 public:
 	unsigned int *buf;
 	const Rectangle &frame = _frame;
-	const int &height = _height;
+	const int &zIndex = _zIndex;
 	Tab *tab = nullptr;
 	void (*onClick)(const Point &pos, Sheet &sht) = nullptr;
 	void (*onClosed)() = nullptr;

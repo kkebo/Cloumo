@@ -10,67 +10,67 @@ Sheet::Sheet(const Size &size, bool _nonRect) :
 	buf(new unsigned int[size.getArea()]) {}
 
 Sheet::~Sheet() {
-	if (height >= 0) upDown(-1);
+	if (zIndex >= 0) upDown(-1);
 	if (onClosed) onClosed();
 	delete[] buf;
 }
 
 // シートの高さを変更
-void Sheet::upDown(int height) {
-	int old = this->height;
+void Sheet::upDown(int z) {
+	int old = _zIndex;
 
-	if (height > SheetCtl::top + 1) height = SheetCtl::top + 1;
-	if (height < -1) height = -1;
-	this->_height = height;
+	if (z > SheetCtl::top + 1) z = SheetCtl::top + 1;
+	if (z < -1) z = -1;
+	_zIndex = z;
 
-	if (old > height) { // 前より低くなった
-		if (height >= 0) { // 表示
-			for (int h = old; h > height; --h) {
+	if (old > z) { // 前より低くなった
+		if (z >= 0) { // 表示
+			for (int h = old; h > z; --h) {
 				SheetCtl::sheets[h] = SheetCtl::sheets[h - 1];
-				SheetCtl::sheets[h]->_height = h;
+				SheetCtl::sheets[h]->_zIndex = h;
 			}
-			SheetCtl::sheets[height] = this;
-			SheetCtl::refreshMap(frame, height + 1);
+			SheetCtl::sheets[z] = this;
+			SheetCtl::refreshMap(frame, z + 1);
 			SheetCtl::refreshSub(frame);
 		} else { // 非表示
 			if (SheetCtl::top > old) {
 				for (int h = old; h < SheetCtl::top; ++h) {
 					SheetCtl::sheets[h] = SheetCtl::sheets[h + 1];
-					SheetCtl::sheets[h]->_height = h;
+					SheetCtl::sheets[h]->_zIndex = h;
 				}
 			}
 			--SheetCtl::_top;
 			SheetCtl::refreshMap(frame, 0);
 			SheetCtl::refreshSub(frame);
 		}
-	} else if (old < height) { // 以前より高くなった
+	} else if (old < z) { // 以前より高くなった
 		if (old >= 0) {	// より高く
-			for (int h = old; h < height; ++h) {
+			for (int h = old; h < z; ++h) {
 				SheetCtl::sheets[h] = SheetCtl::sheets[h + 1];
-				SheetCtl::sheets[h]->_height = h;
+				SheetCtl::sheets[h]->_zIndex = h;
 			}
-			SheetCtl::sheets[height] = this;
+			SheetCtl::sheets[z] = this;
 		} else { // 非表示から表示へ
 			// 管理配列の限界が来たら無視
 			if (SheetCtl::top + 1 >= kMaxSheets) return;
 			
-			for (int h = SheetCtl::top; h >= height; --h) {
+			for (int h = SheetCtl::top; h >= z; --h) {
 				SheetCtl::sheets[h + 1] = SheetCtl::sheets[h];
-				SheetCtl::sheets[h + 1]->_height = h + 1;
+				SheetCtl::sheets[h + 1]->_zIndex = h + 1;
 			}
-			SheetCtl::sheets[height] = this;
+			SheetCtl::sheets[z] = this;
 			++SheetCtl::_top;
 		}
-		SheetCtl::refreshMap(frame, height);
+		SheetCtl::refreshMap(frame, z);
 		SheetCtl::refreshSub(frame);
 	}
 }
 
 // シートのリフレッシュ
 void Sheet::refresh(Rectangle range) const {
-	if (height >= 0) {	// 非表示シートはリフレッシュしない
+	if (zIndex >= 0) {	// 非表示シートはリフレッシュしない
 		range.slide(frame.offset);
-		SheetCtl::refreshMap(range, height);
+		SheetCtl::refreshMap(range, zIndex);
 		SheetCtl::refreshSub(range);
 	}
 }
@@ -79,9 +79,9 @@ void Sheet::refresh(Rectangle range) const {
 void Sheet::moveTo(const Point &pos) {
 	Rectangle oldFrame(frame);
 	_frame.offset = pos;
-	if (height >= 0) {	// 非表示シートはリフレッシュしない
+	if (zIndex >= 0) {	// 非表示シートはリフレッシュしない
 		SheetCtl::refreshMap(oldFrame, 0);
-		SheetCtl::refreshMap(frame, height);
+		SheetCtl::refreshMap(frame, zIndex);
 		SheetCtl::refreshSub(oldFrame);
 		SheetCtl::refreshSub(frame);
 	}
@@ -840,7 +840,7 @@ void SheetCtl::guiTaskMain() {
 					
 					case 257: // left click
 						// Close the context menu
-						if (contextMenu->height > 0) {
+						if (contextMenu->zIndex > 0) {
 							contextMenu->upDown(-1);
 						}
 						
@@ -855,7 +855,7 @@ void SheetCtl::guiTaskMain() {
 						break;
 					
 					case 258: // right click
-						if (contextMenu->height < 0) {
+						if (contextMenu->zIndex < 0) {
 							// Open the context menu
 							contextMenu->moveTo(Point(mouseCursorPos.x - contextMenu->frame.size.width / 2, mouseCursorPos.y - contextMenu->frame.size.height / 2));
 							contextMenu->upDown(top);
