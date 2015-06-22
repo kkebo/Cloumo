@@ -154,9 +154,13 @@ public:
 		Node *p = new Node(data, pos.node->prev, pos.node);
 		if (p->prev != nullptr) {
 			p->prev->next = p;
+		} else {
+			head = p;
 		}
 		if (p->next != nullptr) {
 			p->next->prev = p;
+		} else {
+			tail = p;
 		}
 	}
 	
@@ -164,9 +168,13 @@ public:
 		Node *p = const_cast<Node *>(pos.node);
 		if (p->prev != nullptr) {
 			p->prev->next = p->next;
+		} else {
+			head = p->next;
 		}
 		if (p->next != nullptr) {
 			p->next->prev = p->prev;
+		} else {
+			tail = p->prev;
 		}
 		delete p;
 	}
@@ -174,9 +182,13 @@ public:
 	void erase(const_iterator first, const_iterator last) {
 		if (first.node->prev != nullptr) {
 			first.node->prev->next = last.node->next;
+		} else {
+			head = last.node->next;
 		}
 		if (last.node->next != nullptr) {
 			last.node->next->prev = first.node->prev;
+		} else {
+			tail = first.node->prev;
 		}
 		for (const_iterator it = first; it != last; ++it) {
 			delete const_cast<Node *>(it.node);
@@ -188,9 +200,13 @@ public:
 			if (it.node->data == data) {
 				if (it.node->prev != nullptr) {
 					it.node->prev->next = it.node->next;
+				} else {
+					head = it.node->next;
 				}
 				if (it.node->next != nullptr) {
 					it.node->next->prev = it.node->prev;
+				} else {
+					tail = it.node->prev;
 				}
 				delete it.node;
 			}
