@@ -31,7 +31,7 @@ void Sheet::upDown(int height) {
 			}
 			SheetCtl::sheets[height] = this;
 			SheetCtl::refreshMap(frame, height + 1);
-			SheetCtl::refreshSub(frame, SheetCtl::top);
+			SheetCtl::refreshSub(frame);
 		} else { // 非表示
 			if (SheetCtl::top > old) {
 				for (int h = old; h < SheetCtl::top; ++h) {
@@ -41,7 +41,7 @@ void Sheet::upDown(int height) {
 			}
 			--SheetCtl::_top;
 			SheetCtl::refreshMap(frame, 0);
-			SheetCtl::refreshSub(frame, SheetCtl::top);
+			SheetCtl::refreshSub(frame);
 		}
 	} else if (old < height) { // 以前より高くなった
 		if (old >= 0) {	// より高く
@@ -62,7 +62,7 @@ void Sheet::upDown(int height) {
 			++SheetCtl::_top;
 		}
 		SheetCtl::refreshMap(frame, height);
-		SheetCtl::refreshSub(frame, SheetCtl::top);
+		SheetCtl::refreshSub(frame);
 	}
 }
 
@@ -71,7 +71,7 @@ void Sheet::refresh(Rectangle range) const {
 	if (height >= 0) {	// 非表示シートはリフレッシュしない
 		range.slide(frame.offset);
 		SheetCtl::refreshMap(range, height);
-		SheetCtl::refreshSub(range, height);
+		SheetCtl::refreshSub(range);
 	}
 }
 
@@ -82,8 +82,8 @@ void Sheet::moveTo(const Point &pos) {
 	if (height >= 0) {	// 非表示シートはリフレッシュしない
 		SheetCtl::refreshMap(oldFrame, 0);
 		SheetCtl::refreshMap(frame, height);
-		SheetCtl::refreshSub(oldFrame, height - 1);
-		SheetCtl::refreshSub(frame, height);
+		SheetCtl::refreshSub(oldFrame);
+		SheetCtl::refreshSub(frame);
 	}
 }
 
@@ -966,7 +966,7 @@ void SheetCtl::refreshMap(const Rectangle &range, int h0) {
 }
 
 // 指定範囲の変更をvramに適用
-void SheetCtl::refreshSub(const Rectangle &range, int h1) {
+void SheetCtl::refreshSub(const Rectangle &range) {
 	int bx0, by0, bx1, by1;
 	unsigned int rgb;
 
@@ -974,7 +974,7 @@ void SheetCtl::refreshSub(const Rectangle &range, int h1) {
 	int vx1 = min(resolution.width, range.getEndPoint().x), vy1 = min(resolution.height, range.getEndPoint().y);
 	unique_ptr<unsigned int> backrgb(new unsigned int[(vx1 - vx0) * (vy1 - vy0)]);
 
-	for (int sid = 0; sid <= h1; ++sid) {
+	for (int sid = 0; sid <= top; ++sid) {
 		const Sheet &sht = *sheets[sid];
 		/* vx0～vy1を使って、bx0～by1を逆算する */
 		bx0 = max(0, vx0 - sht.frame.offset.x);

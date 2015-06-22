@@ -163,7 +163,7 @@ private:
 	static void guiTaskMain();
 	static void onClickBack(const Point &pos, Sheet &sht);
 	static void refreshMap(const Rectangle &range, int);
-	static void refreshSub(const Rectangle &range, int);
+	static void refreshSub(const Rectangle &range);
 
 public:
 	static const int &top;
