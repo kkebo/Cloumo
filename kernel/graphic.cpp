@@ -1050,79 +1050,79 @@ void SheetCtl::blueScreen(const char *str) {
 			vram.p24[i][0] = 0xff;
 			vram.p24[i][1] = 0;
 			vram.p24[i][2] = 0;
-		} else {
+		} else if (color == 16) {
 			vram.p16[i] = 0xff >> 3;
 		}
 	}
 	
 	// 文字表示
-	auto drawChar = [](unsigned char *font, const Point &pos, unsigned int color) {
+	auto drawChar = [](unsigned char *font, const Point &pos, unsigned int fcolor) {
 		for (int i = 0; i < 16; ++i) {
 			unsigned char d = font[i];
 			
 			if (color == 32) {
-				unsigned int *p = vram.p32 + (pos.y + i) * resolution.width + pos.x;
-				if (d & 0x80) { p[0] = color; }
-				if (d & 0x40) { p[1] = color; }
-				if (d & 0x20) { p[2] = color; }
-				if (d & 0x10) { p[3] = color; }
-				if (d & 0x08) { p[4] = color; }
-				if (d & 0x04) { p[5] = color; }
-				if (d & 0x02) { p[6] = color; }
-				if (d & 0x01) { p[7] = color; }
+				unsigned int *p = &vram.p32[(pos.y + i) * resolution.width + pos.x];
+				if (d & 0x80) { p[0] = fcolor; }
+				if (d & 0x40) { p[1] = fcolor; }
+				if (d & 0x20) { p[2] = fcolor; }
+				if (d & 0x10) { p[3] = fcolor; }
+				if (d & 0x08) { p[4] = fcolor; }
+				if (d & 0x04) { p[5] = fcolor; }
+				if (d & 0x02) { p[6] = fcolor; }
+				if (d & 0x01) { p[7] = fcolor; }
 			} else if (color == 24) {
-				unsigned char (*p)[3] = vram.p24 + (pos.y + i) * resolution.width + pos.x;
+				unsigned char (*p)[3] = &vram.p24[(pos.y + i) * resolution.width + pos.x];
 				if (d & 0x80) {
-					p[0][0] = (unsigned char)(color);
-					p[0][1] = (unsigned char)(color >> 8);
-					p[0][2] = (unsigned char)(color >> 16);
+					p[0][0] = (unsigned char)(fcolor);
+					p[0][1] = (unsigned char)(fcolor >> 8);
+					p[0][2] = (unsigned char)(fcolor >> 16);
 				}
 				if (d & 0x40) {
-					p[1][0] = (unsigned char)(color);
-					p[1][1] = (unsigned char)(color >> 8);
-					p[1][2] = (unsigned char)(color >> 16);
+					p[1][0] = (unsigned char)(fcolor);
+					p[1][1] = (unsigned char)(fcolor >> 8);
+					p[1][2] = (unsigned char)(fcolor >> 16);
 				}
 				if (d & 0x20) {
-					p[2][0] = (unsigned char)(color);
-					p[2][1] = (unsigned char)(color >> 8);
-					p[2][2] = (unsigned char)(color >> 16);
+					p[2][0] = (unsigned char)(fcolor);
+					p[2][1] = (unsigned char)(fcolor >> 8);
+					p[2][2] = (unsigned char)(fcolor >> 16);
 				}
 				if (d & 0x10) {
-					p[3][0] = (unsigned char)(color);
-					p[3][1] = (unsigned char)(color >> 8);
-					p[3][2] = (unsigned char)(color >> 16);
+					p[3][0] = (unsigned char)(fcolor);
+					p[3][1] = (unsigned char)(fcolor >> 8);
+					p[3][2] = (unsigned char)(fcolor >> 16);
 				}
 				if (d & 0x08) {
-					p[4][0] = (unsigned char)(color);
-					p[4][1] = (unsigned char)(color >> 8);
-					p[4][2] = (unsigned char)(color >> 16);
+					p[4][0] = (unsigned char)(fcolor);
+					p[4][1] = (unsigned char)(fcolor >> 8);
+					p[4][2] = (unsigned char)(fcolor >> 16);
 				}
 				if (d & 0x04) {
-					p[5][0] = (unsigned char)(color);
-					p[5][1] = (unsigned char)(color >> 8);
-					p[5][2] = (unsigned char)(color >> 16);
+					p[5][0] = (unsigned char)(fcolor);
+					p[5][1] = (unsigned char)(fcolor >> 8);
+					p[5][2] = (unsigned char)(fcolor >> 16);
 				}
 				if (d & 0x02) {
-					p[6][0] = (unsigned char)(color);
-					p[6][1] = (unsigned char)(color >> 8);
-					p[6][2] = (unsigned char)(color >> 16);
+					p[6][0] = (unsigned char)(fcolor);
+					p[6][1] = (unsigned char)(fcolor >> 8);
+					p[6][2] = (unsigned char)(fcolor >> 16);
 				}
 				if (d & 0x01) {
-					p[7][0] = (unsigned char)(color);
-					p[7][1] = (unsigned char)(color >> 8);
-					p[7][2] = (unsigned char)(color >> 16);
+					p[7][0] = (unsigned char)(fcolor);
+					p[7][1] = (unsigned char)(fcolor >> 8);
+					p[7][2] = (unsigned char)(fcolor >> 16);
 				}
-			} else {
-				unsigned short *p = vram.p16 + (pos.y + i) * resolution.width + pos.x;
-				unsigned short color16 = (((unsigned char)(color >> 16) << 8) & 0xf800) | (((unsigned char)(color >> 8) << 3) & 0x07e0) | ((unsigned char)(color >> 3));
-				if (d & 0x80) { p[0] = color16; }
-				if (d & 0x40) { p[1] = color16; }
-				if (d & 0x20) { p[2] = color16; }
-				if (d & 0x10) { p[3] = color16; }
-				if (d & 0x08) { p[4] = color16; }
-				if (d & 0x04) { p[5] = color16; }
-				if (d & 0x02) { p[6] = color16; }
-				if (d & 0x01) { p[7] = color16; }
+			} else if (color == 16) {
+				unsigned short *p = &vram.p16[(pos.y + i) * resolution.width + pos.x];
+				unsigned short fcolor16 = (((unsigned char)(fcolor >> 16) << 8) & 0xf800) | (((unsigned char)(fcolor >> 8) << 3) & 0x07e0) | ((unsigned char)(fcolor >> 3));
+				if (d & 0x80) { p[0] = fcolor16; }
+				if (d & 0x40) { p[1] = fcolor16; }
+				if (d & 0x20) { p[2] = fcolor16; }
+				if (d & 0x10) { p[3] = fcolor16; }
+				if (d & 0x08) { p[4] = fcolor16; }
+				if (d & 0x04) { p[5] = fcolor16; }
+				if (d & 0x02) { p[6] = fcolor16; }
+				if (d & 0x01) { p[7] = fcolor16; }
 			}
 		}
 	};
