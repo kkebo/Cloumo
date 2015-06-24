@@ -10,13 +10,13 @@ protected:
 		Node *prev = nullptr, *next = nullptr;
 		
 		Node() = default;
-		Node(T newData, Node *p = nullptr, Node *n = nullptr) : data(newData), prev(p), next(n) {}
-	} *head = nullptr, *tail = nullptr;
+		explicit Node(T newData, Node *p = nullptr, Node *n = nullptr) : data(newData), prev(p), next(n) {}
+	} *dummy, *head, *tail;
 	
 public:
 	const int &length = _length;
 
-	List() = default;
+	List() : dummy(new Node(0)), head(dummy), tail(dummy) {}
 	
 	virtual ~List() {
 		// head から tail まで順に解放
@@ -34,28 +34,31 @@ public:
 	public:
 		friend class List;
 		iterator &operator ++() {
-			if (node) {
+			if (node->next) {
 				node = node->next;
 			}
 			return *this;
 		}
 		iterator &operator ++(int) {
-			if (node) {
+			if (node->next) {
 				node = node->next;
 			}
 			return *this;
 		}
 		iterator &operator --() {
-			if (node) {
+			if (node->prev) {
 				node = node->prev;
 			}
 			return *this;
 		}
 		iterator &operator --(int) {
-			if (node) {
+			if (node->prev) {
 				node = node->prev;
 			}
 			return *this;
+		}
+		bool operator==(const iterator &it) {
+			return node == it.node;
 		}
 		bool operator!=(const iterator &it) {
 			return node != it.node;
@@ -71,28 +74,31 @@ public:
 	public:
 		friend class List;
 		const_iterator &operator ++() {
-			if (node) {
+			if (node->next) {
 				node = node->next;
 			}
 			return *this;
 		}
 		const_iterator &operator ++(int) {
-			if (node) {
+			if (node->next) {
 				node = node->next;
 			}
 			return *this;
 		}
 		const_iterator &operator --() {
-			if (node) {
+			if (node->prev) {
 				node = node->prev;
 			}
 			return *this;
 		}
 		const_iterator &operator --(int) {
-			if (node) {
+			if (node->prev) {
 				node = node->prev;
 			}
 			return *this;
+		}
+		bool operator==(const const_iterator &it) {
+			return node == it.node;
 		}
 		bool operator!=(const const_iterator &it) {
 			return node != it.node;
@@ -103,7 +109,7 @@ public:
 	};
 	
 	bool empty() const {
-		return head == nullptr;
+		return head == dummy;
 	}
 	
 	T &front() {
@@ -115,98 +121,139 @@ public:
 	}
 	
 	void push_front(const T &data) {
+		// 先頭に入るべきノードを作成
 		Node *node = new Node(data, nullptr, head);
-		if (tail == nullptr) {
+		
+		if (tail == dummy) {
+			// 空なら
 			tail = node;
 		}
-		if (head != nullptr) {
-			head->prev = node;
-		}
+		
+		head->prev = node;
 		head = node;
+		
+		++_length;
+	}
+	
+	void push_back(const T &data) {
+		// 最後に入るべきノードを作成
+		Node *node = new Node(data, tail, dummy);
+		
+		if (head == dummy) {
+			// 空なら
+			head = node;
+			node->prev = nullptr;
+		} else {
+			// 空じゃなかったら
+			tail->next = node;
+		}
+		
+		tail = node;
+		dummy->prev = tail;
+		
 		++_length;
 	}
 	
 	void pop_front() {
-		head = head->next;
-		delete head->prev;
-		head->prev = nullptr;
-	}
-	
-	void push_back(const T &data) {
-		Node *node = new Node(data, tail);
-		if (head == nullptr) {
-			head = node;
+		// 空なら無視
+		if (head == dummy) return;
+		
+		if (head == tail) {
+			// 要素が1つ
+			delete head;
+			head = tail = dummy;
+			dummy->prev = nullptr;
+		} else {
+			// 要素が2つ以上
+			head = head->next;
+			delete head->prev;
+			head->prev = nullptr;
 		}
-		if (tail != nullptr) {
-			tail->next = node;
-		}
-		tail = node;
-		++_length;
 	}
 	
 	void pop_back() {
-		tail = tail->prev;
-		delete tail->next;
-		tail->next = nullptr;
+		// 空なら無視
+		if (tail == dummy) return;
+		
+		if (head == tail) {
+			// 要素が1つ
+			delete tail;
+			head = tail = dummy;
+			dummy->prev = nullptr;
+		} else {
+			// 要素が2つ以上
+			tail = tail->prev;
+			delete tail->next;
+			tail->next = dummy;
+			dummy->prev = tail;
+		}
 	}
 	
-	void insert(const_iterator pos, const T &data) {
+	void insert(iterator pos, const T &data) {
 		Node *p = new Node(data, pos.node->prev, pos.node);
-		if (p->prev != nullptr) {
+		if (p->prev != dummy) {
 			p->prev->next = p;
 		} else {
 			head = p;
 		}
-		if (p->next != nullptr) {
+		if (p->next != dummy) {
 			p->next->prev = p;
 		} else {
 			tail = p;
+			tail->next = dummy;
+			dummy->prev = tail;
 		}
 	}
 	
-	void erase(const_iterator pos) {
+	void erase(iterator pos) {
 		Node *p = const_cast<Node *>(pos.node);
-		if (p->prev != nullptr) {
+		if (p->prev != dummy) {
 			p->prev->next = p->next;
 		} else {
 			head = p->next;
 		}
-		if (p->next != nullptr) {
+		if (p->next != dummy) {
 			p->next->prev = p->prev;
 		} else {
 			tail = p->prev;
+			tail->next = dummy;
+			dummy->prev = tail;
 		}
 		delete p;
 	}
 	
-	void erase(const_iterator first, const_iterator last) {
-		if (first.node->prev != nullptr) {
+	void erase(iterator first, iterator last) {
+		if (first.node->prev != dummy) {
 			first.node->prev->next = last.node->next;
 		} else {
 			head = last.node->next;
 		}
-		if (last.node->next != nullptr) {
+		if (last.node->next != dummy) {
 			last.node->next->prev = first.node->prev;
 		} else {
 			tail = first.node->prev;
+			tail->next = dummy;
+			dummy->prev = tail;
 		}
-		for (const_iterator it = first; it != last; ++it) {
-			delete const_cast<Node *>(it.node);
+		for (iterator it = first; it != last; ++it) {
+			delete it.node;
 		}
 	}
 	
 	void remove(const T &data) {
 		for (iterator it = begin(); it != end(); ++it) {
 			if (it.node->data == data) {
-				if (it.node->prev != nullptr) {
+				if (it.node->prev != dummy) {
 					it.node->prev->next = it.node->next;
 				} else {
 					head = it.node->next;
 				}
-				if (it.node->next != nullptr) {
+				if (it.node->next != dummy) {
 					it.node->next->prev = it.node->prev;
 				} else {
 					tail = it.node->prev;
+					tail->next = dummy;
+					dummy->prev = tail;
 				}
 				delete it.node;
 			}
@@ -221,7 +268,7 @@ public:
 	
 	iterator end() {
 		iterator it;
-		it.node = nullptr;
+		it.node = dummy;
 		return it;
 	}
 	
@@ -233,7 +280,7 @@ public:
 	
 	const_iterator end() const {
 		const_iterator it;
-		it.node = nullptr;
+		it.node = dummy;
 		return it;
 	}
 };
