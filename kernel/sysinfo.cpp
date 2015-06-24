@@ -27,7 +27,7 @@ void showSysInfo(Sheet *sht, int benchScore) {
 	sht->drawString("level priority flag task name", Point(2 + 1, 2 + 16 * 4 + 1), 0);
 	int j = 0;
 	char s[20];
-	for (auto &&task : TaskSwitcher::taskList) {
+	for (auto &&task : *TaskSwitcher::taskList) {
 		sprintf(s, "%5d %8d %4s ", task->level, task->priority, task->running ? "(oo)" : "(__)");
 		str = s + task->name;
 		sht->drawString(str, Point(2 + 1, 2 + 16 * 5 + j * 16 + 2), 0);

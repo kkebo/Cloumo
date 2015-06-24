@@ -36,7 +36,7 @@ class TaskSwitcher {
 private:
 	static int nowLevel;
 	static bool levelChanged; // 次回タスクスイッチ時にレベルも変えたほうがいいか
-	static List<Task *> _taskList;
+	static List<Task *> *_taskList;
 	static TaskLevel _level[];
 	static Task *taskFPU;
 	static Timer *timer;
@@ -49,7 +49,7 @@ private:
 
 public:
 	static const TaskLevel (&level)[MAX_TASKLEVELS];
-	static const List<Task *> &taskList;
+	static List<Task *> *const &taskList;
 
 	friend class Task;
 	friend void IntHandler07(int *esp); // FPU
@@ -129,7 +129,7 @@ public:
 		}
 		
 		// add this pointer to the list of tasks
-		TaskSwitcher::_taskList.push_back(this);
+		TaskSwitcher::_taskList->push_back(this);
 		
 		// run
 		run(level_, priority_);

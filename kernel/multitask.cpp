@@ -39,11 +39,11 @@ Task::Task() {
 	tss.ss0 = 0;
 	
 	// add this pointer to the list of tasks
-	TaskSwitcher::_taskList.push_back(this);
+	TaskSwitcher::_taskList->push_back(this);
 }
 
 Task::~Task() {
-	TaskSwitcher::_taskList.remove(this);
+	TaskSwitcher::_taskList->remove(this);
 	sleep();
 	delete queue;
 	free4k(reinterpret_cast<void *>(stack));
@@ -80,8 +80,8 @@ void Task::sleep() {
 
 int       TaskSwitcher::nowLevel     = 0;
 bool      TaskSwitcher::levelChanged = false;
-List<Task *> TaskSwitcher::_taskList;
-const List<Task *> &TaskSwitcher::taskList = _taskList;
+List<Task *> *TaskSwitcher::_taskList;
+List<Task *> *const &TaskSwitcher::taskList = _taskList;
 TaskLevel TaskSwitcher::_level[MAX_TASKLEVELS];
 const TaskLevel (&TaskSwitcher::level)[MAX_TASKLEVELS] = _level;
 Task      *TaskSwitcher::taskFPU     = nullptr;
@@ -89,6 +89,9 @@ Timer     *TaskSwitcher::timer;
 int       TaskSwitcher::taskCount    = 1; // メインタスクの分をあらかじめ足しておく
 
 Task *TaskSwitcher::init() {
+	// タスクリストの初期化
+	_taskList = new List<Task *>();
+	
 	// メインタスクの設定
 	Task *task = new Task();
 	task->_name = "メインタスク";
