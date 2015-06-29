@@ -37,7 +37,7 @@ void Sheet::upDown(int zIndex) {
 
 	if (old != parent->children.end()) {
 		// 現在表示されており，変更を求められている
-		parent->_children.remove(this);
+		parent->_children.erase(it);
 		if (it != parent->children.end()) { // 表示
 			parent->_children.insert(it, this);
 			SheetCtl::refreshMap(frame/*, z + 1*/);
