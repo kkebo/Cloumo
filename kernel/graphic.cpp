@@ -863,14 +863,13 @@ void SheetCtl::guiTaskMain() {
 									sht.onClick(mouseCursorPos, sht);
 								} else {
 									// sht が最後の子なら親も onClick
-									for (auto p = &sht; p->parent != nullptr; p = p->parent) {
+									for (auto p = &sht; p->parent != nullptr && p->parent->children.back() == p; p = p->parent) {
 										// offset 足す
 										Point offset;
 										for (auto q = p->parent->parent; q != nullptr; q = q->parent) {
 											offset += q->frame.offset;
 										}
-										if (p->parent->children.back() == p
-										&& p->parent->onClick && Rectangle(p->parent->frame).slide(offset).contains(mouseCursorPos)) {
+										if (p->parent->onClick && Rectangle(p->parent->frame).slide(offset).contains(mouseCursorPos)) {
 											p->parent->onClick(mouseCursorPos, *p->parent);
 										}
 									}
