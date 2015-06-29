@@ -57,7 +57,10 @@ void Sheet::upDown(int zIndex) {
 // シートのリフレッシュ
 void Sheet::refresh(Rectangle range) const {
 	if (this == SheetCtl::back || (parent && find(parent->children.begin(), parent->children.end(), this) != parent->children.end())) { // 非表示シートはリフレッシュしない
-		range.slide(frame.offset);
+		// 画面上でのオフセット計算
+		for (auto p = this; p != nullptr; p = p->parent) {
+			range.slide(p->frame.offset);
+		}
 		SheetCtl::refreshMap(range);//, zIndex);
 		SheetCtl::refreshSub(range);
 	}
@@ -914,6 +917,7 @@ void SheetCtl::reInit() {
 	// 検索窓
 	back->fillRect(Rectangle(2, back->frame.size.height - 20 - 22, 150 - 2 - 2, 22), 0xffffff);
 	// 表示設定
+	back->refresh(back->frame);
 	//back->upDown(0);
 }
 
@@ -947,10 +951,18 @@ void SheetCtl::refreshMap(const Rectangle &range) {
 
 	while (!sheetStack.isempty()) {
 		const Sheet &sht = *sheetStack.pop();
-		bx0 = max(0, vx0 - sht.frame.offset.x);
-		by0 = max(0, vy0 - sht.frame.offset.y);
-		bx1 = min(sht.frame.size.width, vx1 - sht.frame.offset.x);
-		by1 = min(sht.frame.size.height, vy1 - sht.frame.offset.y);
+		
+		// 先祖の分の offset を足す
+		Point offset = sht.frame.offset;
+		for (auto p = sht.parent; p != nullptr; p = p->parent) {
+			offset += p->frame.offset;
+		}
+		/* vx0～vy1を使って、bx0～by1を逆算する */
+		bx0 = max(0, vx0 - offset.x);
+		by0 = max(0, vy0 - offset.y);
+		bx1 = min(sht.frame.size.width, vx1 - offset.x);
+		by1 = min(sht.frame.size.height, vy1 - offset.y);
+		
 		if (!sht.nonRect) {
 			//if (!(sht.frame.offset.x & 3) && !(bx0 & 3) && !(bx1 & 3)) {
 				/* 透明色なし専用の高速版（4バイト型） */
@@ -965,7 +977,8 @@ void SheetCtl::refreshMap(const Rectangle &range) {
 				/* 透明色なし専用の高速版（1バイト型） */
 				for (int by = by0; by < by1; ++by) {
 					for (int bx = bx0; bx < bx1; ++bx) {
-						map[(sht.frame.offset.y + by) * resolution.width + sht.frame.offset.x + bx] = &sht;
+						if (&sht == back || sht.parent->frame.contains(Point(bx, by) + offset))
+							map[(offset.y + by) * resolution.width + offset.x + bx] = &sht;
 					}
 				}
 			//}
@@ -973,8 +986,9 @@ void SheetCtl::refreshMap(const Rectangle &range) {
 			/* 透明色ありの一般版（1バイト型） */
 			for (int by = by0; by < by1; ++by) {
 				for (int bx = bx0; bx < bx1; ++bx) {
-					if ((unsigned char)(sht.buf[by * sht.frame.size.width + bx] >> 24) != 0xff) {
-						map[(sht.frame.offset.y + by) * resolution.width + sht.frame.offset.x + bx] = &sht;
+					if ((unsigned char)(sht.buf[by * sht.frame.size.width + bx] >> 24) != 0xff
+					&& sht.parent->frame.contains(Point(bx, by) + offset)) {
+						map[(offset.y + by) * resolution.width + offset.x + bx] = &sht;
 					}
 				}
 			}
@@ -1004,11 +1018,18 @@ void SheetCtl::refreshSub(const Rectangle &range) {
 
 	while (!sheetStack.isempty()) {
 		const Sheet &sht = *sheetStack.pop();
+		
+		// 先祖の分の offset を足す
+		Point offset = sht.frame.offset;
+		for (auto p = sht.parent; p != nullptr; p = p->parent) {
+			offset += p->frame.offset;
+		}
 		/* vx0～vy1を使って、bx0～by1を逆算する */
-		bx0 = max(0, vx0 - sht.frame.offset.x);
-		by0 = max(0, vy0 - sht.frame.offset.y);
-		bx1 = min(sht.frame.size.width, vx1 - sht.frame.offset.x);
-		by1 = min(sht.frame.size.height, vy1 - sht.frame.offset.y);
+		bx0 = max(0, vx0 - offset.x);
+		by0 = max(0, vy0 - offset.y);
+		bx1 = min(sht.frame.size.width, vx1 - offset.x);
+		by1 = min(sht.frame.size.height, vy1 - offset.y);
+		
 		//if (color == 32) {
 			for (int by = by0; by < by1; ++by) {
 				for (int bx = bx0; bx < bx1; ++bx) {
@@ -1022,14 +1043,14 @@ void SheetCtl::refreshSub(const Rectangle &range) {
 							= (sid == 0) ? rgb
 							           : MixRgb(rgb, backrgb[(sht.frame.offset.y + by - vy0) * (vx1 - vx0) + (sht.frame.offset.x + bx - vx0)]);
 					}*/
-					if (map[(sht.frame.offset.y + by) * resolution.width + sht.frame.offset.x + bx] == &sht) {
-						vram.p32[((sht.frame.offset.y + by) * resolution.width + (sht.frame.offset.x + bx))]
+					if (map[(offset.y + by) * resolution.width + offset.x + bx] == &sht) {
+						vram.p32[((offset.y + by) * resolution.width + (offset.x + bx))]
 							= (&sht == back) ? rgb
-							                 : MixRgb(rgb, backrgb[(sht.frame.offset.y + by - vy0) * (vx1 - vx0) + (sht.frame.offset.x + bx - vx0)]);
+							                 : MixRgb(rgb, backrgb[(offset.y + by - vy0) * (vx1 - vx0) + (offset.x + bx - vx0)]);
 					} else if ((unsigned char)(rgb >> 24) != 0xff) {
-						backrgb[(sht.frame.offset.y + by - vy0) * (vx1 - vx0) + (sht.frame.offset.x + bx - vx0)]
+						backrgb[(offset.y + by - vy0) * (vx1 - vx0) + (offset.x + bx - vx0)]
 							= (&sht == back) ? rgb
-							                 : MixRgb(rgb, backrgb[(sht.frame.offset.y + by - vy0) * (vx1 - vx0) + (sht.frame.offset.x + bx - vx0)]);
+							                 : MixRgb(rgb, backrgb[(offset.y + by - vy0) * (vx1 - vx0) + (offset.x + bx - vx0)]);
 					}
 				}
 			}
