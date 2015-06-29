@@ -43,7 +43,8 @@ void DateTimeMain() {
 	}
 	dateTimeSheet.drawString(s, Point(0, 0), 0xffffff);
 	dateTimeSheet.moveTo(Point(2, SheetCtl::resolution.height - 18));
-	dateTimeSheet.upDown(SheetCtl::top);
+	SheetCtl::back->appendChild(&dateTimeSheet);
+	dateTimeSheet.upDown(SheetCtl::back->children.size() - 1);
 	
 	for (;;) {
 		Cli();
