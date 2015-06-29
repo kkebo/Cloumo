@@ -82,7 +82,7 @@ void Sheet::moveTo(const Point &pos) {
 void Sheet::appendChild(Sheet *child, bool show) {
 	child->parent = this;
 	if (show) {
-		_children.push_back(child);
+		_children.push_front(child);
 		child->refresh(Rectangle(0, 0, child->frame.size.width, child->frame.size.height));
 	}
 }
@@ -849,19 +849,38 @@ void SheetCtl::guiTaskMain() {
 						
 						// 各シートの onClick イベントを発動
 						Stack<Sheet *> sheetStack(256);
-						for (auto &&sht : back->_children) {
-							sheetStack.push(sht);
-						}
+						sheetStack.push(back);
 						while (!sheetStack.isempty()) {
 							Sheet &sht = *sheetStack.pop();
-							if (sht.onClick && sht.frame.contains(mouseCursorPos)) {
-								sht.onClick(mouseCursorPos, sht);
-								break;
-							}
-							
-							// 子をスタックにプッシュ
-							for (auto &&child : sht._children) {
-								sheetStack.push(child);
+							if (sht.children.empty()) { // リーフ
+								// offset 足す
+								Point offset;
+								for (auto p = sht.parent; p != nullptr; p = p->parent) {
+									offset += p->frame.offset;
+								}
+								if (sht.onClick && Rectangle(sht.frame).slide(offset).contains(mouseCursorPos)) {
+									// sht 自身に onClick があって，ポインタ直下にあれば実行
+									sht.onClick(mouseCursorPos, sht);
+								} else {
+									// sht が最後の子なら親も onClick
+									for (auto p = &sht; p->parent != nullptr; p = p->parent) {
+										// offset 足す
+										Point offset;
+										for (auto q = p->parent->parent; q != nullptr; q = q->parent) {
+											offset += q->frame.offset;
+										}
+										if (p->parent->children.back() == p
+										&& p->parent->onClick && Rectangle(p->parent->frame).slide(offset).contains(mouseCursorPos)) {
+											p->parent->onClick(mouseCursorPos, *p->parent);
+										}
+									}
+								}
+							} else { // 中間ノード
+								// 子をスタックに高さが低い順にプッシュ
+								for (auto it = --sht.children.end(); it != sht.children.begin(); --it) {
+									sheetStack.push(*it);
+								}
+								sheetStack.push(sht.children.front());
 							}
 						}
 						if (back->onClick && back->frame.contains(mouseCursorPos)) {
@@ -875,7 +894,7 @@ void SheetCtl::guiTaskMain() {
 						if (find(back->children.begin(), back->children.end(), contextMenu) == back->children.end()) {
 							// Open the context menu
 							contextMenu->moveTo(Point(mouseCursorPos.x - contextMenu->frame.size.width / 2, mouseCursorPos.y - contextMenu->frame.size.height / 2));
-							contextMenu->upDown(back->children.size() - 1);
+							contextMenu->upDown(1);
 						}
 						break;
 					
@@ -995,12 +1014,8 @@ void SheetCtl::refreshMap(const Rectangle &range) {
 		}
 		
 		// 子をスタックにプッシュ
-		if (!sht.children.empty()) {
-			auto it = --sht.children.end();
-			for (; it != sht.children.begin(); --it) {
-				sheetStack.push(*it);
-			}
-			sheetStack.push(*it);
+		for (auto &&child : sht.children) {
+			sheetStack.push(child);
 		}
 	}
 }
@@ -1096,12 +1111,8 @@ void SheetCtl::refreshSub(const Rectangle &range) {
 		}*/
 		
 		// 子をスタックにプッシュ
-		if (!sht.children.empty()) {
-			auto it = --sht.children.end();
-			for (; it != sht.children.begin(); --it) {
-				sheetStack.push(*it);
-			}
-			sheetStack.push(*it);
+		for (auto &&child : sht.children) {
+			sheetStack.push(child);
 		}
 	}
 }

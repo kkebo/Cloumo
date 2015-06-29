@@ -29,7 +29,7 @@ Tab::Tab(const string &tabName) : index(SheetCtl::numOfTab++), tabBar(new Sheet(
 	tabBar->drawString(string(tabName, 0, 15), Point(4 + 22, 4), kActiveTextColor);
 	tabBar->moveTo(Point(2, 35 + 23 * index));
 	SheetCtl::back->appendChild(tabBar);
-	tabBar->upDown(SheetCtl::back->children.size() - 1);
+	tabBar->upDown(1);
 	
 	// タブ切り替え
 	active();
@@ -92,7 +92,7 @@ void Tab::active() {
 	tabBar->changeColor(tabRect, kPassiveTabColor, kActiveTabColor);
 	tabBar->changeColor(tabRect, kPassiveTextColor, kActiveTextColor);
 	tabBar->refresh(tabRect);
-	sheet->upDown(SheetCtl::back->children.size() - 1);
+	sheet->upDown(1);
 	
 	// アクティブだったタブ
 	if (SheetCtl::activeTab >= 0) {
