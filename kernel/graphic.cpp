@@ -7,9 +7,9 @@
 #include "HTMLTreeConstructor.h"
 
 Sheet::Sheet(const Size &size, bool _nonRect) :
-	_frame(size),
-	nonRect(_nonRect),
-	buf(new unsigned int[size.getArea()]) {}
+_frame(size),
+nonRect(_nonRect),
+buf(new unsigned int[size.getArea()]) {}
 
 Sheet::~Sheet() {
 	if (parent && find(parent->children.begin(), parent->children.end(), this) != parent->children.end())
@@ -23,7 +23,7 @@ void Sheet::upDown(int zIndex) {
 	// 非表示にする
 	if (zIndex < 0) {
 		parent->_children.remove(this);
-		//SheetCtl::refreshMap(frame, 0);
+		SheetCtl::refreshMap(frame/*, 0*/);
 		SheetCtl::refreshSub(frame);
 		return;
 	}
@@ -40,16 +40,16 @@ void Sheet::upDown(int zIndex) {
 		parent->_children.remove(this);
 		if (it != parent->children.end()) { // 表示
 			parent->_children.insert(it, this);
-			//SheetCtl::refreshMap(frame, z + 1);
+			SheetCtl::refreshMap(frame/*, z + 1*/);
 			SheetCtl::refreshSub(frame);
 		} else { // 非表示にする
-			//SheetCtl::refreshMap(frame, 0);
+			SheetCtl::refreshMap(frame);//, 0);
 			SheetCtl::refreshSub(frame);
 		}
 	} else {
 		// 現在非表示
 		parent->_children.insert(it, this);
-		//SheetCtl::refreshMap(frame, z);
+		SheetCtl::refreshMap(frame);//, z);
 		SheetCtl::refreshSub(frame);
 	}
 }
@@ -58,7 +58,7 @@ void Sheet::upDown(int zIndex) {
 void Sheet::refresh(Rectangle range) const {
 	if (this == SheetCtl::back || (parent && find(parent->children.begin(), parent->children.end(), this) != parent->children.end())) { // 非表示シートはリフレッシュしない
 		range.slide(frame.offset);
-		//SheetCtl::refreshMap(range, zIndex);
+		SheetCtl::refreshMap(range);//, zIndex);
 		SheetCtl::refreshSub(range);
 	}
 }
@@ -68,8 +68,8 @@ void Sheet::moveTo(const Point &pos) {
 	Rectangle oldFrame(frame);
 	_frame.offset = pos;
 	if (parent && find(parent->children.begin(), parent->children.end(), this) != parent->children.end()) {	// 非表示シートはリフレッシュしない
-		//SheetCtl::refreshMap(oldFrame, 0);
-		//SheetCtl::refreshMap(frame, zIndex);
+		SheetCtl::refreshMap(oldFrame);//, 0);
+		SheetCtl::refreshMap(frame);//, zIndex);
 		SheetCtl::refreshSub(oldFrame);
 		SheetCtl::refreshSub(frame);
 	}
@@ -80,7 +80,7 @@ void Sheet::appendChild(Sheet *child, bool show) {
 	child->parent = this;
 	if (show) {
 		_children.push_back(child);
-		child->refresh(child->frame);
+		child->refresh(Rectangle(0, 0, child->frame.size.width, child->frame.size.height));
 	}
 }
 
@@ -523,9 +523,9 @@ unsigned int SheetCtl::caretColor = 0;
 Timer *SheetCtl::caretTimer;
 string *SheetCtl::tboxString;
 SheetCtl::VRAM SheetCtl::vram;
+const Sheet **SheetCtl::map;
 Size SheetCtl::_resolution(0, 0);
 const Size &SheetCtl::resolution = _resolution;
-unsigned char *SheetCtl::map;
 TaskQueue *SheetCtl::queue;
 Sheet *SheetCtl::back;
 Sheet *SheetCtl::contextMenu;
@@ -578,7 +578,7 @@ void SheetCtl::init() {
 	color = 32;
 	vram.p16 = reinterpret_cast<unsigned short *>(0xe0000000);
 	
-	map         = new unsigned char[resolution.getArea()];
+	map = new const Sheet *[resolution.getArea()];
 	tboxString  = new string();
 
 	/* フォント読み込み */
@@ -603,6 +603,8 @@ void SheetCtl::init() {
 	back->drawString("US", Point(50 + 32, back->frame.size.height - 20 - 43), 0xfffffe);
 	// 検索窓
 	back->fillRect(Rectangle(2, back->frame.size.height - 20 - 22, 150 - 2 - 2, 22), 0xffffff);
+	// refresh
+	back->refresh(back->frame);
 
 	// マウスポインタ描画
 	mouseCursorPos = Point(-1, 0);
@@ -936,18 +938,21 @@ void SheetCtl::onClickBack(const Point &pos, Sheet &sht) {
 }
 
 // 指定範囲の変更をmapに適用
-/*void SheetCtl::refreshMap(const Rectangle &range, int h0) {
+void SheetCtl::refreshMap(const Rectangle &range) {
 	int bx0, by0, bx1, by1, sid4;
 	int vx0 = max(0, range.offset.x), vy0 = max(0, range.offset.y);
 	int vx1 = min(resolution.width, range.getEndPoint().x), vy1 = min(resolution.height, range.getEndPoint().y);
-	for (int sid = h0; sid <= top; ++sid) {
-		const Sheet &sht = *sheets[sid];
+	Stack<const Sheet *> sheetStack(256);
+	sheetStack.push(back);
+
+	while (!sheetStack.isempty()) {
+		const Sheet &sht = *sheetStack.pop();
 		bx0 = max(0, vx0 - sht.frame.offset.x);
 		by0 = max(0, vy0 - sht.frame.offset.y);
 		bx1 = min(sht.frame.size.width, vx1 - sht.frame.offset.x);
 		by1 = min(sht.frame.size.height, vy1 - sht.frame.offset.y);
 		if (!sht.nonRect) {
-			if (!(sht.frame.offset.x & 3) && !(bx0 & 3) && !(bx1 & 3)) {
+			//if (!(sht.frame.offset.x & 3) && !(bx0 & 3) && !(bx1 & 3)) {
 				/* 透明色なし専用の高速版（4バイト型） */
 				/*bx1 = (bx1 - bx0) / 4;
 				sid4 = sid | sid << 8 | sid << 16 | sid << 24;
@@ -956,26 +961,35 @@ void SheetCtl::onClickBack(const Point &pos, Sheet &sht) {
 						((int*) &map[(sht.frame.offset.y + by) * resolution.width + sht.frame.offset.x + bx0])[bx] = sid4;
 					}
 				}
-			} else {
+			} else {*/
 				/* 透明色なし専用の高速版（1バイト型） */
-				/*for (int by = by0; by < by1; ++by) {
+				for (int by = by0; by < by1; ++by) {
 					for (int bx = bx0; bx < bx1; ++bx) {
-						map[(sht.frame.offset.y + by) * resolution.width + sht.frame.offset.x + bx] = sid;
+						map[(sht.frame.offset.y + by) * resolution.width + sht.frame.offset.x + bx] = &sht;
 					}
 				}
-			}
+			//}
 		} else {
 			/* 透明色ありの一般版（1バイト型） */
-			/*for (int by = by0; by < by1; ++by) {
+			for (int by = by0; by < by1; ++by) {
 				for (int bx = bx0; bx < bx1; ++bx) {
-					if ((unsigned char) (sht.buf[by * sht.frame.size.width + bx] >> 24) != 255) {
-						map[(sht.frame.offset.y + by) * resolution.width + sht.frame.offset.x + bx] = sid;
+					if ((unsigned char)(sht.buf[by * sht.frame.size.width + bx] >> 24) != 0xff) {
+						map[(sht.frame.offset.y + by) * resolution.width + sht.frame.offset.x + bx] = &sht;
 					}
 				}
 			}
 		}
+		
+		// 子をスタックにプッシュ
+		if (!sht.children.empty()) {
+			auto it = --sht.children.end();
+			for (; it != sht.children.begin(); --it) {
+				sheetStack.push(*it);
+			}
+			sheetStack.push(*it);
+		}
 	}
-}*/
+}
 
 // 指定範囲の変更をvramに適用
 void SheetCtl::refreshSub(const Rectangle &range) {
@@ -984,7 +998,7 @@ void SheetCtl::refreshSub(const Rectangle &range) {
 
 	int vx0 = max(0, range.offset.x), vy0 = max(0, range.offset.y);
 	int vx1 = min(resolution.width, range.getEndPoint().x), vy1 = min(resolution.height, range.getEndPoint().y);
-	//unique_ptr<unsigned int> backrgb(new unsigned int[(vx1 - vx0) * (vy1 - vy0)]);
+	unique_ptr<unsigned int> backrgb(new unsigned int[(vx1 - vx0) * (vy1 - vy0)]);
 	Stack<const Sheet *> sheetStack(256);
 	sheetStack.push(back);
 
@@ -1008,8 +1022,15 @@ void SheetCtl::refreshSub(const Rectangle &range) {
 							= (sid == 0) ? rgb
 							           : MixRgb(rgb, backrgb[(sht.frame.offset.y + by - vy0) * (vx1 - vx0) + (sht.frame.offset.x + bx - vx0)]);
 					}*/
-					if ((unsigned char)(rgb >> 24) != 0xff)
-						vram.p32[((sht.frame.offset.y + by) * resolution.width + (sht.frame.offset.x + bx))] = rgb;
+					if (map[(sht.frame.offset.y + by) * resolution.width + sht.frame.offset.x + bx] == &sht) {
+						vram.p32[((sht.frame.offset.y + by) * resolution.width + (sht.frame.offset.x + bx))]
+							= (&sht == back) ? rgb
+							                 : MixRgb(rgb, backrgb[(sht.frame.offset.y + by - vy0) * (vx1 - vx0) + (sht.frame.offset.x + bx - vx0)]);
+					} else if ((unsigned char)(rgb >> 24) != 0xff) {
+						backrgb[(sht.frame.offset.y + by - vy0) * (vx1 - vx0) + (sht.frame.offset.x + bx - vx0)]
+							= (&sht == back) ? rgb
+							                 : MixRgb(rgb, backrgb[(sht.frame.offset.y + by - vy0) * (vx1 - vx0) + (sht.frame.offset.x + bx - vx0)]);
+					}
 				}
 			}
 		/*} else if (color == 24) {

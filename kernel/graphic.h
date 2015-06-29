@@ -143,7 +143,7 @@ private:
 		unsigned char (*p24)[3];
 		unsigned int *p32;
 	} vram;
-	static unsigned char *map;
+	static const Sheet **map;
 	static File *font;
 	static Sheet *sheets[];
 	static Size _resolution;
@@ -166,7 +166,7 @@ private:
 
 	static void guiTaskMain();
 	static void onClickBack(const Point &pos, Sheet &sht);
-	//static void refreshMap(const Rectangle &range, int);
+	static void refreshMap(const Rectangle &range);
 	static void refreshSub(const Rectangle &range);
 
 public:
