@@ -16,6 +16,7 @@ OBJS = \
 	HTMLNode.o \
 	HTMLTreeConstructor.o \
 	File.o \
+	ModalWindow.o \
 	Tab.o
 DEPS = $(OBJS:%.o=%.d)
 

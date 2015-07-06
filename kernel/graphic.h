@@ -97,11 +97,12 @@ private:
 	//int _zIndex = -1;
 	bool nonRect;
 	List<Sheet *> _children;
-	Sheet *parent = nullptr;
+	Sheet *_parent = nullptr;
 
 public:
 	unsigned int *buf;
 	const List<Sheet *> &children = _children;
+	Sheet *const &parent = _parent;
 	const Rectangle &frame = _frame;
 	//const int &zIndex = _zIndex;
 	Tab *tab = nullptr;

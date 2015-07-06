@@ -12,9 +12,20 @@ nonRect(_nonRect),
 buf(new unsigned int[size.getArea()]) {}
 
 Sheet::~Sheet() {
-	if (parent && find(parent->children.begin(), parent->children.end(), this) != parent->children.end())
+	// 子シートを delete
+	while (!children.empty()) {
+		delete _children.front();
+		_children.pop_front();
+	}
+	
+	// 自分を非表示
+	if (_parent && find(_parent->children.begin(), _parent->children.end(), this) != _parent->children.end())
 		upDown(-1);
+	
+	// onClosed 実行
 	if (onClosed) onClosed();
+	
+	// buf 解放
 	delete[] buf;
 }
 
@@ -22,24 +33,24 @@ Sheet::~Sheet() {
 void Sheet::upDown(int zIndex) {
 	// 非表示にする
 	if (zIndex < 0) {
-		parent->_children.remove(this);
+		_parent->_children.remove(this);
 		SheetCtl::refreshMap(frame/*, 0*/);
 		SheetCtl::refreshSub(frame);
 		return;
 	}
 	
 	// 現在の index
-	auto old = find(parent->children.begin(), parent->children.end(), this);
+	auto old = find(_parent->children.begin(), _parent->children.end(), this);
 	
 	// 指定された index
-	auto it = parent->children.begin();
-	for (; it != parent->children.end() && zIndex > 0; ++it, --zIndex) {}
+	auto it = _parent->children.begin();
+	for (; it != _parent->children.end() && zIndex > 0; ++it, --zIndex) {}
 
-	if (old != parent->children.end()) {
+	if (old != _parent->children.end()) {
 		// 現在表示されており，変更を求められている
-		parent->_children.erase(it);
-		if (it != parent->children.end()) { // 表示
-			parent->_children.insert(it, this);
+		_parent->_children.erase(it);
+		if (it != _parent->children.end()) { // 表示
+			_parent->_children.insert(it, this);
 			SheetCtl::refreshMap(frame/*, z + 1*/);
 			SheetCtl::refreshSub(frame);
 		} else { // 非表示にする
@@ -48,7 +59,7 @@ void Sheet::upDown(int zIndex) {
 		}
 	} else {
 		// 現在非表示
-		parent->_children.insert(it, this);
+		_parent->_children.insert(it, this);
 		SheetCtl::refreshMap(frame);//, z);
 		SheetCtl::refreshSub(frame);
 	}
@@ -56,9 +67,9 @@ void Sheet::upDown(int zIndex) {
 
 // シートのリフレッシュ
 void Sheet::refresh(Rectangle range) const {
-	if (this == SheetCtl::back || (parent && find(parent->children.begin(), parent->children.end(), this) != parent->children.end())) { // 非表示シートはリフレッシュしない
+	if (this == SheetCtl::back || (_parent && find(_parent->children.begin(), _parent->children.end(), this) != _parent->children.end())) { // 非表示シートはリフレッシュしない
 		// 画面上でのオフセット計算
-		for (auto p = this; p != nullptr; p = p->parent) {
+		for (auto p = this; p != nullptr; p = p->_parent) {
 			range.slide(p->frame.offset);
 		}
 		SheetCtl::refreshMap(range);//, zIndex);
@@ -70,7 +81,7 @@ void Sheet::refresh(Rectangle range) const {
 void Sheet::moveTo(const Point &pos) {
 	Rectangle oldFrame(frame);
 	_frame.offset = pos;
-	if (parent && find(parent->children.begin(), parent->children.end(), this) != parent->children.end()) {	// 非表示シートはリフレッシュしない
+	if (_parent && find(_parent->children.begin(), _parent->children.end(), this) != _parent->children.end()) {	// 非表示シートはリフレッシュしない
 		SheetCtl::refreshMap(oldFrame);//, 0);
 		SheetCtl::refreshMap(frame);//, zIndex);
 		SheetCtl::refreshSub(oldFrame);
@@ -80,7 +91,7 @@ void Sheet::moveTo(const Point &pos) {
 
 // 子シートを追加
 void Sheet::appendChild(Sheet *child, bool show) {
-	child->parent = this;
+	child->_parent = this;
 	if (show) {
 		_children.push_front(child);
 		child->refresh(Rectangle(0, 0, child->frame.size.width, child->frame.size.height));
@@ -850,27 +861,34 @@ void SheetCtl::guiTaskMain() {
 						// 各シートの onClick イベントを発動
 						Stack<Sheet *> sheetStack(256);
 						sheetStack.push(back);
-						while (!sheetStack.isempty()) {
+						bool finished = false;
+						while (!sheetStack.isempty() && !finished) {
 							Sheet &sht = *sheetStack.pop();
+							
+							// マウスカーソル自身だったら skip
+							if (&sht == mouseCursorSheet) continue;
+							
 							if (sht.children.empty()) { // リーフ
 								// offset 足す
 								Point offset;
-								for (auto p = sht.parent; p != nullptr; p = p->parent) {
+								for (auto p = sht._parent; p != nullptr; p = p->_parent) {
 									offset += p->frame.offset;
 								}
-								if (sht.onClick && Rectangle(sht.frame).slide(offset).contains(mouseCursorPos)) {
-									// sht 自身に onClick があって，ポインタ直下にあれば実行
-									sht.onClick(mouseCursorPos, sht);
+								if (Rectangle(sht.frame).slide(offset).contains(mouseCursorPos)) {
+									// sht 自身に onClick があって，マウスポインタ直下にあれば実行
+									if (sht.onClick) sht.onClick(mouseCursorPos, sht);
+									finished = true;
 								} else {
 									// sht が最後の子なら親も onClick
-									for (auto p = &sht; p->parent != nullptr && p->parent->children.back() == p; p = p->parent) {
+									for (auto p = &sht; p->_parent != nullptr && p->_parent->children.back() == p; p = p->_parent) {
 										// offset 足す
 										Point offset;
-										for (auto q = p->parent->parent; q != nullptr; q = q->parent) {
+										for (auto q = p->_parent->_parent; q != nullptr; q = q->_parent) {
 											offset += q->frame.offset;
 										}
-										if (p->parent->onClick && Rectangle(p->parent->frame).slide(offset).contains(mouseCursorPos)) {
-											p->parent->onClick(mouseCursorPos, *p->parent);
+										if (Rectangle(p->_parent->frame).slide(offset).contains(mouseCursorPos)) {
+											if (p->_parent->onClick) p->_parent->onClick(mouseCursorPos, *p->_parent);
+											finished = true;
 										}
 									}
 								}
@@ -884,7 +902,6 @@ void SheetCtl::guiTaskMain() {
 						}
 						if (back->onClick && back->frame.contains(mouseCursorPos)) {
 							back->onClick(mouseCursorPos, *back);
-							break;
 						}
 						break;
 					}
@@ -972,7 +989,7 @@ void SheetCtl::refreshMap(const Rectangle &range) {
 		
 		// 先祖の分の offset を足す
 		Point offset = sht.frame.offset;
-		for (auto p = sht.parent; p != nullptr; p = p->parent) {
+		for (auto p = sht._parent; p != nullptr; p = p->_parent) {
 			offset += p->frame.offset;
 		}
 		/* vx0～vy1を使って、bx0～by1を逆算する */
@@ -995,7 +1012,7 @@ void SheetCtl::refreshMap(const Rectangle &range) {
 				/* 透明色なし専用の高速版（1バイト型） */
 				for (int by = by0; by < by1; ++by) {
 					for (int bx = bx0; bx < bx1; ++bx) {
-						if (&sht == back || sht.parent->frame.contains(Point(bx, by) + offset))
+						if (&sht == back || sht._parent->frame.contains(Point(bx, by) + offset))
 							map[(offset.y + by) * resolution.width + offset.x + bx] = &sht;
 					}
 				}
@@ -1005,7 +1022,7 @@ void SheetCtl::refreshMap(const Rectangle &range) {
 			for (int by = by0; by < by1; ++by) {
 				for (int bx = bx0; bx < bx1; ++bx) {
 					if ((unsigned char)(sht.buf[by * sht.frame.size.width + bx] >> 24) != 0xff
-					&& sht.parent->frame.contains(Point(bx, by) + offset)) {
+					&& sht._parent->frame.contains(Point(bx, by) + offset)) {
 						map[(offset.y + by) * resolution.width + offset.x + bx] = &sht;
 					}
 				}
@@ -1035,7 +1052,7 @@ void SheetCtl::refreshSub(const Rectangle &range) {
 		
 		// 先祖の分の offset を足す
 		Point offset = sht.frame.offset;
-		for (auto p = sht.parent; p != nullptr; p = p->parent) {
+		for (auto p = sht._parent; p != nullptr; p = p->_parent) {
 			offset += p->frame.offset;
 		}
 		/* vx0～vy1を使って、bx0～by1を逆算する */
