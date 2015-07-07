@@ -978,7 +978,7 @@ void SheetCtl::onClickBack(const Point &pos, Sheet &sht) {
 
 // 指定範囲の変更をmapに適用
 void SheetCtl::refreshMap(const Rectangle &range) {
-	int bx0, by0, bx1, by1, sid4;
+	int bx0, by0, bx1, by1;//, sid4;
 	int vx0 = max(0, range.offset.x), vy0 = max(0, range.offset.y);
 	int vx1 = min(resolution.width, range.getEndPoint().x), vy1 = min(resolution.height, range.getEndPoint().y);
 	Stack<const Sheet *> sheetStack(256);
@@ -1061,45 +1061,39 @@ void SheetCtl::refreshSub(const Rectangle &range) {
 		bx1 = min(sht.frame.size.width, vx1 - offset.x);
 		by1 = min(sht.frame.size.height, vy1 - offset.y);
 		
-		//if (color == 32) {
+		if (color == 32) {
 			for (int by = by0; by < by1; ++by) {
 				for (int bx = bx0; bx < bx1; ++bx) {
 					rgb = sht.buf[by * sht.frame.size.width + bx];
-					/*if (map[(sht.frame.offset.y + by) * resolution.width + sht.frame.offset.x + bx] == sid) {
-						vram.p32[((sht.frame.offset.y + by) * resolution.width + (sht.frame.offset.x + bx))]
-							= (sid == 0) ? rgb
-							           : MixRgb(rgb, backrgb[(sht.frame.offset.y + by - vy0) * (vx1 - vx0) + (sht.frame.offset.x + bx - vx0)]);
-					} else if ((unsigned char)(rgb >> 24) != 255) {
-						backrgb[(sht.frame.offset.y + by - vy0) * (vx1 - vx0) + (sht.frame.offset.x + bx - vx0)]
-							= (sid == 0) ? rgb
-							           : MixRgb(rgb, backrgb[(sht.frame.offset.y + by - vy0) * (vx1 - vx0) + (sht.frame.offset.x + bx - vx0)]);
-					}*/
 					if (map[(offset.y + by) * resolution.width + offset.x + bx] == &sht) {
 						vram.p32[((offset.y + by) * resolution.width + (offset.x + bx))]
-							= (&sht == back) ? rgb
-							                 : MixRgb(rgb, backrgb[(offset.y + by - vy0) * (vx1 - vx0) + (offset.x + bx - vx0)]);
+							= &sht == back
+							? rgb
+							: MixRgb(rgb, backrgb[(offset.y + by - vy0) * (vx1 - vx0) + (offset.x + bx - vx0)]);
 					} else if ((unsigned char)(rgb >> 24) != 0xff) {
 						backrgb[(offset.y + by - vy0) * (vx1 - vx0) + (offset.x + bx - vx0)]
-							= (&sht == back) ? rgb
-							                 : MixRgb(rgb, backrgb[(offset.y + by - vy0) * (vx1 - vx0) + (offset.x + bx - vx0)]);
+							= &sht == back
+							? rgb
+							: MixRgb(rgb, backrgb[(offset.y + by - vy0) * (vx1 - vx0) + (offset.x + bx - vx0)]);
 					}
 				}
 			}
-		/*} else if (color == 24) {
+		} else if (color == 24) {
 			for (int by = by0; by < by1; ++by) {
 				for (int bx = bx0; bx < bx1; ++bx) {
 					rgb = sht.buf[by * sht.frame.size.width + bx];
-					if (map[(sht.frame.offset.y + by) * resolution.width + sht.frame.offset.x + bx] == sid) {
-						if (sid > 1) {
-							rgb = MixRgb(rgb, backrgb[(sht.frame.offset.y + by - vy0) * (vx1 - vx0) + (sht.frame.offset.x + bx - vx0)]);
+					if (map[(offset.y + by) * resolution.width + offset.x + bx] == &sht) {
+						if (&sht != back) {
+							rgb = MixRgb(rgb, backrgb[(offset.y + by - vy0) * (vx1 - vx0) + (offset.x + bx - vx0)]);
 						}
-						vram.p24[(sht.frame.offset.y + by) * resolution.width + (sht.frame.offset.x + bx)][0] = (unsigned char)rgb;
-						vram.p24[(sht.frame.offset.y + by) * resolution.width + (sht.frame.offset.x + bx)][1] = (unsigned char)(rgb >> 8);
-						vram.p24[(sht.frame.offset.y + by) * resolution.width + (sht.frame.offset.x + bx)][2] = (unsigned char)(rgb >> 16);
-					} else if ((unsigned char)(rgb >> 24) != 255) {
-						backrgb[(sht.frame.offset.y + by - vy0) * (vx1 - vx0) + (sht.frame.offset.x + bx - vx0)]
-						= (sid == 0) ? rgb
-						: MixRgb(rgb, backrgb[(sht.frame.offset.y + by - vy0) * (vx1 - vx0) + (sht.frame.offset.x + bx - vx0)]);
+						vram.p24[(offset.y + by) * resolution.width + (offset.x + bx)][0] = (unsigned char)rgb;
+						vram.p24[(offset.y + by) * resolution.width + (offset.x + bx)][1] = (unsigned char)(rgb >> 8);
+						vram.p24[(offset.y + by) * resolution.width + (offset.x + bx)][2] = (unsigned char)(rgb >> 16);
+					} else if ((unsigned char)(rgb >> 24) != 0xff) {
+						backrgb[(offset.y + by - vy0) * (vx1 - vx0) + (offset.x + bx - vx0)]
+							= &sht == back
+							? rgb
+							: MixRgb(rgb, backrgb[(offset.y + by - vy0) * (vx1 - vx0) + (offset.x + bx - vx0)]);
 					}
 				}
 			}
@@ -1107,24 +1101,24 @@ void SheetCtl::refreshSub(const Rectangle &range) {
 			for (int by = by0; by < by1; ++by) {
 				for (int bx = bx0; bx < bx1; ++bx) {
 					rgb = sht.buf[by * sht.frame.size.width + bx];
-					if (map[(sht.frame.offset.y + by) * resolution.width + sht.frame.offset.x + bx] == sid) {
-						vram.p16[(sht.frame.offset.y + by) * resolution.width + (sht.frame.offset.x + bx)]
-						              = (sid <= 1) ?
-						            		  ((((unsigned char) (rgb >> 16) << 8) & 0xf800)
-								                 | (((unsigned char) (rgb >> 8) << 3) & 0x07e0)
-								                 | ((unsigned char) rgb >> 3)) :
-						                	  ((((((unsigned char) (backrgb[(sht.frame.offset.y + by - vy0) * (vx1 - vx0) + (sht.frame.offset.x + bx - vx0)] >> 16) - (unsigned char) (rgb >> 16)) * (unsigned char) (rgb >> 24) / 255 + (unsigned char) (rgb >> 16)) << 8) & 0xf800)
-								                 | (((((unsigned char) (backrgb[(sht.frame.offset.y + by - vy0) * (vx1 - vx0) + (sht.frame.offset.x + bx - vx0)] >> 8) - (unsigned char) (rgb >> 8)) * (unsigned char) (rgb >> 24) / 255 + (unsigned char) (rgb >> 8)) << 3) & 0x07e0)
-								                 | (((unsigned char) backrgb[(sht.frame.offset.y + by - vy0) * (vx1 - vx0) + (sht.frame.offset.x + bx - vx0)] - (unsigned char) rgb) * (unsigned char) (rgb >> 24) / 255 + (unsigned char) rgb) >> 3);
-					} else if ((unsigned char) (rgb >> 24) != 255) {
-						backrgb[(sht.frame.offset.y + by - vy0) * (vx1 - vx0) + (sht.frame.offset.x + bx - vx0)]
-						        = (sid == 0) ?
-						        		rgb :
-						        		MixRgb(rgb, backrgb[(sht.frame.offset.y + by - vy0) * (vx1 - vx0) + (sht.frame.offset.x + bx - vx0)]);
+					if (map[(offset.y + by) * resolution.width + offset.x + bx] == &sht) {
+						vram.p16[(offset.y + by) * resolution.width + (offset.x + bx)]
+							= &sht == back
+							? ((((unsigned char) (rgb >> 16) << 8) & 0xf800)
+								| (((unsigned char) (rgb >> 8) << 3) & 0x07e0)
+								| ((unsigned char) rgb >> 3))
+							: ((((((unsigned char) (backrgb[(offset.y + by - vy0) * (vx1 - vx0) + (offset.x + bx - vx0)] >> 16) - (unsigned char) (rgb >> 16)) * (unsigned char) (rgb >> 24) / 255 + (unsigned char) (rgb >> 16)) << 8) & 0xf800)
+								| (((((unsigned char) (backrgb[(offset.y + by - vy0) * (vx1 - vx0) + (offset.x + bx - vx0)] >> 8) - (unsigned char) (rgb >> 8)) * (unsigned char) (rgb >> 24) / 255 + (unsigned char) (rgb >> 8)) << 3) & 0x07e0)
+								| (((unsigned char) backrgb[(offset.y + by - vy0) * (vx1 - vx0) + (offset.x + bx - vx0)] - (unsigned char) rgb) * (unsigned char) (rgb >> 24) / 255 + (unsigned char) rgb) >> 3);
+					} else if ((unsigned char) (rgb >> 24) != 0xff) {
+						backrgb[(offset.y + by - vy0) * (vx1 - vx0) + (offset.x + bx - vx0)]
+							= &sht == back
+							? rgb
+							: MixRgb(rgb, backrgb[(offset.y + by - vy0) * (vx1 - vx0) + (offset.x + bx - vx0)]);
 					}
 				}
 			}
-		}*/
+		}
 		
 		// 子をスタックにプッシュ
 		for (auto &&child : sht.children) {
