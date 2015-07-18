@@ -37,11 +37,11 @@ Tab::Tab(const string &tabName) : index(SheetCtl::numOfTab++), tabBar(new Sheet(
 
 Tab::Tab(const string &tabName, void (*mainLoop)(Tab *)) : Tab(tabName) {
 	int args[] = { (int)this };
-	task = new Task(name, 3, 2, mainLoop, args);
+	_task = new Task(name, 3, 2, mainLoop, args);
 }
 Tab::Tab(const string &tabName, int queueSize, void (*mainLoop)(Tab *)) : Tab(tabName) {
 	int args[] = { (int)this };
-	task = new Task(name, 3, 2, queueSize, mainLoop, args);
+	_task = new Task(name, 3, 2, queueSize, mainLoop, args);
 }
 
 Tab::~Tab() {
@@ -79,8 +79,7 @@ Tab::~Tab() {
 	
 	// その他の解放
 	delete sheet;
-	if (timer) delete timer;
-	if (task) delete task;
+	if (_task) delete _task;
 }
 
 void Tab::active() {

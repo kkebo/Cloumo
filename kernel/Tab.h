@@ -4,7 +4,7 @@
 
 class Tab {
 private:
-	Task *task = nullptr;
+	Task *_task = nullptr;
 	int index;
 	Sheet *tabBar;
 	
@@ -12,8 +12,8 @@ private:
 
 public:
 	Sheet *sheet;
-	Timer *timer = nullptr;
 	string name;
+	Task *const &task = _task;
 	
 	Tab(const string &tabName, void (*mainLoop)(Tab *));
 	Tab(const string &tabName, int queueSize, void (*mainLoop)(Tab *));
