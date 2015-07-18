@@ -2,18 +2,13 @@
 #include <pistring.h>
 #include "../headers.h"
 
-void showSysInfo(Sheet *sht, int benchScore) {
+void showSysInfo(Sheet *sht) {
 	string str;
 	auto memTotal = MemoryTotal();
 	
 	// Clear the screen
-	Rectangle clearRange(Point(2, 2), Size(sht->frame.size.width - 3, sht->frame.size.height - 3));
+	Rectangle clearRange(Point(2, 18), Size(sht->frame.size.width - 3, sht->frame.size.height - 3 - 16));
 	sht->fillRect(clearRange, 0xffffff);
-	
-	// Benchmark Result
-	str = to_string(benchScore);
-	sht->drawString("Benchmark Score:", Point(2, 2), 0);
-	sht->drawString(str, Point(2 + 8 * 17, 2), 0);
 	
 	// Memory Information
 	str = "RAM: " + to_string(MemoryTest(0x00400000, 0xbfffffff) / 1024 / 1024) + " MB    FREE: " + to_string(memTotal / 1024 / 1024) + " MB (" + to_string(memTotal) + " Byte)";
@@ -45,31 +40,52 @@ void showSysInfo(Sheet *sht, int benchScore) {
 
 void SysinfoMain(Tab *tab) {
 	Task *task = TaskSwitcher::getNowTask();
-	int count = 0, count0 = 0;
 	Sheet *sht = tab->sheet;
 	
-	// タイマー作成
-	Timer *timer = new Timer(task->queue);
-	// タブが閉じられた時消えるように
-	tab->timer = timer;
+	// ベンチマーク用タイマー
+	static Timer *benchTimer;
+	if (benchTimer) delete benchTimer;
+	benchTimer = new Timer(task->queue, 1); // about:sysinfo を複数開いた時に問題が発生
+	
+	// Benchmark button
+	Sheet *button = new Sheet(Size(200, 18), true);
+	button->fillRect(Rectangle(button->frame), 0xaaaaaa);
+	button->drawString("ベンチマーク測定開始", Point(20, 1), 0);
+	button->borderRadius(true, true, true, true);
+	button->moveTo(Point(1, 1));
+	sht->appendChild(button, true);
+	button->onClick = [](const Point&, Sheet &sht) {
+		// 10秒後にベンチマーク結果表示を要求
+		benchTimer->set(1000);
+	};
+	
+	// 毎秒システム情報更新用のタイマー作成
+	Timer *timer = new Timer(task->queue, 0);
 	// タイマーセット (1s)
 	timer->set(100);
 	
-	showSysInfo(sht, 0);
+	showSysInfo(sht);
 	
-	for (;;) {
-		++count;
+	for (int count = 0;; ++count) {
 		Cli();
 		if (task->queue->isempty()) {
-			//task->sleep(); ベンチマーク測定のため
 			Sti();
 		} else {
 			int data = task->queue->pop();
 			Sti();
-			if (data == timer->data) {
-				showSysInfo(sht, count - count0);
-				count0 = count;
-				timer->set(100);
+			switch (data) {
+				case 0: // 毎秒再描画
+					showSysInfo(sht);
+					timer->set(100);
+					break;
+				
+				case 1: { // ベンチマーク測定結果表示
+					sht->fillRect(Rectangle(Point(202, 2), Size(sht->frame.size.width - 202, 16)), 0xffffff);
+					sht->drawString("Benchmark Score:", Point(202, 2), 0);
+					sht->drawString(to_string(count), Point(202 + 8 * 17, 2), 0);
+					sht->refresh(Rectangle(Point(202, 2), Size(sht->frame.size.width - 202, 16)));
+					break;
+				}
 			}
 		}
 	}
