@@ -3,10 +3,10 @@
 ネイティブアプリケーションを持たず、カーネルレベルで Web ブラウザエンジンを持つような OS を目指しています。
 
 ## スクリーンショット
-![Screenshot 1](http://i.imgur.com/Bn8ZIw3.png)
+![Screenshot 1](http://i.imgur.com/WzYNnuM.png?1)
 起動直後
 
-![Scrennshot 2](http://i.imgur.com/gQc8MLl.png)
+![Scrennshot 2](http://i.imgur.com/DuVJeno.png?1)
 システム情報タブ
 
 ## ビルド手順
