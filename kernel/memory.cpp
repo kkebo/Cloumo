@@ -1,6 +1,6 @@
 #include "../headers.h"
 
-bool free0(void *addr, unsigned int size);
+bool free0(uintptr_t addr, size_t size);
 
 void MemoryInit() {
 	MemoryManager *memoryManager = (MemoryManager *)ADDRESS_MEMORY_MANAGER;
@@ -8,20 +8,20 @@ void MemoryInit() {
 	memoryManager->maxfrees = 0;
 	memoryManager->lostsize = 0;
 	memoryManager->losts = 0;
-	free0((void *)0x00001000, 0x0009e000);
-	free0((void *)0x00400000, MemoryTest(0x00400000, 0xbfffffff) - 0x00400000);
+	free0(0x00001000, 0x0009e000);
+	free0(0x00400000, MemoryTest(0x00400000, 0xbfffffff) - 0x00400000);
 }
 
-unsigned int MemoryTotal() {
+size_t MemoryTotal() {
 	MemoryManager *memoryManager = (MemoryManager *)ADDRESS_MEMORY_MANAGER;
-	unsigned int t = 0;
-	for (int i = 0; i < memoryManager->frees; ++i) {
+	size_t t = 0;
+	for (size_t i = 0; i < memoryManager->frees; ++i) {
 		t += memoryManager->freeinfo[i].size;
 	}
 	return t;
 }
 
-unsigned int MemoryTest(unsigned int start, unsigned int end) {
+size_t MemoryTest(size_t start, size_t end) {
 	char flg486 = 0;
 	unsigned int eflg, cr0, i;
 
@@ -42,7 +42,7 @@ unsigned int MemoryTest(unsigned int start, unsigned int end) {
 		StoreCr0(cr0);
 	}
 
-	i = MemoryTestSub(start, end);
+	i = (size_t)MemoryTestSub((unsigned int)start, (unsigned int)end);
 
 	if (flg486 != 0) {
 		cr0 = LoadCr0();
@@ -53,44 +53,44 @@ unsigned int MemoryTest(unsigned int start, unsigned int end) {
 	return i;
 }
 
-void *malloc(unsigned int size) {
+void *malloc(size_t size) {
 	MemoryManager *memoryManager = (MemoryManager *)ADDRESS_MEMORY_MANAGER;
 
-	size += sizeof(unsigned int); // サイズ記録分空ける
+	const size_t truesize = size + sizeof(size_t); // サイズ記録分空ける
 
 	for (int i = 0; i < memoryManager->frees; ++i) {
-		if (memoryManager->freeinfo[i].size >= size) {
-			unsigned int *result = (unsigned int *)memoryManager->freeinfo[i].addr;
-			memoryManager->freeinfo[i].addr += size;
-			memoryManager->freeinfo[i].size -= size;
-			if (!memoryManager->freeinfo[i].size) {
+		if (memoryManager->freeinfo[i].size >= truesize) {
+			uintptr_t result = memoryManager->freeinfo[i].addr;
+			memoryManager->freeinfo[i].addr += truesize;
+			memoryManager->freeinfo[i].size -= truesize;
+			if (memoryManager->freeinfo[i].size <= 0) {
 				--memoryManager->frees;
 				for (; i < memoryManager->frees; ++i) {
 					memoryManager->freeinfo[i] = memoryManager->freeinfo[i + 1];
 				}
 			}
 			// サイズ記録(サイズ記録域含む)
-			result[0] = size;
+			*((size_t *)result) = truesize;
 
-			return result + 1;
+			return (void *)(result + sizeof(size_t));
 		}
 	}
 	return 0;
 }
 
-bool free0(void *addr, unsigned int size) {
+bool free0(uintptr_t addr, size_t size) {
 	MemoryManager *memoryManager = (MemoryManager *)ADDRESS_MEMORY_MANAGER;
-	int i;
+	size_t i;
 
 	for (i = 0; i < memoryManager->frees; ++i)
-		if (memoryManager->freeinfo[i].addr > (unsigned int)addr)
+		if (memoryManager->freeinfo[i].addr > addr)
 			break;
 
 	if (i > 0) {
-		if (memoryManager->freeinfo[i - 1].addr + memoryManager->freeinfo[i - 1].size == (unsigned int)addr) {
+		if (memoryManager->freeinfo[i - 1].addr + memoryManager->freeinfo[i - 1].size == addr) {
 			memoryManager->freeinfo[i - 1].size += size;
 			if (i < memoryManager->frees) {
-				if ((unsigned int)addr + size == memoryManager->freeinfo[i].addr) {
+				if (addr + size == memoryManager->freeinfo[i].addr) {
 					memoryManager->freeinfo[i - 1].size += memoryManager->freeinfo[i].size;
 					--memoryManager->frees;
 					for (; i < memoryManager->frees; ++i) {
@@ -102,8 +102,8 @@ bool free0(void *addr, unsigned int size) {
 		}
 	}
 	if (i < memoryManager->frees) {
-		if ((unsigned int)addr + size == memoryManager->freeinfo[i].addr) {
-			memoryManager->freeinfo[i].addr = (unsigned int)addr;
+		if (addr + size == memoryManager->freeinfo[i].addr) {
+			memoryManager->freeinfo[i].addr = addr;
 			memoryManager->freeinfo[i].size += size;
 			return true;
 		}
@@ -116,7 +116,7 @@ bool free0(void *addr, unsigned int size) {
 		if (memoryManager->maxfrees < memoryManager->frees) {
 			memoryManager->maxfrees = memoryManager->frees;
 		}
-		memoryManager->freeinfo[i].addr = (unsigned int)addr;
+		memoryManager->freeinfo[i].addr = addr;
 		memoryManager->freeinfo[i].size = size;
 		return true;
 	}
@@ -126,11 +126,11 @@ bool free0(void *addr, unsigned int size) {
 }
 
 bool free(void *addr) {
-	unsigned int *realaddr = (unsigned int *)addr - 1;
-	return free0(realaddr, realaddr[0]);
+	uintptr_t trueaddr = (uintptr_t)addr - sizeof(size_t);
+	return free0(trueaddr, *((size_t *)trueaddr));
 }
 
-void *malloc4k(unsigned int size) {
+void *malloc4k(size_t size) {
 	return malloc((size + 0xfff) & 0xfffff000);
 }
 
@@ -158,11 +158,11 @@ bool free4k(void *addr) {
 	return s1;
 }*/
 
-void *operator new(long unsigned int size) {
+void *operator new(size_t size) {
 	return malloc4k(size);
 }
 
-void *operator new[](long unsigned int size) {
+void *operator new[](size_t size) {
 	return malloc4k(size);
 }
 
