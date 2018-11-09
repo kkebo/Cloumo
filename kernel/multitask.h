@@ -81,7 +81,7 @@ protected:
 		0x0000, /* SW(status word)  */
 		0xffff  /* TW(tag word)     */
 	};
-	int stack;
+	uintptr_t stack;
 	
 	Task(); // メインタスク用
 
@@ -97,14 +97,14 @@ public:
 	Task(const string &name_, int level_, int priority_, void (*mainLoop)(Args...), int args[] = {}) : _name(name_) {
 		// GDT に登録
 		selector = (kTaskGDT0 + TaskSwitcher::taskCount) * 8;
-		SetSegmentDescriptor((SegmentDescriptor *)kAdrGdt + kTaskGDT0 + TaskSwitcher::taskCount, 103, (int)&tss, kArTss32);
+		SetSegmentDescriptor((SegmentDescriptor *)kAdrGdt + kTaskGDT0 + TaskSwitcher::taskCount, 103, (uintptr_t)&tss, kArTss32);
 		++TaskSwitcher::taskCount;
 		
 		// 64KB のスタック確保
-		stack = reinterpret_cast<int>(malloc4k(64 * 1024));
+		stack = reinterpret_cast<uintptr_t>(malloc4k(64 * 1024));
 		
 		// Task State Segment の設定
-		tss.eip = reinterpret_cast<int>(mainLoop);
+		tss.eip = reinterpret_cast<uintptr_t>(mainLoop);
 		tss.eflags = 0x00000202;
 		tss.eax = 0;
 		tss.ecx = 0;

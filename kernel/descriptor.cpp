@@ -30,7 +30,7 @@ void DescriptorInit() {
 }
 
 // Segment Descriptorセット
-void SetSegmentDescriptor(SegmentDescriptor *sd, unsigned int limit, int base, int ar) {
+void SetSegmentDescriptor(SegmentDescriptor *sd, unsigned int limit, uintptr_t base, int ar) {
 	if (limit > 0xfffff) {
 		ar |= 0x8000; /* G_bit = 1 */
 		limit /= 0x1000;

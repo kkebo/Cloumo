@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include "kernel/asmfunc.h"
 #include "kernel/asmhead.h"
 #include "kernel/bmp.h"

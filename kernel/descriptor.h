@@ -26,6 +26,6 @@ struct GateDescriptor {
 };
 
 void DescriptorInit();
-void SetSegmentDescriptor(SegmentDescriptor*, unsigned int, int, int);
+void SetSegmentDescriptor(SegmentDescriptor*, unsigned int, uintptr_t, int);
 void SetGateDescriptor(GateDescriptor*, int, int, int);
 
