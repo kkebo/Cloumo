@@ -97,8 +97,8 @@ public:
 	Task(const string &name_, int level_, int priority_, void (*mainLoop)(Args...), int args[] = {}) : _name(name_) {
 		// GDT に登録
 		selector = (kTaskGDT0 + TaskSwitcher::taskCount) * 8;
-		auto sd = reinterpret_cast<SegmentDescriptor *>(kAdrGdt);
-		sd[kTaskGDT0 + TaskSwitcher::taskCount].set(103, reinterpret_cast<uintptr_t>(&tss), kArTss32);
+		auto *task_gdt = reinterpret_cast<SegmentDescriptor *>(kAdrGdt + kTaskGDT0);
+		task_gdt[TaskSwitcher::taskCount].set(103, reinterpret_cast<uintptr_t>(&tss), kArTss32);
 		++TaskSwitcher::taskCount;
 		
 		// 64KB のスタック確保
