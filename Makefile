@@ -37,13 +37,13 @@ ifeq ($(OS),Windows_NT)
 	DEL      = -del
 	os.sys   = copy /B kernel/asmhead.bin+kernel.bin os.sys
 else
-# OS X
+# UNIX
 	TOOLPATH = ../z_tools/
 	INCPATH  = stdinc/
 	MAKE     = make -r
-	LD       = ~/opt/cross/bin/i686-elf-ld
+	LD       = ld
 	EDIMG    = $(TOOLPATH)edimg
-	QEMU     = /usr/local/bin/qemu-system-x86_64 -vga std
+	QEMU     = qemu-system-x86_64 -vga std
 	DEL      = rm -f
 	os.sys   = cat kernel/asmhead.bin kernel.bin > os.sys
 endif

@@ -18,16 +18,16 @@ ifeq ($(OS),Windows_NT)
 	NASM     =
 	DEL      = -del
 else
-# OS X
+# UNIX
 	TOOLPATH = ../../z_tools/
 	INCPATH  = .
 	MAKE     = make -r
-	CC       = ~/opt/cross/bin/i686-elf-gcc
+	CC       = gcc
 	CFLAGS   = -I$(INCPATH) -Os -Wall -fno-exceptions -B$(TOOLPATH) -std=c11 -fno-stack-protector -ffunction-sections -fdata-sections
-	CXX      = ~/opt/cross/bin/i686-elf-g++
+	CXX      = g++
 	CXXFLAGS = -I$(INCPATH) -Os -Wall -fno-exceptions -fno-rtti -B$(TOOLPATH) -std=c++14 -fno-stack-protector -ffunction-sections -fdata-sections
-	AR       = ~/opt/cross/bin/i686-elf-ar
-	NASM     = /usr/local/bin/nasm
+	AR       = ar
+	NASM     = nasm
 	DEL      = rm -f
 endif
 
