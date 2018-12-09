@@ -3,7 +3,7 @@
 // GDT/IDT初期化
 void DescriptorInit() {
 	/* GDT初期化 */
-	auto gdt = reinterpret_cast<SegmentDescriptor *>(kAdrGdt);
+	auto *gdt = reinterpret_cast<SegmentDescriptor *>(kAdrGdt);
 	for (int i = 0; i <= kLimitGdt / 8; ++i) {
 		gdt[i].set(0, 0, 0);
 	}
@@ -12,7 +12,7 @@ void DescriptorInit() {
 	LoadGdtr(kLimitGdt, kAdrGdt);
 
 	/* IDT初期化 */
-	auto idt = reinterpret_cast<GateDescriptor *>(kAdrIdt);
+	auto *idt = reinterpret_cast<GateDescriptor *>(kAdrIdt);
 	for (int i = 0; i <= kLimitIdt / 8; ++i) {
 		idt[i].set(0, 0, 0);
 	}

@@ -19,7 +19,8 @@ Task::Task() {
 	
 	// GDT に登録
 	selector = kTaskGDT0 * 8;
-	SetSegmentDescriptor(reinterpret_cast<SegmentDescriptor *>(kAdrGdt + kTaskGDT0), 103, reinterpret_cast<uintptr_t>(&tss), kArTss32);
+	auto *gdt = reinterpret_cast<SegmentDescriptor *>(kAdrGdt + kTaskGDT0);
+	gdt->set(103, reinterpret_cast<uintptr_t>(&tss), kArTss32);
 	
 	// Task State Segment の設定
 	tss.eflags = 0x00000202;
