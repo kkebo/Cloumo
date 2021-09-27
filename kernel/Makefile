@@ -16,7 +16,9 @@ OBJS = \
 	HTMLNode.o \
 	HTMLTreeConstructor.o \
 	File.o \
-	Tab.o
+	Tab.o \
+	bmp.o \
+	jpeg.o
 DEPS = $(OBJS:%.o=%.d)
 
 ifeq ($(OS),Windows_NT)
