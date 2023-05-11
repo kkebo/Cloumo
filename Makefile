@@ -43,7 +43,7 @@ else
 	TOOLPATH = ../z_tools/
 	INCPATH  = stdinc/
 	MAKE     = make -r
-	LD       = ~/opt/cross/bin/i686-elf-ld
+	LD       = ld#~/opt/cross/bin/i686-elf-ld
 	EDIMG    = $(TOOLPATH)edimg
 	QEMU     = /usr/local/bin/qemu-system-x86_64 -vga std
 	DEL      = rm -f
@@ -62,7 +62,7 @@ all:
 # 特別生成規則
 
 kernel.bin: $(OBJS) $(LIBS) main.ls
-	$(LD) --gc-sections -nostdlib -m elf_i386 -Map kernel.map -T main.ls -s -o $@ $(OBJS) $(LIBS)
+	$(LD) -dead_strip -nostdlib -m elf_i386 -Map kernel.map -T main.ls -s -o $@ $(OBJS) $(LIBS)]
 
 os.sys: kernel/asmhead.bin kernel.bin
 	$(os.sys)

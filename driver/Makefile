@@ -22,10 +22,10 @@ else
 	TOOLPATH = ../../z_tools/
 	INCPATH  = ../stdinc/
 	MAKE     = make -r
-	CC       = ~/opt/cross/bin/i686-elf-gcc
-	CFLAGS   = -I$(INCPATH) -Os -MD -MP -Wall -fno-exceptions -B$(TOOLPATH) -std=c11 -fno-stack-protector -ffunction-sections -fdata-sections
-	CXX      = ~/opt/cross/bin/i686-elf-g++
-	CXXFLAGS = -I$(INCPATH) -Os -MD -MP -Wall -fno-exceptions -fno-rtti -B$(TOOLPATH) -std=c++14 -fno-stack-protector -ffunction-sections -fdata-sections -fno-use-cxa-atexit
+	CC       = clang#~/opt/cross/bin/i686-elf-gcc
+	CFLAGS   = -I$(INCPATH) -m32 -Os -MD -MP -Wall -fno-exceptions -B$(TOOLPATH) -std=c11 -fno-stack-protector -ffunction-sections -fdata-sections
+	CXX      = clang++#~/opt/cross/bin/i686-elf-g++
+	CXXFLAGS = -I$(INCPATH) -m32 -Os -MD -MP -Wall -fno-exceptions -fno-rtti -B$(TOOLPATH) -std=c++14 -fno-stack-protector -ffunction-sections -fdata-sections -fno-use-cxa-atexit
 	NASM     = nasm
 	DEL      = rm -f
 endif
