@@ -494,7 +494,7 @@ void Sheet::drawPicture(const char *fileName, const Point &pos, long transColor,
 		unsigned char *filebuf = imagefile.read();
 		unsigned int fsize = imagefile.size;
 
-		if (!_info_JPEG(&env, info, fsize, filebuf) && !_info_BMP(&env, info, fsize, filebuf)) {
+		if (!info_JPEG(&env, info, fsize, filebuf) && !_info_BMP(&env, info, fsize, filebuf)) {
 			return;
 		}
 
@@ -503,7 +503,7 @@ void Sheet::drawPicture(const char *fileName, const Point &pos, long transColor,
 			if (info[0] == 1) {
 				i = _decode0_BMP(&env, fsize, filebuf, 4, (unsigned char*)picbuf.get(), 0);
 			} else {
-				i = _decode0_JPEG(&env, fsize, filebuf, 4, (unsigned char*)picbuf.get(), 0);
+				i = decode0_JPEG(&env, fsize, filebuf, 4, (unsigned char*)picbuf.get(), 0);
 			}
 			if (!i && info[2] <= SheetCtl::resolution.width && info[3] <= SheetCtl::resolution.height) {
 				for (int yy = 0; yy < info[3]; ++yy) {
