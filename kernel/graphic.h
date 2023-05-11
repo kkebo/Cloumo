@@ -5,6 +5,7 @@
 #pragma once
 
 #include <pistring.h>
+#include <List.h>
 
 const int kMaxSheets = 256;
 const int kMaxTabs = 100;
@@ -93,13 +94,17 @@ struct Circle {
 class Sheet {
 private:
 	Rectangle _frame = Rectangle(0, 0);
-	int _zIndex = -1;
+	//int _zIndex = -1;
 	bool nonRect;
+	List<Sheet *> _children;
+	Sheet *_parent = nullptr;
 
 public:
 	unsigned int *buf;
+	const List<Sheet *> &children = _children;
+	Sheet *const &parent = _parent;
 	const Rectangle &frame = _frame;
-	const int &zIndex = _zIndex;
+	//const int &zIndex = _zIndex;
 	Tab *tab = nullptr;
 	void (*onClick)(const Point &pos, Sheet &sht) = nullptr;
 	void (*onClosed)() = nullptr;
@@ -107,9 +112,10 @@ public:
 	friend class SheetCtl;
 	Sheet(const Size &size, bool _nonRect = false);
 	virtual ~Sheet();
-	void upDown(int height);
+	void upDown(int zIndex);
 	void refresh(Rectangle range) const;
 	void moveTo(const Point &pos);
+	void appendChild(Sheet *child, bool show = false);
 	
 	// 描画関数
 	void drawLine(const Line &line, unsigned int color);
@@ -138,7 +144,7 @@ private:
 		unsigned char (*p24)[3];
 		unsigned int *p32;
 	} vram;
-	static unsigned char *map;
+	static const Sheet **map;
 	static File *font;
 	static Sheet *sheets[];
 	static Size _resolution;
@@ -146,7 +152,6 @@ private:
 	static int _top;
 	
 	// for GUI Task
-	static Sheet *back;
 	static Tab *tabs[];
 	static int numOfTab;
 	static int activeTab;
@@ -162,11 +167,13 @@ private:
 
 	static void guiTaskMain();
 	static void onClickBack(const Point &pos, Sheet &sht);
-	static void refreshMap(const Rectangle &range, int);
+	static void refreshMap(const Rectangle &range);
 	static void refreshSub(const Rectangle &range);
 
 public:
-	static const int &top;
+	static Sheet *back;
+	
+	//static const int &top;
 	static const Size &resolution;
 	static const int &colorDepth;
 	

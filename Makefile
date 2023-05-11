@@ -16,6 +16,7 @@ OBJS = \
 	kernel/HTMLNode.o \
 	kernel/HTMLTreeConstructor.o \
 	kernel/File.o \
+	kernel/ModalWindow.o \
 	kernel/Tab.o \
 	kernel/bmp.o \
 	kernel/jpeg.o \

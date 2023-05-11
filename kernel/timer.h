@@ -10,7 +10,7 @@ const int PIT_CNT0 = 0x0040;
 class Timer {
 private:
 	int _data;
-	Timer *next;
+	Timer *next = nullptr;
 	unsigned int timeout;
 	bool running = false;
 	TaskQueue *_queue;
@@ -38,5 +38,6 @@ public:
 	friend class Timer;
 	friend void IntHandler20(int *esp);
 	static void init();
+	static void remove(const Task &task);
 	//static void reset();
 };

@@ -12,6 +12,7 @@
 #include "kernel/timer.h"
 #include "kernel/datetime.h"
 #include "kernel/graphic.h"
+#include "kernel/ModalWindow.h"
 #include "kernel/Tab.h"
 #include "kernel/utf82kt.h"
 #include "driver/FAT12.h"

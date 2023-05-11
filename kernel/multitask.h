@@ -64,6 +64,7 @@ private:
 	Task *task;
 
 public:
+	friend class TimerController; // remove で使われている．代替案を思いつき次第削除すること
 	TaskQueue(int size, Task *task_);
 	bool push(int data);
 };

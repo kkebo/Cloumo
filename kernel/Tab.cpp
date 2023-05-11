@@ -8,6 +8,7 @@ Tab::Tab(const string &tabName) : index(SheetCtl::numOfTab++), tabBar(new Sheet(
 	sheet->fillRect(sheet->frame, 0xffffff);
 	sheet->drawRect(sheet->frame, 0);
 	sheet->moveTo(Point(150, 0));
+	SheetCtl::back->appendChild(sheet);
 	
 	// タブバー初期化の続き
 	tabBar->tab = this;
@@ -27,7 +28,8 @@ Tab::Tab(const string &tabName) : index(SheetCtl::numOfTab++), tabBar(new Sheet(
 	tabBar->drawLine(Line(7, 15, 15, 7), kActiveTextColor);
 	tabBar->drawString(string(tabName, 0, 15), Point(4 + 22, 4), kActiveTextColor);
 	tabBar->moveTo(Point(2, 35 + 23 * index));
-	tabBar->upDown(SheetCtl::top);
+	SheetCtl::back->appendChild(tabBar);
+	tabBar->upDown(1);
 	
 	// タブ切り替え
 	active();
@@ -35,11 +37,11 @@ Tab::Tab(const string &tabName) : index(SheetCtl::numOfTab++), tabBar(new Sheet(
 
 Tab::Tab(const string &tabName, void (*mainLoop)(Tab *)) : Tab(tabName) {
 	int args[] = { (int)this };
-	task = new Task(name, 3, 2, mainLoop, args);
+	_task = new Task(name, 3, 2, mainLoop, args);
 }
 Tab::Tab(const string &tabName, int queueSize, void (*mainLoop)(Tab *)) : Tab(tabName) {
 	int args[] = { (int)this };
-	task = new Task(name, 3, 2, queueSize, mainLoop, args);
+	_task = new Task(name, 3, 2, queueSize, mainLoop, args);
 }
 
 Tab::~Tab() {
@@ -77,8 +79,7 @@ Tab::~Tab() {
 	
 	// その他の解放
 	delete sheet;
-	if (timer) delete timer;
-	if (task) delete task;
+	if (_task) delete _task;
 }
 
 void Tab::active() {
@@ -90,7 +91,7 @@ void Tab::active() {
 	tabBar->changeColor(tabRect, kPassiveTabColor, kActiveTabColor);
 	tabBar->changeColor(tabRect, kPassiveTextColor, kActiveTextColor);
 	tabBar->refresh(tabRect);
-	sheet->upDown(SheetCtl::top);
+	sheet->upDown(1);
 	
 	// アクティブだったタブ
 	if (SheetCtl::activeTab >= 0) {

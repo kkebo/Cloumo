@@ -43,6 +43,7 @@ Task::Task() {
 }
 
 Task::~Task() {
+	TimerController::remove(*this);
 	TaskSwitcher::_taskList->remove(this);
 	sleep();
 	delete queue;

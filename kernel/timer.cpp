@@ -76,6 +76,15 @@ void TimerController::init() {
 	t0->next = nullptr;
 }
 
+// task にセットされた動作中のタイマーを削除
+void TimerController::remove(const Task &task) {
+	for (Timer *timer = t0; timer; timer = timer->next) {
+		if (timer->queue->task == &task) {
+			delete timer;
+		}
+	}
+}
+
 // count_ をリセット (これじゃだめだった)
 /*void TimerController::reset() {
 	int e = LoadEflags();

@@ -3,7 +3,7 @@
 template <typename T>
 class List {
 protected:
-	int _length = 0;
+	int length = 0;
 	class Node {
 	public:
 		T data;
@@ -14,8 +14,6 @@ protected:
 	} *dummy, *head, *tail;
 	
 public:
-	const int &length = _length;
-
 	List() : dummy(new Node), head(dummy), tail(dummy) {}
 	
 	virtual ~List() {
@@ -69,7 +67,7 @@ public:
 	};
 	struct const_iterator {
 	private:
-		const Node *node;
+		Node *node;
 	
 	public:
 		friend class List;
@@ -112,11 +110,23 @@ public:
 		return head == dummy;
 	}
 	
+	int size() const {
+		return length;
+	}
+	
 	T &front() {
 		return head->data;
 	}
 	
 	T &back() {
+		return tail->data;
+	}
+	
+	const T &front() const {
+		return head->data;
+	}
+	
+	const T &back() const {
 		return tail->data;
 	}
 	
@@ -132,7 +142,7 @@ public:
 		head->prev = node;
 		head = node;
 		
-		++_length;
+		++length;
 	}
 	
 	void push_back(const T &data) {
@@ -151,7 +161,7 @@ public:
 		tail = node;
 		dummy->prev = node;
 		
-		++_length;
+		++length;
 	}
 	
 	void pop_front() {
@@ -170,7 +180,7 @@ public:
 			head->prev = nullptr;
 		}
 		
-		--_length;
+		--length;
 	}
 	
 	void pop_back() {
@@ -190,10 +200,10 @@ public:
 			dummy->prev = tail;
 		}
 		
-		--_length;
+		--length;
 	}
 	
-	void insert(iterator pos, const T &data) {
+	void insert(const_iterator pos, const T &data) {
 		Node *p = new Node(data, pos.node->prev, pos.node);
 		if (p->prev != nullptr) {
 			p->prev->next = p;
@@ -208,10 +218,10 @@ public:
 			dummy->prev = tail;
 		}
 		
-		++_length;
+		++length;
 	}
 	
-	void erase(iterator pos) {
+	void erase(const_iterator pos) {
 		Node *p = pos.node;
 		if (p->prev != nullptr) {
 			p->prev->next = p->next;
@@ -227,26 +237,19 @@ public:
 			dummy->prev = tail;
 		}
 		delete p;
-		--_length;
+		--length;
 	}
 	
-	void erase(iterator first, iterator last) {
+	void erase(const_iterator first, iterator last) {
 		if (first.node->prev != nullptr) {
-			first.node->prev->next = last.node->next;
+			first.node->prev->next = last.node;
 		} else {
-			head = last.node->next;
-			head->prev = nullptr;
+			head = last.node;
 		}
-		if (last.node->next != dummy) {
-			last.node->next->prev = first.node->prev;
-		} else {
-			tail = first.node->prev;
-			tail->next = dummy;
-			dummy->prev = tail;
-		}
+		last.node->prev = first.node->prev;
 		for (iterator it = first; it != last; ++it) {
 			delete it.node;
-			--_length;
+			--length;
 		}
 	}
 	
@@ -272,7 +275,7 @@ public:
 					dummy->prev = tail;
 				}
 				delete it.node;
-				--_length;
+				--length;
 			}
 		}
 	}
