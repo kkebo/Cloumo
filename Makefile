@@ -18,6 +18,8 @@ OBJS = \
 	src/kernel/File.o \
 	src/kernel/ModalWindow.o \
 	src/kernel/Tab.o \
+	src/kernel/bmp.o \
+	src/kernel/jpeg.o \
 	src/driver/FAT12.o \
 	src/driver/keyboard.o \
 	src/driver/mouse.o \
@@ -57,8 +59,8 @@ all:
 
 # 特別生成規則
 
-kernel.bin: $(OBJS) src/kernel/jpeg.obj src/kernel/bmp.obj $(LIBS) main.ls
-	$(LD) --gc-sections -nostdlib -m elf_i386 -Map kernel.map -T main.ls -s -o $@ $(OBJS) src/kernel/jpeg.obj src/kernel/bmp.obj $(LIBS)
+kernel.bin: $(OBJS) $(LIBS) main.ls
+	$(LD) --gc-sections -nostdlib -m elf_i386 -Map kernel.map -T main.ls -s -o $@ $(OBJS) $(LIBS)
 
 os.sys: src/kernel/asmhead.bin kernel.bin
 	$(os.sys)
