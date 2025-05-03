@@ -1,53 +1,51 @@
 OBJS = \
-	kernel/main.o \
-	kernel/int.o \
-	kernel/descriptor.o \
-	kernel/memory.o \
-	kernel/multitask.o \
-	kernel/timer.o \
-	kernel/datetime.o \
-	kernel/graphic.o \
-	kernel/tek.o \
-	kernel/utf82kt.o \
-	kernel/sysinfo.o \
-	kernel/asmfunc.o \
-	kernel/HTMLToken.o \
-	kernel/HTMLTokenizer.o \
-	kernel/HTMLNode.o \
-	kernel/HTMLTreeConstructor.o \
-	kernel/File.o \
-	kernel/ModalWindow.o \
-	kernel/Tab.o \
-	kernel/bmp.o \
-	kernel/jpeg.o \
-	driver/FAT12.o \
-	driver/keyboard.o \
-	driver/mouse.o \
-	driver/sound.o \
-	driver/EmuVGA.o
+	src/kernel/main.o \
+	src/kernel/int.o \
+	src/kernel/descriptor.o \
+	src/kernel/memory.o \
+	src/kernel/multitask.o \
+	src/kernel/timer.o \
+	src/kernel/datetime.o \
+	src/kernel/graphic.o \
+	src/kernel/tek.o \
+	src/kernel/utf82kt.o \
+	src/kernel/sysinfo.o \
+	src/kernel/asmfunc.o \
+	src/kernel/HTMLToken.o \
+	src/kernel/HTMLTokenizer.o \
+	src/kernel/HTMLNode.o \
+	src/kernel/HTMLTreeConstructor.o \
+	src/kernel/File.o \
+	src/kernel/ModalWindow.o \
+	src/kernel/Tab.o \
+	src/kernel/bmp.o \
+	src/kernel/jpeg.o \
+	src/driver/FAT12.o \
+	src/driver/keyboard.o \
+	src/driver/mouse.o \
+	src/driver/sound.o \
+	src/driver/EmuVGA.o
 
-LIBS = golibc/golibc.a mylibcpp/mylibcpp.a
+LIBS = libs/golibc/golibc.a libs/mylibc++/mylibc++.a
 
 ifeq ($(OS),Windows_NT)
 # Windows
 	TOOLPATH = ../z_tools_win/
-	INCPATH  = stdinc/
 	MAKE     = $(TOOLPATH)make.exe -r
 	LD       =
 	EDIMG    = $(TOOLPATH)edimg.exe
 	QEMU     = $(TOOLPATH)qemu/qemu.exe -std-vga
 	DEL      = -del
-	os.sys   = copy /B kernel/asmhead.bin+kernel.bin os.sys
+	os.sys   = copy /B src/kernel/asmhead.bin+kernel.bin os.sys
 else
-# OS X
+# UNIX
 	TOOLPATH = ../z_tools/
-	INCPATH  = stdinc/
 	MAKE     = make -r
-	LD       = ~/opt/cross/bin/i686-elf-ld
+	LD       = ld
 	EDIMG    = $(TOOLPATH)edimg
-	QEMU     = /usr/local/bin/qemu-system-x86_64 -vga std
+	QEMU     = qemu-system-x86_64 -vga std
 	DEL      = rm -f
-	os.sys   = cat kernel/asmhead.bin kernel.bin > os.sys
+	os.sys   = cat src/kernel/asmhead.bin kernel.bin > os.sys
 endif
 
 # Default
@@ -55,8 +53,8 @@ endif
 all:
 	$(MAKE) -C images
 	$(MAKE) -C html
-	$(MAKE) -C driver
-	$(MAKE) -C kernel
+	$(MAKE) -C src/driver
+	$(MAKE) -C src/kernel
 	$(MAKE) cloumo.img
 
 # 特別生成規則
@@ -64,10 +62,10 @@ all:
 kernel.bin: $(OBJS) $(LIBS) main.ls
 	$(LD) --gc-sections -nostdlib -m elf_i386 -Map kernel.map -T main.ls -s -o $@ $(OBJS) $(LIBS)
 
-os.sys: kernel/asmhead.bin kernel.bin
+os.sys: src/kernel/asmhead.bin kernel.bin
 	$(os.sys)
 
-cloumo.img: kernel/ipl.bin os.sys images/b_f.bmp images/btn_r.bmp \
+cloumo.img: src/kernel/ipl.bin os.sys images/b_f.bmp images/btn_r.bmp \
 		images/copy.bmp images/source.bmp images/search.bmp images/refresh.bmp \
 		html/index.htm
 	$(EDIMG)   imgin:$(TOOLPATH)fdimg0at.tek \
@@ -87,8 +85,8 @@ cloumo.img: kernel/ipl.bin os.sys images/b_f.bmp images/btn_r.bmp \
 # Libraries
 
 $(LIBS):
-	$(MAKE) -C golibc
-	$(MAKE) -C mylibcpp
+	$(MAKE) -C libs/golibc
+	$(MAKE) -C libs/mylibcpp
 
 # Options
 
@@ -113,7 +111,7 @@ clean:
 	$(DEL) kernel.bin
 	$(DEL) os.sys
 	$(DEL) cloumo.img
-	$(MAKE) -C kernel clean
-	$(MAKE) -C driver clean
-	$(MAKE) -C golibc clean
-	$(MAKE) -C mylibcpp clean
+	$(MAKE) -C src/kernel clean
+	$(MAKE) -C src/driver clean
+	$(MAKE) -C libs/golibc clean
+	$(MAKE) -C libs/mylibcpp clean
