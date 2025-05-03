@@ -1,4 +1,4 @@
-#include "headers.h"
+#include "../headers.h"
 
 int strcmpi(const char* string1, const char* string2) {
 	return 0;
@@ -29,7 +29,7 @@ void Browser::View(const char* url) {
 	unsigned int fcolor = 0;
 	//char text[240 * 1024];
 	//int tcount = 0;
-	
+
 	// ファイル読み込み
 	File* htmlfile = FAT12::open(url);
 	if (!htmlfile) return;

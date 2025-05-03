@@ -1,9 +1,9 @@
 /*
  * サウンド
  */
-#include "headers.h"
+#include "../headers.h"
 
-void Beep(char c, int len, Timer* timer, bool st) {
+void Beep(char c, int len, Timer *timer, bool st) {
 	static int tonetable[12] = {
 		1071618315, 1135340056, 1202850889, 1274376125, 1350154473, 1430438836,
 		1515497155, 1605613306, 1701088041, 1802240000, 1909406767, 2022946002
@@ -23,9 +23,9 @@ void Beep(char c, int len, Timer* timer, bool st) {
 		Output8(0x42, i >> 8);
 		i = (Input8(0x61) | 0x03) & 0x0f;
 	} else {
-        i = Input8(0x61) & 0x0d;
+		i = Input8(0x61) & 0x0d;
 	}
-    Output8(0x61, i);
+	Output8(0x61, i);
 
 	for (;;) {
 		Cli();

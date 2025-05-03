@@ -7,7 +7,7 @@
 
 class Browser {
 public:
-	static void View(const char*);
+	static void View(const char *);
 };
 
 #endif

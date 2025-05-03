@@ -5,6 +5,8 @@
 #ifndef _MEMORY_H_
 #define _MEMORY_H_
 
+#include <string.h>
+
 const int EFLAGS_AC_BIT     = 0x00040000;
 const int CR0_CACHE_DISABLE = 0x60000000;
 
@@ -25,10 +27,10 @@ unsigned int MemoryTotal();
 unsigned int MemoryTest(unsigned int, unsigned int);
 
 extern "C" {
-	void* malloc(unsigned int);
-	bool  free(void*);
-	void* malloc4k(unsigned int);
-	bool  free4k(void*);
+	void *malloc(unsigned int);
+	bool free(void *);
+	void *malloc4k(unsigned int);
+	bool free4k(void *);
 }
 
 void *operator new(size_t) throw();

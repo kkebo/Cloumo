@@ -1,4 +1,4 @@
-#include "headers.h"
+#include "../headers.h"
 
 unsigned char Mouse::phase_ = 0;
 unsigned char Mouse::buf_[] = { 0, 0, 0 };
@@ -23,10 +23,10 @@ const char *Mouse::cursor_[] = {
 int Mouse::btn_ = 0;
 int Mouse::new_mx_ = -1;
 int Mouse::new_my_ = 0;
-Sheet *Mouse::sheet_ = 0;
+Sheet *Mouse::sheet_ = nullptr;
 int Mouse::x_ = 0;
 int Mouse::y_ = 0;
-Queue *Mouse::queue_ = 0;
+Queue *Mouse::queue_ = nullptr;
 
 void Mouse::Init() {
 	KeyboardController::wait();
@@ -61,8 +61,8 @@ void Mouse::Init() {
 	Mouse::sheet_->vy0 = Mouse::y_ - 8;
 	SheetCtl::upDown(Mouse::sheet_, SheetCtl::top_ + 1);
 
-	Task* task = TaskController::alloc();
-	task->name_ = (char*)kMouseTaskName;
+	Task *task = TaskController::alloc();
+	task->name_ = (char *)kMouseTaskName;
 	task->tss_.esp = (int)malloc4k(64 * 1024) + 64 * 1024 - 12;
 	task->tss_.eip = (int)&Mouse::Main;
 	task->tss_.es = 1 * 8;
@@ -71,7 +71,7 @@ void Mouse::Init() {
 	task->tss_.ds = 1 * 8;
 	task->tss_.fs = 1 * 8;
 	task->tss_.gs = 1 * 8;
-	task->run(2, 2);
+	task->run(1, 1);
 	task->queue_ = Queue(128, task);
 	Mouse::queue_ = &task->queue_;
 }

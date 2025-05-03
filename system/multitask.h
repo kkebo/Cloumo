@@ -17,10 +17,13 @@ struct TSS32 {
 	int ldtr, iomap;
 };
 
+enum TaskFlag { TASKFLAG_FREE, TASKFLAG_SLEEPING, TASKFLAG_RUNNING };
+
 class Task {
 public:
-	char* name_;
-	int sel_, flags_;
+	char *name_;
+	int selector_;
+	TaskFlag flags_;
 	int level_, priority_;
 	Queue queue_;
 	TSS32 tss_;
@@ -33,28 +36,28 @@ public:
 };
 
 struct TaskLevel {
-	int running;
-	int now;
-	Task* tasks[kMaxTasksLevel];
+	int running; // the number of running tasks
+	int now; // the index of a runnning task
+	Task *tasks[kMaxTasksLevel]; // tasks on this level
 };
 
 class TaskController {
 public:
-	static int now_lv_;
-	static char lv_change_;
-	static TaskLevel* level_;
-	static Task* tasks0_;
+	static int now_lv_; // the index of a running level
+	static char lv_change_; // 次回タスクスイッチ時にレベルも変えたほうがいいか
+	static TaskLevel *level_;
+	static Task *tasks0_;
 
 public:
 	//static Task *task_fpu_;
-	static Timer* timer_;
+	static Timer *timer_;
 
 public:
-	static Task* init();
-	static Task* alloc();
+	static Task *init();
+	static Task *alloc();
 	static void switchTask();
 	static void switchTaskSub();
-	static Task* getNowTask();
+	static Task *getNowTask();
 	static void add(Task*);
 	static void remove(Task*);
 	static void idleLoop();

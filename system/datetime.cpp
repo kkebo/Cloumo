@@ -1,8 +1,8 @@
-#include "headers.h"
+#include "../headers.h"
 #include <stdio.h>
 
 unsigned char DateTime::t_[7] = { 0, 0, 0, 0, 0, 0, 0 };
-Timer* DateTime::timer_ = 0;
+Timer *DateTime::timer_ = nullptr;
 
 // 初期設定
 void DateTime::init() {
@@ -27,8 +27,8 @@ void DateTime::init() {
 	}
 
 	char s[20];
-	Task* task = TaskController::alloc();
-	task->name_ = (char*)kTimeTaskName;
+	Task *task = TaskController::alloc();
+	task->name_ = (char *)kTimeTaskName;
 	task->tss_.esp = (int)malloc4k(64 * 1024) + 64 * 1024 - 12;
 	task->tss_.eip = (int)&mainLoop;
 	task->tss_.es = 1 * 8;
@@ -37,7 +37,7 @@ void DateTime::init() {
 	task->tss_.ds = 1 * 8;
 	task->tss_.fs = 1 * 8;
 	task->tss_.gs = 1 * 8;
-	task->run(2, 2); /* level=2, priority=2 */
+	task->run(2, 1); /* level=2, priority=1 */
 	task->queue_ = Queue(128, task);
 
 	timer_ = TimerController::alloc();
@@ -55,7 +55,7 @@ void DateTime::init() {
 }
 
 void DateTime::mainLoop() {
-	Task* task = TaskController::getNowTask();
+	Task *task = TaskController::getNowTask();
 	int i;
 	bool timechk = false;
 	char s[20];

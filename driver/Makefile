@@ -1,19 +1,8 @@
 OBJS = \
-	bootpack.obj \
-	int.obj \
-	descriptor.obj \
-	memory.obj \
-	browser.obj \
-	queue.obj \
-	multitask.obj \
-	timer.obj \
-	datetime.obj \
-	graphic.obj \
-	tek.obj \
-	utf82kt.obj \
-	sysinfo.obj \
-	functions.obj \
-	alloca.obj
+	mouse.obj \
+	keyboard.obj \
+	sound.obj \
+	file.obj
 
 ifeq ($(OS),Windows_NT)
 # Windows
@@ -40,7 +29,7 @@ else
 endif
 
 # Default
-all: $(OBJS) ipl.bin asmhead.bin
+all: $(OBJS)
 
 # 一般生成規則
 %.obj: %.asm
@@ -55,10 +44,6 @@ all: $(OBJS) ipl.bin asmhead.bin
 %.obj: %.nas
 	$(NASK) $< $@
 
-%.bin: %.asm
-	$(NASM) -fbin -o $@ $<
-
 # Options
 clean:
-	$(DEL) *.bin
 	$(DEL) $(OBJS)

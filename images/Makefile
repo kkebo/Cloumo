@@ -8,20 +8,14 @@ else
 	bim2bin  = $(TOOLPATH)bim2bin
 endif
 
-# デフォルト動作
+# Default
 
-default :
-	$(MAKE) b_f.bmp
-	$(MAKE) btn_r.bmp
-	$(MAKE) copy.bmp
-	$(MAKE) source.bmp
-	$(MAKE) search.bmp
-	$(MAKE) refresh.bmp
+all: b_f.bmp btn_r.bmp copy.bmp source.bmp search.bmp refresh.bmp
 
-# 一般規則
+# 一般生成規則
 
-%.bmp : %_.bmp Makefile
+%.bmp: %_.bmp Makefile
 	$(bim2bin) -osacmp in:$*_.bmp out:$*.bmp
 
-%.jpg : %_.jpg Makefile
+%.jpg: %_.jpg Makefile
 	$(bim2bin) -osacmp in:$*_.jpg out:$*.jpg

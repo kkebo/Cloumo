@@ -1,4 +1,4 @@
-#include "headers.h"
+#include "../headers.h"
 
 unsigned int Utf8ToKT(unsigned int u8code) {
 	static unsigned int kt2uni[84*94] = {
@@ -7992,4 +7992,3 @@ unsigned int Utf8ToKT(unsigned int u8code) {
 
 	return 0;
 }
-

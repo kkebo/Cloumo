@@ -1,10 +1,10 @@
-#include "headers.h"
+#include "../headers.h"
 
 File::~File() {
 	if (buf_) delete buf_;
 }
 
-unsigned char* File::read() {
+unsigned char *File::read() {
 	return buf_;
 }
 
@@ -12,10 +12,10 @@ int File::size() {
 	return size_;
 }
 
-int* FAT12::fat_ = 0;
+int *FAT12::fat_ = 0;
 
 void FAT12::init() {
-	unsigned char* img = (unsigned char*)(ADDRESS_DISK_IMAGE + 0x000200);
+	unsigned char *img = (unsigned char*)(ADDRESS_DISK_IMAGE + 0x000200);
 
 	fat_ = new int[2880];
 	for (int i = 0, j = 0; i < 2880; i += 2, j += 3) {
@@ -24,8 +24,8 @@ void FAT12::init() {
 	}
 }
 
-File* FAT12::open(const char* name) {
-	File* file = new File;
+File *FAT12::open(const char *name) {
+	File *file = new File;
 	file->info_ = FAT12::search(name, (FileInfo*)(ADDRESS_DISK_IMAGE + 0x002600), 224);
 	if (!file->info_) return 0;
 	file->size_ = file->info_->size;
@@ -38,12 +38,12 @@ void FAT12::loadFile(int clustno, int size, char *buf, char *img) {
 	for (;;) {
 		if (size <= 512) {
 			for (i = 0; i < size; i++) {
-				buf[i] = img[clustno * 512 + i];
+				buf[i] = img[clustno  *512 + i];
 			}
 			break;
 		}
 		for (i = 0; i < 512; i++) {
-			buf[i] = img[clustno * 512 + i];
+			buf[i] = img[clustno  *512 + i];
 		}
 
 		size -= 512;
@@ -52,7 +52,7 @@ void FAT12::loadFile(int clustno, int size, char *buf, char *img) {
 	}
 }
 
-unsigned char* FAT12::loadFile2(int clustno, int* psize) {
+unsigned char *FAT12::loadFile2(int clustno, int *psize) {
 	int size = *psize, size2;
 	unsigned char *buf = new unsigned char[size];
 	unsigned char *buf2;
@@ -70,7 +70,7 @@ unsigned char* FAT12::loadFile2(int clustno, int* psize) {
 	return buf;
 }
 
-FileInfo* FAT12::search(const char *name, FileInfo* finfo, int max) {
+FileInfo *FAT12::search(const char *name, FileInfo *finfo, int max) {
 	char s[12];
 	for (int i = 0; i < 12; i++) {
 		s[i] = ' ';

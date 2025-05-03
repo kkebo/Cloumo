@@ -1,4 +1,4 @@
-#include "headers.h"
+#include "../headers.h"
 
 bool free0(void*, unsigned int);
 
@@ -24,7 +24,7 @@ unsigned int MemoryTotal() {
 unsigned int MemoryTest(unsigned int start, unsigned int end) {
 	char flg486 = 0;
 	unsigned int eflg, cr0, i;
-    
+
 	/* 386 or 486+ */
 	eflg = LoadEflags();
 	eflg |= EFLAGS_AC_BIT; /* AC-bit = 1 */
@@ -35,21 +35,21 @@ unsigned int MemoryTest(unsigned int start, unsigned int end) {
 	}
 	eflg &= ~EFLAGS_AC_BIT; /* AC-bit = 0 */
 	StoreEflags(eflg);
-    
+
 	if (flg486 != 0) {
 		cr0 = LoadCr0();
 		cr0 |= CR0_CACHE_DISABLE; /* Cache 禁止 */
 		StoreCr0(cr0);
 	}
-    
+
 	i = MemoryTestSub(start, end);
-    
+
 	if (flg486 != 0) {
 		cr0 = LoadCr0();
 		cr0 &= ~CR0_CACHE_DISABLE; /* Cache 許可 */
 		StoreCr0(cr0);
 	}
-    
+
 	return i;
 }
 
@@ -60,7 +60,7 @@ void* malloc(unsigned int size) {
 
 	for (int i = 0; i < memoryManager->frees; i++) {
 		if (memoryManager->freeinfo[i].size >= size) {
-			unsigned int* result = (unsigned int*)memoryManager->freeinfo[i].addr;
+			unsigned int *result = (unsigned int *)memoryManager->freeinfo[i].addr;
 			memoryManager->freeinfo[i].addr += size;
 			memoryManager->freeinfo[i].size -= size;
 			if (!memoryManager->freeinfo[i].size) {
@@ -70,22 +70,22 @@ void* malloc(unsigned int size) {
 				}
 			}
 			// サイズ記録(サイズ記録域含む)
-			*result = size;
-			
-			return result + sizeof(unsigned int);
+			result[0] = size;
+
+			return result + 1;
 		}
 	}
 	return 0;
 }
 
-bool free0(void* addr, unsigned int size) {
+bool free0(void *addr, unsigned int size) {
 	MemoryManager *memoryManager = (MemoryManager *)ADDRESS_MEMORY_MANAGER;
 	int i;
-    
+
 	for (i = 0; i < memoryManager->frees; i++)
 		if (memoryManager->freeinfo[i].addr > (unsigned int)addr)
 			break;
-    
+
 	if (i > 0) {
 		if (memoryManager->freeinfo[i - 1].addr + memoryManager->freeinfo[i - 1].size == (unsigned int)addr) {
 			memoryManager->freeinfo[i - 1].size += size;
@@ -125,16 +125,16 @@ bool free0(void* addr, unsigned int size) {
 	return false;
 }
 
-bool free(void* addr) {
-	void* realaddr = (void*)((unsigned int)addr - sizeof(unsigned int));
-	return free0(realaddr, *((unsigned int*)realaddr));
+bool free(void *addr) {
+	unsigned int *realaddr = (unsigned int *)addr - 1;
+	return free0(realaddr, realaddr[0]);
 }
 
 void* malloc4k(unsigned int size) {
 	return malloc((size + 0xfff) & 0xfffff000);
 }
 
-bool free4k(void* addr) {
+bool free4k(void *addr) {
 	return free(addr/*, (size + 0xfff) & 0xfffff000*/);
 }
 
