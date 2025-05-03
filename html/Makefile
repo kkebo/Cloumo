@@ -10,6 +10,7 @@ endif
 
 # Default
 
+.PHONY: all
 all: index.htm kitai.htm
 
 # 一般生成規則

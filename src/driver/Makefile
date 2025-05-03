@@ -31,6 +31,7 @@ else
 endif
 
 # Default
+.PHONY: all
 all: $(OBJS)
 
 # 一般生成規則
@@ -46,5 +47,6 @@ all: $(OBJS)
 	$(CC) $(CFLAGS) -c $<
 
 # Options
+.PHONY: clean
 clean:
 	$(DEL) $(OBJS)

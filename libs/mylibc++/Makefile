@@ -28,6 +28,7 @@ else
 	DEL      = rm -f
 endif
 
+.PHONY: all
 all: $(TARGET).a
 
 -include $(DEPS)
@@ -38,6 +39,7 @@ src/%.o: src/%.cpp
 $(TARGET).a: $(OBJS)
 	$(AR) r $@ $^
 
+.PHONY: clean
 clean:
 	$(DEL) src/*.o
 	$(DEL) $(TARGET).a

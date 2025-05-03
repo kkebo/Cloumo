@@ -31,6 +31,7 @@ else
 	DEL      = rm -f
 endif
 
+.PHONY: all
 all: $(TARGET).a
 
 src/%.o: src/%.c Makefile
@@ -42,6 +43,7 @@ src/%.o: src/%.asm Makefile
 $(TARGET).a: $(OBJS) Makefile
 	$(AR) r $@ $(OBJS)
 
+.PHONY: clean
 clean:
 	$(DEL) src/*.o
 	$(DEL) $(TARGET).a

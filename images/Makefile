@@ -10,6 +10,7 @@ endif
 
 # Default
 
+.PHONY: all
 all: b_f.bmp btn_r.bmp copy.bmp source.bmp search.bmp refresh.bmp
 
 # 一般生成規則

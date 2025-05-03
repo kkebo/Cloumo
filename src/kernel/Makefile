@@ -47,6 +47,7 @@ else
 endif
 
 # Default
+.PHONY: all
 all: $(OBJS) ipl.bin asmhead.bin
 
 # 一般生成規則
@@ -65,6 +66,7 @@ all: $(OBJS) ipl.bin asmhead.bin
 	$(NASM) -fbin -o $@ $<
 
 # Options
+.PHONY: clean
 clean:
 	$(DEL) *.bin
 	$(DEL) $(OBJS)

@@ -50,6 +50,7 @@ endif
 
 # Default
 
+.PHONY: all
 all:
 	$(MAKE) -C images
 	$(MAKE) -C html
@@ -90,22 +91,27 @@ $(LIBS):
 
 # Options
 
+.PHONY: run
 run:
 	$(MAKE) all
 	$(QEMU) -m 64 -localtime -soundhw all -fda cloumo.img -L .
 
+.PHONY: run-remote
 run-remote:
 	$(MAKE) all
 	$(QEMU) -vnc :2 -m 64 -localtime -soundhw all -fda cloumo.img -L .
 
+.PHONY: run-virtualbox
 run-virtualbox:
 	$(MAKE) all
 	/Applications/VirtualBox.app/Contents/MacOS/VBoxManage startvm Cloumo
 
+.PHONY: refresh
 refresh:
 	$(MAKE) all
 	$(MAKE) clean
 
+.PHONY: clean
 clean:
 	$(DEL) kernel.map
 	$(DEL) kernel.bin
