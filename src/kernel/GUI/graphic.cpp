@@ -2,9 +2,19 @@
 #include <MinMax.h>
 #include <find.h>
 #include <Stack.h>
-#include "../headers.h"
-#include "HTMLTokenizer.h"
-#include "HTMLTreeConstructor.h"
+#include <cloumo/driver/EmuVGA.h>
+#include <cloumo/driver/keyboard.h>
+#include <cloumo/kernel/asmfunc.h>
+#include <cloumo/kernel/asmhead.h>
+#include <cloumo/kernel/bmp.h>
+#include <cloumo/kernel/File.h>
+#include <cloumo/kernel/graphic.h>
+#include <cloumo/kernel/HTMLTokenizer.h>
+#include <cloumo/kernel/HTMLTreeConstructor.h>
+#include <cloumo/kernel/jpeg.h>
+#include <cloumo/kernel/sysinfo.h>
+#include <cloumo/kernel/timer.h>
+#include <cloumo/kernel/utf82kt.h>
 
 Sheet::Sheet(const Size &size, bool _nonRect) :
 _frame(size),
@@ -494,7 +504,7 @@ void Sheet::drawPicture(const char *fileName, const Point &pos, long transColor,
 		unsigned char *filebuf = imagefile.read();
 		unsigned int fsize = imagefile.size;
 
-		if (!_info_JPEG(&env, info, fsize, filebuf) && !_info_BMP(&env, info, fsize, filebuf)) {
+		if (!info_JPEG(&env, info, fsize, filebuf) && !_info_BMP(&env, info, fsize, filebuf)) {
 			return;
 		}
 
@@ -503,7 +513,7 @@ void Sheet::drawPicture(const char *fileName, const Point &pos, long transColor,
 			if (info[0] == 1) {
 				i = _decode0_BMP(&env, fsize, filebuf, 4, (unsigned char*)picbuf.get(), 0);
 			} else {
-				i = _decode0_JPEG(&env, fsize, filebuf, 4, (unsigned char*)picbuf.get(), 0);
+				i = decode0_JPEG(&env, fsize, filebuf, 4, (unsigned char*)picbuf.get(), 0);
 			}
 			if (!i && info[2] <= SheetCtl::resolution.width && info[3] <= SheetCtl::resolution.height) {
 				for (int yy = 0; yy < info[3]; ++yy) {

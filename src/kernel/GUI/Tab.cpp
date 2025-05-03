@@ -1,4 +1,5 @@
-#include "../headers.h"
+#include <cloumo/kernel/graphic.h>
+#include <cloumo/kernel/Tab.h>
 
 Tab::Tab(const string &tabName) : index(SheetCtl::numOfTab++), tabBar(new Sheet(Size(150 - 2, 22), true)), sheet(new Sheet(Size(SheetCtl::resolution.width - 150, SheetCtl::resolution.height), false)), name(tabName) {
 	// タブ一覧に登録

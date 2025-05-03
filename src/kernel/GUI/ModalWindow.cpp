@@ -1,4 +1,5 @@
-#include "../headers.h"
+#include <cloumo/kernel/graphic.h>
+#include <cloumo/kernel/ModalWindow.h>
 
 ModalWindow::ModalWindow(const string &msg) : sheet(new Sheet(Size(480, 300))), message(msg) {
 	// background and message
