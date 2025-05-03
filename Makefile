@@ -86,7 +86,7 @@ cloumo.img: src/kernel/ipl.bin os.sys images/b_f.bmp images/btn_r.bmp \
 
 $(LIBS):
 	$(MAKE) -C libs/golibc
-	$(MAKE) -C libs/mylibcpp
+	$(MAKE) -C libs/mylibc++
 
 # Options
 
@@ -114,4 +114,4 @@ clean:
 	$(MAKE) -C src/kernel clean
 	$(MAKE) -C src/driver clean
 	$(MAKE) -C libs/golibc clean
-	$(MAKE) -C libs/mylibcpp clean
+	$(MAKE) -C libs/mylibc++ clean
