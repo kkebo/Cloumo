@@ -40,7 +40,7 @@ src/%.o: src/%.asm Makefile
 	$(NASM) -felf32 -o $@ $<
 
 $(TARGET).a: $(OBJS) Makefile
-	$(AR) r $@ $^
+	$(AR) r $@ $(OBJS)
 
 clean:
 	$(DEL) src/*.o

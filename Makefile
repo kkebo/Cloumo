@@ -69,7 +69,7 @@ cloumo.img: src/kernel/ipl.bin os.sys images/b_f.bmp images/btn_r.bmp \
 		images/copy.bmp images/source.bmp images/search.bmp images/refresh.bmp \
 		html/index.htm
 	$(EDIMG)   imgin:$(TOOLPATH)fdimg0at.tek \
-		wbinimg src:kernel/ipl.bin len:512 from:0 to:0 \
+		wbinimg src:src/kernel/ipl.bin len:512 from:0 to:0 \
 		copy from:os.sys to:@: \
 		copy from:fonts/japanese.fnt to:@: \
 		copy from:html/index.htm to:@: \
