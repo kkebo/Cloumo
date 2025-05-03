@@ -41,7 +41,7 @@ else
 # UNIX
 	TOOLPATH = ../z_tools/
 	MAKE     = make -r
-	LD       = ld
+	LD       = ld.lld
 	EDIMG    = $(TOOLPATH)edimg
 	QEMU     = qemu-system-x86_64 -vga std
 	DEL      = rm -f

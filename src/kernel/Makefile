@@ -30,7 +30,7 @@ ifeq ($(OS),Windows_NT)
 	CC       = $(TOOLPATH)gcc.exe
 	CFLAGS   = -I../../libs/golibc/include -I$(INCPATH) -Os -MD -MP -Wall -fno-exceptions -B$(TOOLPATH) -std=c11 -fno-stack-protector -ffunction-sections -fdata-sections
 	CXX      = $(TOOLPATH)g++.exe
-	CXXFLAGS = -I../../libs/mylibc++/include -I$(INCPATH) -Os -MD -MP -Wall -fno-exceptions -fno-rtti -B$(TOOLPATH) -std=c++14 -fno-stack-protector -ffunction-sections -fdata-sections -fno-use-cxa-atexit
+	CXXFLAGS = -I../../libs/mylibc++/include -I$(INCPATH) -Os -MD -MP -Wall -fno-exceptions -fno-rtti -B$(TOOLPATH) -std=c++11 -fno-stack-protector -ffunction-sections -fdata-sections -fno-use-cxa-atexit
 	NASM     =
 	DEL      = -del
 else
@@ -38,10 +38,10 @@ else
 	TOOLPATH = ../../z_tools/
 	INCPATH  = ../../include
 	MAKE     = make -r
-	CC       = gcc
-	CFLAGS   = -I../../libs/golibc/include -I$(INCPATH) -Os -MD -MP -Wall -fno-exceptions -B$(TOOLPATH) -std=c11 -fno-stack-protector -ffunction-sections -fdata-sections
-	CXX      = g++
-	CXXFLAGS = -I../../libs/mylibc++/include -I$(INCPATH) -Os -MD -MP -Wall -fno-exceptions -fno-rtti -B$(TOOLPATH) -std=c++14 -fno-stack-protector -ffunction-sections -fdata-sections -fno-use-cxa-atexit
+	CC       = clang
+	CFLAGS   = -I../../libs/golibc/include -I$(INCPATH) --target=i686-unknown-unknown-elf -Os -MD -MP -Wall -fno-exceptions -B$(TOOLPATH) -std=c11 -fno-stack-protector -ffunction-sections -fdata-sections
+	CXX      = clang++
+	CXXFLAGS = -I../../libs/mylibc++/include -I$(INCPATH) --target=i686-unknown-unknown-elf -Os -MD -MP -Wall -fno-exceptions -fno-rtti -B$(TOOLPATH) -std=c++11 -fno-stack-protector -ffunction-sections -fdata-sections -fno-use-cxa-atexit
 	NASM     = nasm
 	DEL      = rm -f
 endif

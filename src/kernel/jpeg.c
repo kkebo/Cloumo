@@ -639,7 +639,7 @@ int jpeg_decode_mcu(JPEG *jpeg, UCHAR *zigzag_table)
 
 // YCrCb=>RGB
 
-int jpeg_decode_yuv(JPEG *jpeg, int h, int v, unsigned char *rgb, int b_type)
+void jpeg_decode_yuv(JPEG *jpeg, int h, int v, unsigned char *rgb, int b_type)
 {
 	int x0, y0, x, y, x1, y1;
 	int *py;
