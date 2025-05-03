@@ -66,9 +66,9 @@ kernel.bin: $(OBJS) $(LIBS) main.ls
 os.sys: src/kernel/asmhead.bin kernel.bin
 	$(os.sys)
 
-cloumo.img: src/kernel/ipl.bin os.sys images/b_f.bmp images/btn_r.bmp \
-		images/copy.bmp images/source.bmp images/search.bmp images/refresh.bmp \
-		html/index.htm
+cloumo.img: src/kernel/ipl.bin os.sys fonts/japanese.fnt html/index.htm html/kitai.htm \
+		images/b_f.bmp images/btn_r.bmp images/copy.bmp images/source.bmp \
+		images/search.bmp images/refresh.bmp
 	$(EDIMG)   imgin:$(TOOLPATH)fdimg0at.tek \
 		wbinimg src:src/kernel/ipl.bin len:512 from:0 to:0 \
 		copy from:os.sys to:@: \
