@@ -24,7 +24,7 @@ unsigned int MemoryTotal() {
 unsigned int MemoryTest(unsigned int start, unsigned int end) {
 	char flg486 = 0;
 	unsigned int eflg, cr0, i;
-    
+
 	/* 386 or 486+ */
 	eflg = LoadEflags();
 	eflg |= EFLAGS_AC_BIT; /* AC-bit = 1 */
@@ -35,21 +35,21 @@ unsigned int MemoryTest(unsigned int start, unsigned int end) {
 	}
 	eflg &= ~EFLAGS_AC_BIT; /* AC-bit = 0 */
 	StoreEflags(eflg);
-    
+
 	if (flg486 != 0) {
 		cr0 = LoadCr0();
 		cr0 |= CR0_CACHE_DISABLE; /* Cache 禁止 */
 		StoreCr0(cr0);
 	}
-    
+
 	i = MemoryTestSub(start, end);
-    
+
 	if (flg486 != 0) {
 		cr0 = LoadCr0();
 		cr0 &= ~CR0_CACHE_DISABLE; /* Cache 許可 */
 		StoreCr0(cr0);
 	}
-    
+
 	return i;
 }
 
@@ -71,7 +71,7 @@ void* malloc(unsigned int size) {
 			}
 			// サイズ記録(サイズ記録域含む)
 			*result = size;
-			
+
 			return result + sizeof(unsigned int);
 		}
 	}
@@ -81,11 +81,11 @@ void* malloc(unsigned int size) {
 bool free0(void* addr, unsigned int size) {
 	MemoryManager *memoryManager = (MemoryManager *)ADDRESS_MEMORY_MANAGER;
 	int i;
-    
+
 	for (i = 0; i < memoryManager->frees; i++)
 		if (memoryManager->freeinfo[i].addr > (unsigned int)addr)
 			break;
-    
+
 	if (i > 0) {
 		if (memoryManager->freeinfo[i - 1].addr + memoryManager->freeinfo[i - 1].size == (unsigned int)addr) {
 			memoryManager->freeinfo[i - 1].size += size;
@@ -134,11 +134,11 @@ void* malloc4k(unsigned int size) {
 	return malloc((size + 0xfff) & 0xfffff000);
 }
 
-bool free4k(void* addr) {
+bool free4k(void *addr) {
 	return free(addr/*, (size + 0xfff) & 0xfffff000*/);
 }
 
-/*extern "C" void *MemCopy(void* s1, void* s2, unsigned int size) {
+/*extern "C" void *MemCopy(void *s1, void *s2, unsigned int size) {
 	int d0, d1, d2;
 	asm volatile(
 		"cld;"
@@ -158,21 +158,21 @@ bool free4k(void* addr) {
 	return s1;
 }*/
 
-void* operator new(size_t size) throw() {
+void *operator new(size_t size) {
 	return malloc4k(size);
 }
 
-void* operator new[](size_t size) throw() {
+void *operator new[](size_t size) {
 	return malloc4k(size);
 }
 
-void operator delete(void* address) {
+void operator delete(void *address) throw() {
 	if (address) {
 		free4k(address);
 	}
 }
 
-void operator delete[](void* address) {
+void operator delete[](void *address) throw() {
 	if (address) {
 		free4k(address);
 	}

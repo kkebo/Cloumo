@@ -1,85 +1,85 @@
 [bits 32]
 
-	global _Hlt
-	global _Cli, _Sti
-	global _Input8, _Output8
-	global _LoadEflags, _StoreEflags
-	global _LoadGdtr, _LoadIdtr
-	global _LoadCr0, _StoreCr0
-	global _LoadTr
-	;global _AsmIntHandler07
-	global _AsmIntHandler20
-	global _AsmIntHandler21, _AsmIntHandler2c
-	global _AsmIntHandler27
-	global _MemoryTestSub
-	global _FarJump
-	;extern _IntHandler07
-	extern _IntHandler20
-	extern _IntHandler21, _IntHandler2c
+	global Hlt
+	global Cli, Sti
+	global Input8, Output8
+	global LoadEflags, StoreEflags
+	global LoadGdtr, LoadIdtr
+	global LoadCr0, StoreCr0
+	global LoadTr
+	;global AsmIntHandler07
+	global AsmIntHandler20
+	global AsmIntHandler21, AsmIntHandler2c
+	global AsmIntHandler27
+	global MemoryTestSub
+	global FarJump
+	;extern IntHandler07
+	extern IntHandler20
+	extern IntHandler21, IntHandler2c
 
 [section .text]
 
-_Hlt:
+Hlt:
 	hlt
 	ret
 
-_Cli:
+Cli:
 	cli
 	ret
 
-_Sti:
+Sti:
 	sti
 	ret
 
-_Input8:
+Input8:
 	MOV	EDX,[ESP+4]	; port
 	MOV	EAX,0
 	IN	AL,DX
 	RET
 
-_Output8:
+Output8:
 	MOV	EDX,[ESP+4]	; port
 	MOV	AL,[ESP+8]	; data
 	OUT	DX,AL
 	RET
 
-_LoadEflags:
+LoadEflags:
 	PUSHFD
 	POP		EAX
 	RET
 
-_StoreEflags:
+StoreEflags:
 	MOV		EAX,[ESP+4]
 	PUSH	EAX
 	POPFD
 	RET
 
-_LoadGdtr:
+LoadGdtr:
 	MOV		AX,[ESP+4]		; limit
 	MOV		[ESP+6],AX
 	LGDT	[ESP+6]
 	RET
 
-_LoadIdtr:
+LoadIdtr:
 	MOV		AX,[ESP+4]		; limit
 	MOV		[ESP+6],AX
 	LIDT	[ESP+6]
 	RET
 
-_LoadCr0:
+LoadCr0:
 	MOV		EAX,CR0
 	RET
 
-_StoreCr0:
+StoreCr0:
 	MOV		EAX,[ESP+4]
 	MOV		CR0,EAX
 	RET
 
-_LoadTr:
+LoadTr:
 	LTR		[ESP+4]			; tr
 	RET
 
-;_AsmIntHandler07:
+;AsmIntHandler07:
 ;	PUSH	ES
 ;	PUSH	DS
 ;	PUSHAD
@@ -88,14 +88,14 @@ _LoadTr:
 ;	MOV	 AX,SS
 ;	MOV	 DS,AX
 ;	MOV	 ES,AX
-;	CALL	_IntHandler07
+;	CALL	IntHandler07
 ;	POP	 EAX
 ;	POPAD
 ;	POP	 DS
 ;	POP	 ES
 ;	IRETD
 
-_AsmIntHandler20:
+AsmIntHandler20:
 	PUSH ES
 	PUSH DS
 	PUSHAD
@@ -104,14 +104,14 @@ _AsmIntHandler20:
 	MOV AX,SS
 	MOV DS,AX
 	MOV ES,AX
-	CALL	_IntHandler20
+	CALL	IntHandler20
 	pop eax
 	POPAD
 	POP DS
 	POP ES
 	IRETD
 
-_AsmIntHandler21:
+AsmIntHandler21:
 	PUSH ES
 	PUSH DS
 	PUSHAD
@@ -120,20 +120,20 @@ _AsmIntHandler21:
 	MOV AX,SS
 	MOV DS,AX
 	MOV ES,AX
-	CALL	_IntHandler21
+	CALL	IntHandler21
 	pop eax
 	POPAD
 	POP DS
 	POP ES
 	IRETD
 
-_AsmIntHandler27:
+AsmIntHandler27:
 	MOV		EDX,0x0020
 	MOV		AL,0x67
-	OUT		DX,AL			; IRQ-07éÛïtäÆóπÇPICÇ…í ím
+	OUT		DX,AL			; IRQ-07ÔøΩÔøΩÔøΩtÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩPICÔøΩ…í ím
 	IRETD
 
-_AsmIntHandler2c:
+AsmIntHandler2c:
 	PUSH ES
 	PUSH DS
 	PUSHAD
@@ -142,15 +142,15 @@ _AsmIntHandler2c:
 	MOV AX,SS
 	MOV DS,AX
 	MOV ES,AX
-	CALL	_IntHandler2c
+	CALL	IntHandler2c
 	pop eax
 	POPAD
 	POP DS
 	POP ES
 	IRETD
 
-_MemoryTestSub:
-	PUSH	EDI						; ÅiEBX, ESI, EDI Ç‡égÇ¢ÇΩÇ¢ÇÃÇ≈Åj
+MemoryTestSub:
+	PUSH	EDI						; ÔøΩiEBX, ESI, EDI ÔøΩÔøΩÔøΩgÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÃÇ≈Åj
 	PUSH	ESI
 	PUSH	EBX
 	MOV		ESI,0xaa55aa55			; pat0 = 0xaa55aa55;
@@ -182,6 +182,6 @@ mts_fin:
 	POP		EDI
 	RET
 
-_FarJump:
+FarJump:
 	jmp		far [esp+4]
 	ret

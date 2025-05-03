@@ -17,14 +17,14 @@ void Timer::init(Queue* queue, int data) {
 }
 
 void Timer::free() {
-	flags_ = FREE;
+	flags_ = TIMERFLAG_FREE;
 }
 
 void Timer::set(unsigned int timeout) {
 	Timer* t;
 	Timer* s;
 	timeout_ = timeout + TimerController::count_; // 絶対時間に変換
-	flags_ = INUSE;
+	flags_ = TIMERFLAG_INUSE;
 	Cli();
 	t = TimerController::t0_;
 
@@ -67,12 +67,12 @@ void TimerController::init() {
 
 	timers0_ = (Timer*)malloc4k(MAX_TIMER * sizeof(Timer));//new Timer[MAX_TIMER];
 	for (int i = 0; i < MAX_TIMER; i++) {
-		timers0_[i].flags_ = FREE;
+		timers0_[i].flags_ = TIMERFLAG_FREE;
 	}
 
 	t0_ = &timers0_[0];
 	t0_->timeout_ = 0xffffffff;
-	t0_->flags_ = INUSE;
+	t0_->flags_ = TIMERFLAG_INUSE;
 	t0_->next_ = 0;
 }
 
@@ -80,7 +80,7 @@ void TimerController::init() {
 Timer* TimerController::alloc() {
 	for (int i = 0; i < MAX_TIMER; i++) {
 		if (!timers0_[i].flags_) {
-			timers0_[i].flags_ = ALLOCATED;
+			timers0_[i].flags_ = TIMERFLAG_ALLOCATED;
 			return &timers0_[i];
 		}
 	}
@@ -96,7 +96,7 @@ void TimerController::reset() {
 	// t0 以外の動作中のタイマーを調整
 	for (int i = 1; i < MAX_TIMER; i++) {
 		Timer& timer = timers0_[i];
-		if (timer.flags_ == INUSE) {
+		if (timer.flags_ == TIMERFLAG_INUSE) {
 			timer.timeout_ -= lastcount;
 		}
 	}

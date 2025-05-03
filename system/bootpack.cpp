@@ -5,6 +5,19 @@
 #include "headers.h"
 #include <stdio.h>
 
+void SysinfoMain() {
+	char str[100];
+	sprintf(str, "FREE %8dB/%dMB", MemoryTotal(), MemoryTest(0x00400000, 0xbfffffff) / 1024 / 1024);
+	SheetCtl::drawString(SheetCtl::window_[1], 2, 2, 0, str);
+	SheetCtl::drawString(SheetCtl::window_[1], 2, 18, 0, "level priority task name");
+	for (int i = 0; i < 4; i++) {
+		if (TaskController::tasks0_[i].flags_) {
+			sprintf(str, "%5d %8d %s", TaskController::tasks0_[i].level_, TaskController::tasks0_[i].priority_, TaskController::tasks0_[i].name_);
+			SheetCtl::drawString(SheetCtl::window_[1], 2, 34 + i * 16, 0, str);
+		}
+	}
+}
+
 extern "C" void _main() {
 	/* 初期化 */
 	MemoryInit();
@@ -48,7 +61,12 @@ extern "C" void _main() {
 	Beep(0, 8, btsound);
 	btsound->free();
 
-	for (;;) {
-		mainTask->sleep();
-	}
+	// 代わりにこっちをアイドルタスクにするのもいいかも
+	mainTask->sleep();
+	//TaskController::remove(mainTask);
+
+	/*for (;;) {
+		Hlt();
+		//mainTask->sleep();
+	}*/
 }

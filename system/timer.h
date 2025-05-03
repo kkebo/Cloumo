@@ -9,7 +9,7 @@ const int PIT_CTRL = 0x0043;
 const int PIT_CNT0 = 0x0040;
 const int MAX_TIMER = 500;
 
-enum TimerFlag {FREE, ALLOCATED, INUSE};
+enum TimerFlag {TIMERFLAG_FREE, TIMERFLAG_ALLOCATED, TIMERFLAG_INUSE};
 
 class Timer {
 private:

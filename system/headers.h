@@ -7,7 +7,7 @@
 #include "descriptor.h"
 #include "queue.h"
 #include "file.h"
-#include "functions.h"
+#include "asmfunc.h"
 #include "graphic.h"
 #include "int.h"
 #include "jpeg.h"

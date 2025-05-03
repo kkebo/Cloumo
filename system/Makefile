@@ -1,66 +1,64 @@
-objs_bootpack = bootpack.obj mouse.obj keyboard.obj int.obj descriptor.obj file.obj memory.obj browser.obj sound.obj queue.obj multitask.obj timer.obj datetime.obj graphic.obj tek.obj utf82kt.obj functions.obj alloca.obj
+OBJS   = bootpack.o mouse.o keyboard.o int.o descriptor.o file.o memory.o browser.o sound.o queue.o multitask.o timer.o datetime.o graphic.o tek.o utf82kt.o asmfunc.o
+GOLIBC = ../golibc/golibc.a
 
 ifeq ($(OS),Windows_NT)
+# Windows
 	TOOLPATH = ../../z_tools_win/
-	INCLUDE = ../../z_tools_win/include/
-	make     = $(TOOLPATH)make.exe -r
-	bim2hrb  = $(TOOLPATH)bim2hrb.exe
-	cpp      = $(TOOLPATH)gcc.exe -I$(INCPATH) -Os -Wall -nostdlib -fno-builtin -fno-exceptions -fno-rtti -B$(TOOLPATH) -mno-stack-arg-probe -c
-	obj2bim  = $(TOOLPATH)obj2bim.exe
-	nask     = $(TOOLPATH)nask.exe
-	os.sys   = copy /B asmhead.bin+bootpack.hrb os.sys
-	del      = -del
+	INCPATH  = $(TOOLPATH)include/
+	MAKE     = $(TOOLPATH)make.exe -r
+	CC       = $(TOOLPATH)gcc.exe
+	CFLAGS   = -I$(INCPATH) -Os -Wall -nostdinc -fno-exceptions -fno-rtti -B$(TOOLPATH) -std=c11 -fno-stack-protector
+	CXX      = $(TOOLPATH)g++.exe
+	CXXFLAGS = -I$(INCPATH) -Os -Wall -nostdinc -fno-exceptions -fno-rtti -B$(TOOLPATH) -std=c++1y -fpermissive -fno-stack-protector
+	LD       =
+	NASM     =
+	os.sys   = copy /B asmhead.bin+bootpack.bin os.sys
+	DEL      = -del
 else
+# OS X
 	TOOLPATH = ../../z_tools/
-	INCLUDE = ../../z_tools/include/
-	make     = make -r
-	bim2hrb  = $(TOOLPATH)bim2hrb
-	cpp      = $(TOOLPATH)gocc1plus -I$(INCLUDE) -Os -Wall -quiet -fno-exceptions
-	obj2bim  = $(TOOLPATH)obj2bim
-	objconv  = $(TOOLPATH)objconv
-	nask     = $(TOOLPATH)nask
-	g2n      = $(TOOLPATH)gas2nask -a
-	os.sys   = cat asmhead.bin bootpack.hrb > os.sys
-	del      = rm -f
+	INCPATH  = $(TOOLPATH)include/
+	MAKE     = make -r
+	CC       = i686-elf-gcc
+	CFLAGS   = -I$(INCPATH) -Os -Wall -nostdinc -fno-exceptions -fno-rtti -B$(TOOLPATH) -std=c11 -fno-stack-protector
+	CXX      = i686-elf-g++
+	CXXFLAGS = -I$(INCPATH) -Os -Wall -nostdinc -fno-exceptions -fno-rtti -B$(TOOLPATH) -std=c++1y -fpermissive -fno-stack-protector
+	LD       = i686-elf-ld
+	NASM     = nasm
+	os.sys   = cat asmhead.bin bootpack.bin > os.sys
+	DEL      = rm -f
 endif
-rulefile = $(INCLUDE)os.rul
 
 # デフォルトの設定
-default :
-	$(make) os.sys
-	$(make) ipl.bin
+all: os.sys ipl.bin
 
 # 個別の設定
-bootpack.bim : $(objs_bootpack) jpeg.obj bmp.obj
-	$(obj2bim) @$(rulefile) $(objs_bootpack) jpeg.obj bmp.obj out:bootpack.bim map:bootpack.map stack:3136k
+bootpack.bin: $(OBJS) jpeg.obj bmp.obj $(GOLIBC)
+	$(LD) -m elf_i386 -Map bootpack.map -T main.ls -s -o $@ $(OBJS) jpeg.obj bmp.obj $(GOLIBC)
 
-bootpack.hrb : bootpack.bim
-	$(bim2hrb) bootpack.bim bootpack.hrb 0
-
-os.sys : asmhead.bin bootpack.hrb
+os.sys: asmhead.bin bootpack.bin
 	$(os.sys)
 
 # 一般の設定
-%.obj : %.asm
-	nasm -fwin32 -o $*.obj $*.asm
+%.o: %.asm
+	$(NASM) -felf32 -o $@ $<
 
-%.s : %.cpp
-	$(cpp) $*.cpp -o $*.s
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c $<
 
-%.nas : %.s
-	$(g2n) $*.s $*.nas
+%.o: %.c
+	$(CC) $(CFLAGS) -c $<
 
-%.obj : %.nas
-	$(nask) $*.nas $*.obj
+%.bin: %.asm
+	$(NASM) -fbin -o $@ $<
 
-%.bin : %.asm
-	nasm -fbin -o $*.bin $*.asm
+# Libraries
+$(GOLIBC):
+	$(MAKE) -C ../golibc
 
 # 生成物を削除
-clean :
-	$(del) *.map
-	$(del) *.bin
-	$(del) $(objs_bootpack)
-	$(del) *.bim
-	$(del) *.hrb
-	$(del) os.sys
+clean:
+	$(DEL) *.map
+	$(DEL) *.bin
+	$(DEL) $(OBJS)
+	$(DEL) os.sys

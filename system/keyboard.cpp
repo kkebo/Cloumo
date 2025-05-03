@@ -23,11 +23,11 @@ unsigned char KeyboardController::ascii_shift_table_[0x80] = {
 int KeyboardController::shift_ = 0;
 int KeyboardController::cmd_wait_ = -1;
 int KeyboardController::leds_ = 0;
-Queue* KeyboardController::cmd_ = 0;
-Queue* KeyboardController::queue_ = 0;
+Queue *KeyboardController::cmd_ = nullptr;
+Queue *KeyboardController::queue_ = nullptr;
 
 void KeyboardController::init() {
-	BootInfo* binfo = (BootInfo*)ADDRESS_BOOTINFO;
+	BootInfo *binfo = (BootInfo*)ADDRESS_BOOTINFO;
 	leds_ = (binfo->leds >> 4) & 7;
 
 	wait();
@@ -76,7 +76,7 @@ void KeyboardController::decode(unsigned char code) {
 	char s[2];
 	if (code < 0x80 && ascii_table_[code]) {
 		// shift xor caps lock
-		s[0] = (shift_ != leds_ & 4) ? ascii_shift_table_[code] : ascii_table_[code];
+		s[0] = (shift_ != (leds_ & 4)) ? ascii_shift_table_[code] : ascii_table_[code];
 		s[1] = 0;
 		SheetCtl::drawString(SheetCtl::back_, SheetCtl::tbox_cpos_ + 2, SheetCtl::back_->bysize - 20 - 22, 0, s);
 		SheetCtl::refresh(SheetCtl::back_, SheetCtl::tbox_cpos_ + 2, SheetCtl::back_->bysize - 20 - 22, SheetCtl::tbox_cpos_ + 2 + 8, SheetCtl::back_->bysize - 20);
@@ -86,7 +86,7 @@ void KeyboardController::decode(unsigned char code) {
         case 0x57:
             SheetCtl::upDown(SheetCtl::sheets_[1], SheetCtl::top_ - 1);
             break;
-            
+
         case 0x3a:
             leds_ ^= 4;
             cmd_->push(kKeyCmdLED);
@@ -104,32 +104,32 @@ void KeyboardController::decode(unsigned char code) {
             cmd_->push(kKeyCmdLED);
             cmd_->push(leds_);
             break;
-            
+
         case 0xfa:
             cmd_wait_= -1;
             break;
-            
+
         case 0xfe:
             wait();
             Output8(kPortKeyData, cmd_wait_);
             break;
-            
+
         case 0x2a:
             shift_ |= 1;
             break;
-            
+
         case 0x36:
             shift_ |= 2;
             break;
-            
+
         case 0xaa:
             shift_ &= ~1;
             break;
-            
+
         case 0xb6:
             shift_ &= ~2;
             break;
-            
+
         case 0x0e:
             if (SheetCtl::tbox_cpos_ > 2) {
                 SheetCtl::tbox_cpos_ -= 8;

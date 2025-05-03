@@ -71,7 +71,7 @@ void Mouse::Init() {
 	task->tss_.ds = 1 * 8;
 	task->tss_.fs = 1 * 8;
 	task->tss_.gs = 1 * 8;
-	task->run(2, 2);
+	task->run(1, 1);
 	task->queue_ = Queue(128, task);
 	Mouse::queue_ = &task->queue_;
 }

@@ -17,7 +17,7 @@ int SheetCtl::adrfont_    = 0;
 // シートコントロールを初期化
 void SheetCtl::init() {
 	/* オブジェクト初期化 */
-	BootInfo *binfo   = (BootInfo *)ADDRESS_BOOTINFO;
+	BootInfo *binfo = (BootInfo *)ADDRESS_BOOTINFO;
 	vram_    = (unsigned short *)binfo->vram;
 	scrnx_   = binfo->scrnx;
 	scrny_   = binfo->scrny;
@@ -31,8 +31,8 @@ void SheetCtl::init() {
 	}
 
 	/* フォント読み込み */
-	File* fontfile = FAT12::open("japanese.fnt");
-	adrfont_ = (int)fontfile->read();
+	File *fontfile = FAT12::open("japanese.fnt");
+	if (fontfile) adrfont_ = (int)fontfile->read();
 
 	/* サイドバー */
 	back_ = alloc(150, scrny_, false);
@@ -57,13 +57,13 @@ void SheetCtl::init() {
 	drawRect(window_[0], 0, 0, 0, window_[0]->bxsize, window_[0]->bysize);
 	fillRect(window_[0], Rgb(255, 255, 255), 1, 1, window_[0]->bxsize - 1, window_[0]->bysize - 1);
 	slide(window_[0], back_->bxsize, 0);
-	
+
 	// system info tab page
 	window_[1] = alloc(scrnx_ - back_->bxsize, scrny_, false);
 	drawRect(window_[1], 0, 0, 0, window_[1]->bxsize, window_[1]->bysize);
 	fillRect(window_[1], Rgb(255, 255, 255), 1, 1, window_[1]->bxsize - 1, window_[1]->bysize - 1);
 	slide(window_[1], back_->bxsize, 0);
-	
+
 	// index.htm タブを全面へ
 	upDown(window_[0], 1);
 
@@ -168,7 +168,7 @@ void SheetCtl::refreshMap(int vx0, int vy0, int vx1, int vy1, int h0) {
 	if (vy1 > scrny_) vy1 = scrny_;
 	for (int h = h0; h <= top_; h++) {
 		sht = sheets_[h];
-		sid = sht - sheets0_; /* 番地を引き算してそれを下じき番号として利用 */
+		sid = h;//sht - sheets0_; /* 番地を引き算してそれを下じき番号として利用 */
 		bx0 = vx0 - sht->vx0;
 		by0 = vy0 - sht->vy0;
 		bx1 = vx1 - sht->vx0;
@@ -224,7 +224,7 @@ void SheetCtl::refreshSub(int vx0, int vy0, int vx1, int vy1, int h1) {
 
 	for (int h = 0; h <= h1; h++) {
 		sht = sheets_[h];
-		sid = sht - sheets0_;
+		sid = h;//sht - sheets0_; // hと同じ？
 		/* vx0～vy1を使って、bx0～by1を逆算する */
 		bx0 = (vx0 - sht->vx0 < 0)? 0 : vx0 - sht->vx0;
 		by0 = (vy0 - sht->vy0 < 0)? 0 : vy0 - sht->vy0;
@@ -236,7 +236,7 @@ void SheetCtl::refreshSub(int vx0, int vy0, int vx1, int vy1, int h1) {
 					if (map_[(sht->vy0 + by) * scrnx_ + sht->vx0 + bx] == sid) {
 						rgb = sht->buf[by * sht->bxsize + bx];
 						((unsigned int *)vram_)[((sht->vy0 + by) * scrnx_ + (sht->vx0 + bx))]
-							= (h <= 1) ? rgb 
+							= (h <= 1) ? rgb
 							           : MixRgb(rgb, backrgb[(sht->vy0 + by - vy0) * (vx1 - vx0) + (sht->vx0 + bx - vx0)]);
 					} else {
 						rgb = sht->buf[by * sht->bxsize + bx];
@@ -272,7 +272,7 @@ void SheetCtl::refreshSub(int vx0, int vy0, int vx1, int vy1, int h1) {
 			}
 		}
 	}
-	delete backrgb;
+	operator delete(backrgb);
 }
 
 // シートを移動
@@ -292,7 +292,7 @@ void SheetCtl::slide(Sheet* sht, int vx0, int vy0) {
 void SheetCtl::freeSheet(Sheet* sht) {
 	if (sht->height >= 0) upDown(sht, -1);
 	sht->flags = 0;
-	delete sht->buf;
+	operator delete(sht->buf);
 }
 
 // 単色直線を描画
@@ -687,16 +687,16 @@ void SheetCtl::drawPicture(Sheet* sht, int x, int y, const char *fname, long col
 		unsigned char* filebuf = imagefile->read();
 		unsigned int fsize = imagefile->size();
 
-		if (!info_JPEG(&env, info, fsize, filebuf) && !info_BMP(&env, info, fsize, filebuf)) {
+		if (!_info_JPEG(&env, info, fsize, filebuf) && !_info_BMP(&env, info, fsize, filebuf)) {
 			return;
 		}
 
 		RGB* picbuf = new RGB[info[2] * info[3]];
 		if (picbuf) {
 			if (info[0] == 1) {
-				i = decode0_BMP(&env, fsize, filebuf, 4, (unsigned char*)picbuf, 0);
+				i = _decode0_BMP(&env, fsize, filebuf, 4, (unsigned char*)picbuf, 0);
 			} else {
-				i = decode0_JPEG(&env, fsize, filebuf, 4, (unsigned char*)picbuf, 0);
+				i = _decode0_JPEG(&env, fsize, filebuf, 4, (unsigned char*)picbuf, 0);
 			}
 			if (!i && info[2] <= scrnx_ && info[3] <= scrny_) {
 				for (int yy = 0; yy < info[3]; yy++) {
@@ -709,8 +709,8 @@ void SheetCtl::drawPicture(Sheet* sht, int x, int y, const char *fname, long col
 				}
 			}
 		}
-		delete picbuf;
-		delete imagefile;
+		operator delete(picbuf);
+		operator delete(imagefile);
 	}
 }
 

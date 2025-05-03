@@ -8,12 +8,12 @@ int strncmpi(const char* string1, const char* string2, size_t length) {
 	// 仮(これは文字数が多いとかなり遅い)
 	char string1Capital[length + 1];
 	char string2Capital[length + 1];
-	for (int i = 0; i < length; i++) {
+	for (size_t i = 0; i < length; i++) {
 		char c1 = string1[i];
 		string1Capital[i] = ('A' <= c1 && c1 <= 'Z') ? c1 + 0x20 : c1;
 	}
 	string1Capital[length] = 0;
-	for (int i = 0; i < length; i++) {
+	for (size_t i = 0; i < length; i++) {
 		char c2 = string2[i];
 		string2Capital[i] = ('A' <= c2 && c2 <= 'Z') ? c2 + 0x20 : c2;
 	}
@@ -22,21 +22,21 @@ int strncmpi(const char* string1, const char* string2, size_t length) {
 }
 
 // HTMLファイルを表示
-void Browser::View(const char* url) {
+void Browser::View(const char *url) {
 	int x = 15, y = 15, /*titlex = 50, */j, encode = 0/* Shift_JIS */;
 	char s[11];
 	bool uline = false, bold = false, title = false, line = false, pre = false, list = false;
 	unsigned int fcolor = 0;
 	//char text[240 * 1024];
 	//int tcount = 0;
-	
+
 	// ファイル読み込み
-	File* htmlfile = FAT12::open(url);
+	File *htmlfile = FAT12::open(url);
 	if (!htmlfile) return;
-	unsigned char* source = htmlfile->read();
+	unsigned char *source = htmlfile->read();
 	unsigned int fsize = htmlfile->size();
 
-	for (int i = 0; i < fsize; i++) {
+	for (unsigned int i = 0; i < fsize; i++) {
 		if (source[i] == '<') { // タグ
 			i++;
 			// 要素名を小文字でsに代入
@@ -274,7 +274,7 @@ void Browser::View(const char* url) {
 				x = 15;
 				y += 18;
 			} else if (x > 15) {
-				for (; source[i] == 0x0a || source[i] == 0x0d || source[i] == ' ' && i < fsize; i++) {}
+				for (; source[i] == 0x0a || source[i] == 0x0d || (source[i] == ' ' && i < fsize); i++) {}
 				x += 8;
 				i--;
 			}
@@ -307,7 +307,7 @@ void Browser::View(const char* url) {
 			if (uline) SheetCtl::drawLine(SheetCtl::window_[0], fcolor, x - 16, y + 15, x, y + 15);
 			if (line) SheetCtl::drawLine(SheetCtl::window_[0], fcolor, x - 16, y + 7, x, y + 7);
 		} else if ((0xc2 <= source[i] && source[i] <= 0xd1 && encode == 1)
-			|| ((0x81 <= source[i] && source[i] <= 0x9f) || (0xe0 <= source[i] && source[i] <= 0xfc) && encode == 0)
+			|| ((0x81 <= source[i] && source[i] <= 0x9f) || ((0xe0 <= source[i] && source[i] <= 0xfc) && encode == 0))
 			|| (0x81 <= source[i] && source[i] <= 0xfe && encode == 2)) { // 2バイト全角文字
 			s[0] = source[i];
 			s[1] = source[i + 1];
@@ -347,5 +347,5 @@ void Browser::View(const char* url) {
 	//text[tcount] = 0;
 	//SheetCtl::drawString(SheetCtl::back, 0, 0, Rgb(255, 255, 255), text);
 
-	delete htmlfile;
+	operator delete(htmlfile);
 }

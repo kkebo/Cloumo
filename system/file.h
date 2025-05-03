@@ -16,27 +16,27 @@ struct FileInfo {
 
 class File {
 public: // private に
-	unsigned char* buf_;
-	FileInfo* info_;
+	unsigned char *buf_;
+	FileInfo *info_;
 	int size_;
 
 public:
 	~File();
-	unsigned char* read();
+	unsigned char *read();
 	int size();
 };
 
 class FAT12 {
 private:
-	static int* fat_;
+	static int *fat_;
 
 	static void loadFile(int, int, char*, char*);
-	static unsigned char* loadFile2(int, int*);
-	static FileInfo* search(const char*, FileInfo*, int);
+	static unsigned char *loadFile2(int, int*);
+	static FileInfo *search(const char*, FileInfo*, int);
 
 public:
 	static void init();
-	static File* open(const char*);
+	static File *open(const char*);
 };
 
 #endif

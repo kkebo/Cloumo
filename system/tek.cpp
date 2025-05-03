@@ -9,8 +9,8 @@ typedef unsigned int TekTPrb;
 static int TekDecode5(int siz, unsigned char *p, unsigned char *q);
 
 static unsigned int Tekgetnum_s7s(unsigned char **pp) {
-/* ‚±‚ê‚Í•K‚¸big-endian */
-/* ‰º‘Ê‚ª‚È‚¢‚Ì‚Å’†g‚ğ‚¢‚¶‚è‚â‚·‚¢ */
+/* ã“ã‚Œã¯å¿…ãšbig-endian */
+/* ä¸‹é§„ãŒãªã„ã®ã§ä¸­èº«ã‚’ã„ã˜ã‚Šã‚„ã™ã„ */
 	unsigned int s = 0;
 	unsigned char *p = *pp;
 	do {
@@ -23,17 +23,17 @@ static unsigned int Tekgetnum_s7s(unsigned char **pp) {
 
 int TekGetSize(unsigned char *p) {
 	static char header[15] = {
-		0xff, 0xff, 0xff, 0x01, 0x00, 0x00, 0x00, 0x4f, 0x53, 0x41, 0x53, 0x4b, 0x43, 0x4d, 0x50
+		static_cast<char>(0xff), static_cast<char>(0xff), static_cast<char>(0xff), 0x01, 0x00, 0x00, 0x00, 0x4f, 0x53, 0x41, 0x53, 0x4b, 0x43, 0x4d, 0x50
 	};
 	if (memcmp(p + 1, header, 15) == 0 && (*p == 0x83 || *p == 0x85 || *p == 0x89)) {
 		return Tekgetnum_s7s(&(p += 16));
 	}
 	return -1;
-}	  /* i’jmemcmp‚Ístrncmp‚Ì’‡ŠÔ‚ÅA•¶š—ñ’†‚É0‚ª‚ ‚Á‚Ä‚àw’è‚³‚ê‚½15•¶š‚Ü‚Å”äŠr‚·‚éŠÖ” */
+}
 
 int TekDecomp(unsigned char *p, unsigned char *q, int size) {
 	if (*p == 0x89 && TekDecode5(size, p, q) != 0) return -1;
-	return 0;	/* ¬Œ÷ */
+	return 0;	/* æˆåŠŸ */
 }
 
 static int TekDecMain5(int *work, unsigned char *src, int osiz, unsigned char *q, int lc, int pb, int lp, int flags);
@@ -77,7 +77,7 @@ static int TekLzRestoreTek5(int srcsiz, unsigned char *src, int outsiz, unsigned
 		lp = pb;
 		pb = wrksiz;
 	}
-	wrksiz = 0x180 * sizeof(unsigned int) + (0x840 + (0x300 << (lc + lp))) * sizeof(TekTPrb); /* Å’á15KB, lc+lp=3‚È‚çA36KB */
+	wrksiz = 0x180 * sizeof(unsigned int) + (0x840 + (0x300 << (lc + lp))) * sizeof(TekTPrb); /* æœ€ä½15KB, lc+lp=3ãªã‚‰ã€36KB */
 	work = (int*) malloc4k(wrksiz);
 	if (work == NULL) {
 		return -1;
@@ -111,7 +111,7 @@ struct TekStrPrb {
 struct TekStrRngDec {
 	unsigned char *p;
 	unsigned int range, code, rmsk;
-	jmp_buf errjmp;
+	void **errjmp;
 	TekStrBitModel bm[32], *ptbm[16];
 	TekStrPrb probs;
 };
@@ -153,9 +153,9 @@ static int TekRDGet1(struct TekStrRngDec *rd, TekTPrb *prob0, int n, int j, stru
 		p = *(prob = prob0 + j);
 		if (bm->lt > 0) {
 			if (--bm->lt == 0) {
-				/* õ–½Ø‚ê */
+				/* å¯¿å‘½åˆ‡ã‚Œ */
 				if (TekRDGet1(rd, &rd->probs.fchglt, 0x71, 0, &rd->bm[3]) == 0) {
-					/* õ–½•ÏX‚Í‚Ü‚¾ƒTƒ|[ƒg‚µ‚Ä‚È‚¢ */
+					/* å¯¿å‘½å¤‰æ›´ã¯ã¾ã ã‚µãƒãƒ¼ãƒˆã—ã¦ãªã„ */
 err:
 					longjmp(rd->errjmp, 1);
 				}
@@ -257,7 +257,7 @@ static int TekDecMain5(int *work, unsigned char *src, int osiz, unsigned char *q
 		((TekTPrb*)prb)[i] = 1 << 15;
 	}
 	for (i = 0; i < 32; i++) {
-		rd->bm[i].lt = (i >= 4); /* 0..3‚Íõ–½‚È‚µ */
+		rd->bm[i].lt = (i >= 4); /* 0..3ã¯å¯¿å‘½ãªã— */
 		rd->bm[i].lt0 = (i < 24) ? 16 * 1024 : 8 * 1024;
 		rd->bm[i].s &= 0;
 		rd->bm[i].t = rd->bm[i].m = 5;
@@ -266,22 +266,22 @@ static int TekDecMain5(int *work, unsigned char *src, int osiz, unsigned char *q
 	if (stk) {
 		rd->rmsk = -1 << 11;
 		for (i = 0; i < 32; i++)
-			rd->bm[i].lt = 0; /* ‘S‚Äõ–½‚È‚µ */
+			rd->bm[i].lt = 0; /* å…¨ã¦å¯¿å‘½ãªã— */
 		for (i = 0; i < 14; i++)
 			rd->ptbm[i] = &rd->bm[0];
 	} else {
 		unsigned char pt[14];
 		static unsigned char pt1[14] = {
-			 8,  8,  8,  8,  8,  8,  8,  8,
-			 8,  8, 18, 18, 18,  8
+			8,  8,  8,  8,  8,  8,  8,  8,
+			8,  8, 18, 18, 18,  8
 		};
 		static unsigned char pt2[14] = {
-			 8,  8, 10, 11, 12, 12, 14, 15,
+			8,  8, 10, 11, 12, 12, 14, 15,
 			16, 16, 18, 18, 20, 21
 		};
 		/*
-			 0- 7:mch, mch, lit1, lensel, lenlow, lenmid, lenhigh, lenext
-			 8-15:pslot, pslot, sdis, sdis, align, rep-repg2
+			0- 7:mch, mch, lit1, lensel, lenlow, lenmid, lenhigh, lenext
+			8-15:pslot, pslot, sdis, sdis, align, rep-repg2
 		*/
 		rd->rmsk |= -1;
 		rd->bm[1].t = 5; rd->bm[1].m = 3; /* for fchgprm */
@@ -293,7 +293,7 @@ static int TekDecMain5(int *work, unsigned char *src, int osiz, unsigned char *q
 		rd->bm[22].t = 0; rd->bm[22].m = 1;
 		prb->repg3 = 0xffff;
 		if (flags == -2) { /* z1 */
-			rd->bm[22].lt = 0; /* repg3‚Ìlt‚ğ0‚É */
+			rd->bm[22].lt = 0; /* repg3ã®ltã‚’0ã« */
 			for (i = 0; i < 14; i++)
 				pt[i] = pt1[i];
 		} else {
@@ -320,14 +320,14 @@ static int TekDecMain5(int *work, unsigned char *src, int osiz, unsigned char *q
 	pmch &= 0; s &= 0; pos = 1;
 	while (pos < osiz) {
 		s_pos = pos & m_pos;
-		if (TekRDGet1(rd, &prb->pb[s_pos].st[s].mch, 0x71, 0, rd->ptbm[s > 0]) ^ stk) { /* ”ñlz */
+		if (TekRDGet1(rd, &prb->pb[s_pos].st[s].mch, 0x71, 0, rd->ptbm[s > 0]) ^ stk) { /* élz */
 			i = (q[-1] >> lcr | (pos & m_lp) << lc) << 8;
 			s = state_table[s];
 			if (pmch == 0)
 				*q = TekRDGet1(rd, &prb->lit[i], lit0cntmsk, 1, &rd->bm[24]) & 0xff;
 			else {
 				struct TekStrBitModel *bm = &rd->bm[24];
-				j = 1; /* lit1‚ÍÅ‰‚©‚ç2‚ğŒ¸‚¶‚Ä‚ ‚é */
+				j = 1; /* lit1ã¯æœ€åˆã‹ã‚‰2ã‚’æ¸›ã˜ã¦ã‚ã‚‹ */
 				k = 8;
 				pmch = q[rep[0]];
 				do {
@@ -439,7 +439,7 @@ static int TekDecode5(int siz, unsigned char *p, unsigned char *q) {
 				if (dsiz > bsiz)
 					return 1;
 				if (hed & 0x40)
-					Tekgetnum_s7s(&p); /* ƒIƒvƒVƒ‡ƒ“î•ñ‚Ö‚Ìƒ|ƒCƒ“ƒ^‚ğ“Ç‚İ”ò‚Î‚· */
+					Tekgetnum_s7s(&p); /* ã‚ªãƒ—ã‚·ãƒ§ãƒ³æƒ…å ±ã¸ã®ãƒã‚¤ãƒ³ã‚¿ã‚’èª­ã¿é£›ã°ã™ */
 				st = TekLzRestoreTek5(p1 - p, p, dsiz, q);
 			}
 		}

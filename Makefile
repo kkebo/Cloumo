@@ -1,27 +1,29 @@
 ifeq ($(OS),Windows_NT)
+# Windows
 	TOOLPATH = ../z_tools_win/
-	INCLUDE = ../z_tools_win/include/
 	MAKE     = $(TOOLPATH)make.exe -r
 	EDIMG    = $(TOOLPATH)edimg.exe
+	QEMU     = $(TOOLPATH)qemu/qemu.exe -std-vga
 	DEL      = -del
-	qemu     = $(TOOLPATH)qemu/qemu.exe -std-vga
 else
+# OS X
 	TOOLPATH = ../z_tools/
-	INCLUDE = ../z_tools/include/
 	MAKE     = make -r
 	EDIMG    = $(TOOLPATH)edimg
-        DEL      = rm -f
-	qemu     = /usr/local/bin/qemu-system-x86_64 -vga std
+	QEMU     = qemu-system-x86_64 -vga std
+	DEL      = rm -f
 endif
 
-# デフォルト動作
 
-default :
-	$(MAKE) full
+default:
+	$(MAKE) -C images
+	$(MAKE) -C html
+	$(MAKE) -C system
+	$(MAKE) cloumo.img
 
 # ファイル生成規則
 
-cloumo.img : system/ipl.bin system/os.sys images/b_f.bmp images/btn_r.bmp \
+cloumo.img: system/ipl.bin system/os.sys images/b_f.bmp images/btn_r.bmp \
 		images/copy.bmp images/source.bmp images/search.bmp images/refresh.bmp
 	$(EDIMG)   imgin:$(TOOLPATH)fdimg0at.tek \
 		wbinimg src:system/ipl.bin len:512 from:0 to:0 \
@@ -36,22 +38,17 @@ cloumo.img : system/ipl.bin system/os.sys images/b_f.bmp images/btn_r.bmp \
 		copy from:images/refresh.bmp to:@: \
 		imgout:cloumo.img
 
-# コマンド
+# Commands
 
-run :
-	$(MAKE) full
-	$(qemu) -m 32 -localtime -soundhw all -fda cloumo.img -L .
+run:
+	$(MAKE) default
+	$(QEMU) -m 32 -localtime -soundhw all -fda cloumo.img -L .
 
-full :
-	$(MAKE) -C images
-	$(MAKE) -C html
-	$(MAKE) -C system
-	$(MAKE) cloumo.img
-
-clean :
+clean:
 	$(DEL) cloumo.img
 	$(MAKE) -C system clean
+	$(MAKE) -C golibc clean
 
-refresh :
-	$(MAKE) full
+refresh:
+	$(MAKE) default
 	$(MAKE) clean

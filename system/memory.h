@@ -31,9 +31,9 @@ extern "C" {
 	bool  free4k(void*);
 }
 
-void *operator new(size_t) throw();
-void *operator new[](size_t) throw();
-void operator delete(void *);
-void operator delete[](void *);
+void *operator new(size_t);
+void *operator new[](size_t);
+void operator delete(void *) throw();
+void operator delete[](void *) throw();
 
 #endif
