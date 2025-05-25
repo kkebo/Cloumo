@@ -18,14 +18,14 @@ SECTIONS {
         *(.text*)
     }
 
-    .data 0x2f0000 : AT(ADDR(.text) + SIZEOF(.text)) SUBALIGN(4) {
+    .data 0x2f0000 (NOLOAD) : AT(ADDR(.text) + SIZEOF(.text)) SUBALIGN(4) {
         *(.rodata)
         *(.rodata*)
         *(.data)
         *(.data*)
     }
 
-    .bss : AT(LOADADDR(.data) + SIZEOF(.data)) SUBALIGN(4) {
+    .bss (NOLOAD) : AT(LOADADDR(.data) + SIZEOF(.data)) SUBALIGN(4) {
         *(.bss)
         *(.bss*)
     }
