@@ -33,7 +33,8 @@ ifeq ($(OS),Windows_NT)
 	TOOLPATH = ../z_tools_win/
 	MAKE     = $(TOOLPATH)make.exe -r
 	LD       =
-	EDIMG    = $(TOOLPATH)edimg.exe
+	MFORMAT  =
+	MCOPY    =
 	QEMU     = $(TOOLPATH)qemu/qemu.exe -std-vga
 	DEL      = -del
 	os.sys   = copy /B src/kernel/asmhead.bin+kernel.bin os.sys
@@ -42,7 +43,8 @@ else
 	TOOLPATH = ../z_tools/
 	MAKE     = make -r
 	LD       = ld.lld
-	EDIMG    = $(TOOLPATH)edimg
+	MFORMAT  = mformat
+	MCOPY    = mcopy
 	QEMU     = qemu-system-x86_64 -vga std
 	DEL      = rm -f
 	os.sys   = cat src/kernel/asmhead.bin kernel.bin > os.sys
@@ -69,19 +71,17 @@ os.sys: src/kernel/asmhead.bin kernel.bin
 cloumo.img: src/kernel/ipl.bin os.sys fonts/japanese.fnt html/index.htm html/kitai.htm \
 		images/b_f.bmp images/btn_r.bmp images/copy.bmp images/source.bmp \
 		images/search.bmp images/refresh.bmp
-	$(EDIMG)   imgin:$(TOOLPATH)fdimg0at.tek \
-		wbinimg src:src/kernel/ipl.bin len:512 from:0 to:0 \
-		copy from:os.sys to:@: \
-		copy from:fonts/japanese.fnt to:@: \
-		copy from:html/index.htm to:@: \
-		copy from:html/kitai.htm to:@: \
-		copy from:images/b_f.bmp to:@: \
-		copy from:images/btn_r.bmp to:@: \
-		copy from:images/copy.bmp to:@: \
-		copy from:images/source.bmp to:@: \
-		copy from:images/search.bmp to:@: \
-		copy from:images/refresh.bmp to:@: \
-		imgout:cloumo.img
+	$(MFORMAT) -f 1440 -C -B src/kernel/ipl.bin -i cloumo.img ::
+	$(MCOPY) -i cloumo.img os.sys ::
+	$(MCOPY) -i cloumo.img fonts/japanese.fnt ::
+	$(MCOPY) -i cloumo.img html/index.htm ::
+	$(MCOPY) -i cloumo.img html/kitai.htm ::
+	$(MCOPY) -i cloumo.img images/b_f.bmp ::
+	$(MCOPY) -i cloumo.img images/btn_r.bmp ::
+	$(MCOPY) -i cloumo.img images/copy.bmp ::
+	$(MCOPY) -i cloumo.img images/source.bmp ::
+	$(MCOPY) -i cloumo.img images/search.bmp ::
+	$(MCOPY) -i cloumo.img images/refresh.bmp ::
 
 # Libraries
 
