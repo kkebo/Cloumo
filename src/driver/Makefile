@@ -23,9 +23,9 @@ else
 	INCPATH  = ../../include
 	MAKE     = make -r
 	CC       = clang
-	CFLAGS   = -I../../libs/golibc/include -I$(INCPATH) --target=i686-unknown-unknown-elf -Os -MD -MP -Wall -fno-exceptions -B$(TOOLPATH) -std=c11 -fno-stack-protector -ffunction-sections -fdata-sections
+	CFLAGS   = -I../../libs/golibc/include -I$(INCPATH) --target=i686-unknown-unknown-elf -Os -MD -MP -Wall -fno-builtin -fno-exceptions -B$(TOOLPATH) -std=c11 -fno-stack-protector -ffunction-sections -fdata-sections
 	CXX      = clang++
-	CXXFLAGS = -I../../libs/mylibc++/include -I$(INCPATH) --target=i686-unknown-unknown-elf -Os -MD -MP -Wall -fno-exceptions -fno-rtti -B$(TOOLPATH) -std=c++11 -fno-stack-protector -ffunction-sections -fdata-sections -fno-use-cxa-atexit
+	CXXFLAGS = -I../../libs/mylibc++/include -I$(INCPATH) --target=i686-unknown-unknown-elf -Os -MD -MP -Wall -fno-builtin -fno-exceptions -fno-rtti -B$(TOOLPATH) -std=c++11 -fno-stack-protector -ffunction-sections -fdata-sections -fno-use-cxa-atexit
 	NASM     = nasm
 	DEL      = rm -f
 endif
