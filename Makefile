@@ -61,7 +61,7 @@ all:
 # 特別生成規則
 
 kernel.bin: $(OBJS) $(LIBS) main.ls
-	$(LD) --gc-sections -nostdlib -m elf_i386 -Map kernel.map -T main.ls -s -o $@ $(OBJS) $(LIBS)
+	$(LD) --gc-sections --orphan-handling=warn -nostdlib -m elf_i386 -Map kernel.map -T main.ls -s -o $@ $(OBJS) $(LIBS)
 
 os.sys: src/kernel/asmhead.bin kernel.bin
 	$(os.sys)

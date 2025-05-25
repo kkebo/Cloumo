@@ -30,5 +30,10 @@ SECTIONS {
         *(.bss*)
     }
 
-    /DISCARD/ : { *(.eh_frame) }
+    /DISCARD/ : {
+        *(.comment)
+        *(.eh_frame)
+    }
+
+    .shstrtab : { *(.shstrtab) }
 }
