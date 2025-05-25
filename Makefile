@@ -94,12 +94,12 @@ $(LIBS):
 .PHONY: run
 run:
 	$(MAKE) all
-	$(QEMU) -m 64 -rtc base=localtime -device intel-hda -fda cloumo.img -L .
+	$(QEMU) -m 64 -rtc base=localtime -device intel-hda -drive file=cloumo.img,index=0,if=floppy,format=raw -L .
 
 .PHONY: run-remote
 run-remote:
 	$(MAKE) all
-	$(QEMU) -vnc :2 -m 64 -rtc base=localtime -device intel-hda -fda cloumo.img -L .
+	$(QEMU) -display vnc=:2 -m 64 -rtc base=localtime -device intel-hda -drive file=cloumo.img,index=0,if=floppy,format=raw -L .
 
 .PHONY: run-virtualbox
 run-virtualbox:
