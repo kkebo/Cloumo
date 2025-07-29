@@ -14,7 +14,7 @@ OBJS = \
 	src/kernel/HTMLToken.o \
 	src/kernel/HTMLTokenizer.o \
 	src/kernel/HTMLNode.o \
-	src/kernel/HTMLTreeConstructor.o \
+	src/kernel/HTMLTreeBuilder.o \
 	src/kernel/File.o \
 	src/kernel/ModalWindow.o \
 	src/kernel/Tab.o \

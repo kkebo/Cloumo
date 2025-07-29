@@ -10,7 +10,7 @@
 #include <cloumo/kernel/File.h>
 #include <cloumo/kernel/graphic.h>
 #include <cloumo/kernel/HTMLTokenizer.h>
-#include <cloumo/kernel/HTMLTreeConstructor.h>
+#include <cloumo/kernel/HTMLTreeBuilder.h>
 #include <cloumo/kernel/jpeg.h>
 #include <cloumo/kernel/sysinfo.h>
 #include <cloumo/kernel/timer.h>
@@ -786,8 +786,8 @@ void SheetCtl::guiTaskMain() {
 									Queue<shared_ptr<HTML::Token>> &tokens = tokenizer.tokenize(source);
 									
 									// ツリー構築
-									HTML::TreeConstructor constructor;
-									HTML::Document &document = constructor.construct(tokens);
+									HTML::TreeBuilder builder;
+									HTML::Document &document = builder.build(tokens);
 									
 									// レンダリング
 									sht.drawString("パース結果", Point(1, 1), 0);

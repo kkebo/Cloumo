@@ -6,14 +6,14 @@
 #include "HTMLNode.h"
 
 namespace HTML {
-	class TreeConstructor {
+	class TreeBuilder {
 	private:
 		enum class Mode;
 		Document document;
 	
 	public:
-		TreeConstructor() {}
-		Document &construct(Queue<shared_ptr<Token>> &tokens);
+		TreeBuilder() {}
+		Document &build(Queue<shared_ptr<Token>> &tokens);
 		void parseError();
 	};
 }

@@ -14,7 +14,7 @@ OBJS = \
 	HTMLToken.o \
 	HTMLTokenizer.o \
 	HTMLNode.o \
-	HTMLTreeConstructor.o \
+	HTMLTreeBuilder.o \
 	File.o \
 	ModalWindow.o \
 	Tab.o \
