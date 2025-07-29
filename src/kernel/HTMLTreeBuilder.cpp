@@ -1,9 +1,9 @@
 #include <Stack.h>
-#include <cloumo/kernel/HTMLTreeConstructor.h>
+#include <cloumo/kernel/HTMLTreeBuilder.h>
 
 using namespace HTML;
 
-enum class TreeConstructor::Mode {
+enum class TreeBuilder::Mode {
 	Initial,
 	BeforeHtml,
 	BeforeHead,
@@ -29,7 +29,7 @@ enum class TreeConstructor::Mode {
 	AfterAfterFrameseet
 };
 
-Document &TreeConstructor::construct(Queue<shared_ptr<Token>> &tokens) {
+Document &TreeBuilder::build(Queue<shared_ptr<Token>> &tokens) {
 	Mode mode = Mode::Initial;
 	shared_ptr<Token> token;
 	Stack<shared_ptr<Node>> openTags(256); // stack of open elements
@@ -691,6 +691,6 @@ Document &TreeConstructor::construct(Queue<shared_ptr<Token>> &tokens) {
 	return document;
 }
 
-void TreeConstructor::parseError() {
+void TreeBuilder::parseError() {
 	
 }
