@@ -6,18 +6,18 @@ OBJS = \
 	src/kernel/multitask.o \
 	src/kernel/timer.o \
 	src/kernel/datetime.o \
-	src/kernel/graphic.o \
+	src/kernel/GUI/graphic.o \
 	src/kernel/tek.o \
 	src/kernel/utf82kt.o \
 	src/kernel/sysinfo.o \
 	src/kernel/asmfunc.o \
-	src/kernel/HTMLToken.o \
-	src/kernel/HTMLTokenizer.o \
-	src/kernel/HTMLNode.o \
-	src/kernel/HTMLTreeBuilder.o \
+	src/kernel/HTML/HTMLToken.o \
+	src/kernel/HTML/HTMLTokenizer.o \
+	src/kernel/HTML/HTMLNode.o \
+	src/kernel/HTML/HTMLTreeBuilder.o \
 	src/kernel/File.o \
-	src/kernel/ModalWindow.o \
-	src/kernel/Tab.o \
+	src/kernel/GUI/ModalWindow.o \
+	src/kernel/GUI/Tab.o \
 	src/kernel/bmp.o \
 	src/kernel/jpeg.o \
 	src/driver/FAT12.o \

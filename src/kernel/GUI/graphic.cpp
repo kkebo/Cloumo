@@ -8,9 +8,9 @@
 #include <cloumo/kernel/asmhead.h>
 #include <cloumo/kernel/bmp.h>
 #include <cloumo/kernel/File.h>
-#include <cloumo/kernel/graphic.h>
-#include <cloumo/kernel/HTMLTokenizer.h>
-#include <cloumo/kernel/HTMLTreeBuilder.h>
+#include <cloumo/kernel/GUI/graphic.h>
+#include <cloumo/kernel/HTML/HTMLTokenizer.h>
+#include <cloumo/kernel/HTML/HTMLTreeBuilder.h>
 #include <cloumo/kernel/jpeg.h>
 #include <cloumo/kernel/sysinfo.h>
 #include <cloumo/kernel/timer.h>

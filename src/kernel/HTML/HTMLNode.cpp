@@ -1,4 +1,4 @@
-#include <cloumo/kernel/HTMLNode.h>
+#include <cloumo/kernel/HTML/HTMLNode.h>
 
 using namespace HTML;
 

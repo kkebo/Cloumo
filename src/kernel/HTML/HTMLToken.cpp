@@ -1,4 +1,4 @@
-#include <cloumo/kernel/HTMLToken.h>
+#include <cloumo/kernel/HTML/HTMLToken.h>
 
 using namespace HTML;
 
