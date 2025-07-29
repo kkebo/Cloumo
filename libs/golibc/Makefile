@@ -13,7 +13,7 @@ ifeq ($(OS),Windows_NT)
 	CC       = $(TOOLPATH)gcc.exe
 	CFLAGS   = -I$(INCPATH) -Os -Wall -fno-exceptions -B$(TOOLPATH) -std=c11 -fno-stack-protector -ffunction-sections -fdata-sections
 	CXX      = $(TOOLPATH)g++.exe
-	CXXFLAGS = -I$(INCPATH) -Os -Wall -fno-exceptions -fno-rtti -B$(TOOLPATH) -std=c++14 -fno-stack-protector -ffunction-sections -fdata-sections
+	CXXFLAGS = -I$(INCPATH) -Os -Wall -fno-exceptions -fno-rtti -B$(TOOLPATH) -std=c++11 -fno-stack-protector -ffunction-sections -fdata-sections
 	AR       =
 	NASM     =
 	DEL      = -del
@@ -22,10 +22,10 @@ else
 	TOOLPATH = ../../z_tools/
 	INCPATH  = include
 	MAKE     = make -r
-	CC       = gcc
-	CFLAGS   = -I$(INCPATH) -Os -Wall -fno-exceptions -B$(TOOLPATH) -std=c11 -fno-stack-protector -ffunction-sections -fdata-sections
-	CXX      = g++
-	CXXFLAGS = -I$(INCPATH) -Os -Wall -fno-exceptions -fno-rtti -B$(TOOLPATH) -std=c++14 -fno-stack-protector -ffunction-sections -fdata-sections
+	CC       = clang
+	CFLAGS   = -I$(INCPATH) --target=i686-unknown-unknown-elf -Os -Wall -fno-builtin -fno-exceptions -B$(TOOLPATH) -std=c11 -fno-stack-protector -ffunction-sections -fdata-sections
+	CXX      = clang++
+	CXXFLAGS = -I$(INCPATH) --target=i686-unknown-unknown-elf -Os -Wall -fno-builtin -fno-exceptions -fno-rtti -B$(TOOLPATH) -std=c++11 -fno-stack-protector -ffunction-sections -fdata-sections
 	AR       = ar
 	NASM     = nasm
 	DEL      = rm -f

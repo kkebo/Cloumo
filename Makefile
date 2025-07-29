@@ -41,7 +41,7 @@ else
 # UNIX
 	TOOLPATH = ../z_tools/
 	MAKE     = make -r
-	LD       = ld
+	LD       = ld.lld
 	EDIMG    = $(TOOLPATH)edimg
 	QEMU     = qemu-system-x86_64 -vga std
 	DEL      = rm -f
@@ -61,7 +61,7 @@ all:
 # 特別生成規則
 
 kernel.bin: $(OBJS) $(LIBS) main.ls
-	$(LD) --gc-sections -nostdlib -m elf_i386 -Map kernel.map -T main.ls -s -o $@ $(OBJS) $(LIBS)
+	$(LD) --gc-sections --orphan-handling=warn -nostdlib -m elf_i386 -Map kernel.map -T main.ls -s -o $@ $(OBJS) $(LIBS)
 
 os.sys: src/kernel/asmhead.bin kernel.bin
 	$(os.sys)
@@ -94,12 +94,12 @@ $(LIBS):
 .PHONY: run
 run:
 	$(MAKE) all
-	$(QEMU) -m 64 -localtime -soundhw all -fda cloumo.img -L .
+	$(QEMU) -m 64 -rtc base=localtime -device intel-hda -drive file=cloumo.img,index=0,if=floppy,format=raw -L .
 
 .PHONY: run-remote
 run-remote:
 	$(MAKE) all
-	$(QEMU) -vnc :2 -m 64 -localtime -soundhw all -fda cloumo.img -L .
+	$(QEMU) -display vnc=:2 -m 64 -rtc base=localtime -device intel-hda -drive file=cloumo.img,index=0,if=floppy,format=raw -L .
 
 .PHONY: run-virtualbox
 run-virtualbox:
