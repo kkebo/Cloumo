@@ -6,7 +6,7 @@ OBJS = \
 	multitask.o \
 	timer.o \
 	datetime.o \
-	graphic.o \
+	GUI/graphic.o \
 	tek.o \
 	utf82kt.o \
 	sysinfo.o \
@@ -16,8 +16,8 @@ OBJS = \
 	HTML/HTMLNode.o \
 	HTML/HTMLTreeBuilder.o \
 	File.o \
-	ModalWindow.o \
-	Tab.o \
+	GUI/ModalWindow.o \
+	GUI/Tab.o \
 	bmp.o \
 	jpeg.o
 DEPS = $(OBJS:%.o=%.d)
