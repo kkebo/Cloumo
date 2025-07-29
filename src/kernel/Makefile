@@ -11,10 +11,10 @@ OBJS = \
 	utf82kt.o \
 	sysinfo.o \
 	asmfunc.o \
-	HTMLToken.o \
-	HTMLTokenizer.o \
-	HTMLNode.o \
-	HTMLTreeBuilder.o \
+	HTML/HTMLToken.o \
+	HTML/HTMLTokenizer.o \
+	HTML/HTMLNode.o \
+	HTML/HTMLTreeBuilder.o \
 	File.o \
 	ModalWindow.o \
 	Tab.o \

@@ -1,4 +1,4 @@
-#include <cloumo/kernel/HTMLTokenizer.h>
+#include <cloumo/kernel/HTML/HTMLTokenizer.h>
 
 using namespace HTML;
 

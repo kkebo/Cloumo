@@ -1,5 +1,5 @@
 #include <Stack.h>
-#include <cloumo/kernel/HTMLTreeBuilder.h>
+#include <cloumo/kernel/HTML/HTMLTreeBuilder.h>
 
 using namespace HTML;
 

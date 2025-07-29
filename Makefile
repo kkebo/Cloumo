@@ -11,10 +11,10 @@ OBJS = \
 	src/kernel/utf82kt.o \
 	src/kernel/sysinfo.o \
 	src/kernel/asmfunc.o \
-	src/kernel/HTMLToken.o \
-	src/kernel/HTMLTokenizer.o \
-	src/kernel/HTMLNode.o \
-	src/kernel/HTMLTreeBuilder.o \
+	src/kernel/HTML/HTMLToken.o \
+	src/kernel/HTML/HTMLTokenizer.o \
+	src/kernel/HTML/HTMLNode.o \
+	src/kernel/HTML/HTMLTreeBuilder.o \
 	src/kernel/File.o \
 	src/kernel/ModalWindow.o \
 	src/kernel/Tab.o \
